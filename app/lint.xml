@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!--
+      Screen-root composables obtain their ViewModel via viewModel(factory = …).
+      This is the integration point and matches Google's official Compose
+      samples; the stricter Slack rule (pass the VM/state as a parameter) is not
+      adopted here. State is still hoisted below the screen root.
+    -->
+    <issue id="ComposeViewModelInjection" severity="ignore" />
+
+    <!--
+      List<T> parameters on a few private, leaf composables are flagged as
+      "unstable". These lists are produced once per refresh from immutable data
+      and the screens are not recomposed hot-path; treat as informational.
+    -->
+    <issue id="ComposeUnstableCollections" severity="informational" />
+</lint>

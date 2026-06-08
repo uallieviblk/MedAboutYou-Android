@@ -1,0 +1,189 @@
+package com.uallsi.medaboutyou.data.local
+
+import com.uallsi.medaboutyou.domain.ScheduleQuery
+import com.uallsi.medaboutyou.model.EndMode
+import com.uallsi.medaboutyou.model.Occurrence
+import com.uallsi.medaboutyou.model.Schedule
+import com.uallsi.medaboutyou.model.ScheduleEngine
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+/**
+ * Persistent storage for schedules, the dose log and single-dose overrides —
+ * the Android port of the C++ `ScheduleRepository`. Removals are soft
+ * (cancel / cancelled flag); rows are never deleted.
+ */
+class ScheduleRepository(db: MedDatabase) {
+    private val scheduleDao = db.scheduleDao()
+    private val doseLogDao = db.doseLogDao()
+    private val overrideDao = db.occOverrideDao()
+
+    private fun nowIso(): String =
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+
+    suspend fun create(schedule: Schedule): Long {
+        val now = nowIso()
+        return scheduleDao.insert(schedule.copy(id = 0).toEntity(now, now))
+    }
+
+    suspend fun cancel(scheduleId: Long) = scheduleDao.cancel(scheduleId, nowIso())
+
+    suspend fun updateEnd(scheduleId: Long, endMode: EndMode, endDate: String, doseCount: Int) =
+        scheduleDao.updateEnd(scheduleId, endMode.name.lowercase(), endDate, doseCount, nowIso())
+
+    suspend fun get(scheduleId: Long): Schedule? = scheduleDao.get(scheduleId)?.toModel()
+
+    suspend fun list(includeCancelled: Boolean): List<Schedule> =
+        scheduleDao.list(if (includeCancelled) 1 else 0).map { it.toModel() }
+
+    /** "This dose only": store/replace an override keyed by the original time. */
+    suspend fun editSingle(
+        scheduleId: Long,
+        keyIso: String,
+        hour: Int,
+        minute: Int,
+        windowMinutes: Int,
+        cancelled: Boolean,
+    ) {
+        overrideDao.upsert(
+            OccOverrideEntity(
+                scheduleId = scheduleId,
+                scheduledAt = keyIso,
+                hour = hour,
+                minute = minute,
+                windowMinutes = windowMinutes,
+                cancelled = cancelled,
+                updatedAt = nowIso(),
+            )
+        )
+    }
+
+    /**
+     * "This and following": truncate the original to end before this date, then
+     * (unless [cancelled]) start a new schedule from this date with the new time.
+     * Carries over the remaining count for count-limited schedules.
+     */
+    suspend fun splitFrom(
+        scheduleId: Long,
+        year: Int,
+        month: Int,
+        day: Int,
+        index: Int,
+        hour: Int,
+        minute: Int,
+        windowMinutes: Int,
+        cancelled: Boolean,
+    ) {
+        val original = get(scheduleId) ?: return
+        val thisDate = LocalDate.of(year, month, day)
+        val startDate = runCatching {
+            val p = original.startDate.split("-")
+            LocalDate.of(p[0].toInt(), p[1].toInt(), p[2].toInt())
+        }.getOrNull()
+
+        // Special case: editing the very first dose retires the whole series.
+        if (startDate != null && !thisDate.isAfter(startDate)) {
+            cancel(scheduleId)
+        } else {
+            val dayBefore = thisDate.minusDays(1)
+            updateEnd(
+                scheduleId,
+                EndMode.DATE,
+                dayBefore.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                original.doseCount,
+            )
+        }
+
+        if (cancelled) return
+
+        val carriedCount =
+            if (original.endMode == EndMode.COUNT) maxOf(1, original.doseCount - index) else original.doseCount
+        create(
+            original.copy(
+                id = 0,
+                startDate = thisDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                hour = hour,
+                minute = minute,
+                windowMinutes = windowMinutes,
+                doseCount = carriedCount,
+                active = true,
+            )
+        )
+    }
+
+    suspend fun logDose(scheduleId: Long, iso: String, status: String) {
+        doseLogDao.upsert(
+            DoseLogEntity(
+                scheduleId = scheduleId,
+                scheduledAt = iso,
+                status = status,
+                loggedAt = nowIso(),
+            )
+        )
+    }
+
+    /** Build an immutable, synchronous snapshot for the calendar and analytics. */
+    suspend fun snapshot(): ScheduleSnapshot {
+        val all = scheduleDao.list(1).map { it.toModel() }
+        val overrides = HashMap<Long, Map<String, OccOverrideEntity>>()
+        val logs = HashMap<Long, Map<String, DoseLogEntity>>()
+        for (sch in all) {
+            overrides[sch.id] = overrideDao.forSchedule(sch.id).associateBy { it.scheduledAt }
+            logs[sch.id] = doseLogDao.forSchedule(sch.id).associateBy { it.scheduledAt }
+        }
+        return ScheduleSnapshot(all, overrides, logs)
+    }
+}
+
+/**
+ * In-memory, synchronous view of all schedules with their overrides and logs.
+ * Implements [ScheduleQuery] so the pure analytics can run tight loops without
+ * suspending on the database, exactly like the C++ `ScheduleRepository`.
+ */
+class ScheduleSnapshot(
+    private val all: List<Schedule>,
+    private val overrides: Map<Long, Map<String, OccOverrideEntity>>,
+    private val logs: Map<Long, Map<String, DoseLogEntity>>,
+) : ScheduleQuery {
+
+    override fun list(includeCancelled: Boolean): List<Schedule> =
+        if (includeCancelled) all else all.filter { it.active }
+
+    override fun occurrencesOn(year: Int, month: Int, day: Int): List<Occurrence> {
+        val result = mutableListOf<Occurrence>()
+        for (sch in all) {
+            if (!sch.active) continue
+            val ov = overrides[sch.id].orEmpty()
+            val log = logs[sch.id].orEmpty()
+            for (occ in ScheduleEngine.occurrencesOn(sch, year, month, day)) {
+                var current = occ
+                ov[occ.keyIso]?.let { o ->
+                    if (o.cancelled) return@let // handled below by skipping
+                    current = current.copy(
+                        hour = o.hour,
+                        minute = o.minute,
+                        windowMinutes = o.windowMinutes,
+                    )
+                }
+                if (ov[occ.keyIso]?.cancelled == true) continue
+                log[occ.keyIso]?.let { l ->
+                    current = current.copy(status = l.status, takenAt = l.loggedAt)
+                }
+                result.add(current)
+            }
+        }
+        result.sortWith(compareBy({ it.hour }, { it.minute }))
+        return result
+    }
+
+    /** Days of [year]/[month] that have at least one (non-cancelled) occurrence. */
+    fun daysWithDoses(year: Int, month: Int): Set<Int> {
+        val days = sortedSetOf<Int>()
+        val last = LocalDate.of(year, month, 1).lengthOfMonth()
+        for (d in 1..last) {
+            if (occurrencesOn(year, month, d).isNotEmpty()) days.add(d)
+        }
+        return days
+    }
+}
