@@ -5,8 +5,8 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeParseException
 
-/** How a schedule repeats. Mirrors the C++ `PeriodUnit` enum. */
-enum class PeriodUnit { HOURS, DAYS, WEEKS }
+/** How a schedule repeats. Extends the C++ `PeriodUnit` enum with MONTHS. */
+enum class PeriodUnit { HOURS, DAYS, WEEKS, MONTHS }
 
 /** How a schedule ends. Mirrors the C++ `EndMode` enum. */
 enum class EndMode {
@@ -138,6 +138,22 @@ object ScheduleEngine {
                 if (!whenTime.isBefore(dayBegin)) emit(idx, whenTime)
                 idx++
             }
+            return result
+        }
+
+        // Months: at most one dose per month, on the same day-of-month as the
+        // start date, every period_n months. Months that lack that day are skipped.
+        if (schedule.periodUnit == PeriodUnit.MONTHS) {
+            val step = if (schedule.periodN > 0) schedule.periodN else 1
+            if (targetDay.dayOfMonth != startDay.dayOfMonth) return result
+            val months = java.time.temporal.ChronoUnit.MONTHS.between(
+                startDay.withDayOfMonth(1), targetDay.withDayOfMonth(1),
+            )
+            if (months < 0 || months % step != 0L) return result
+            val idx = (months / step).toInt()
+            if (schedule.endMode == EndMode.COUNT && idx >= schedule.doseCount) return result
+            if (endDay != null && targetDay.isAfter(endDay)) return result
+            emit(idx, targetDay.atTime(LocalTime.of(schedule.hour, schedule.minute)))
             return result
         }
 

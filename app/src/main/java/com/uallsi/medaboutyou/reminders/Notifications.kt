@@ -21,9 +21,9 @@ object Notifications {
         // minSdk 26, so notification channels are always available.
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Dose reminders",
+            context.getString(R.string.channel_name),
             NotificationManager.IMPORTANCE_HIGH,
-        ).apply { description = "Reminds you when a scheduled dose is due" }
+        ).apply { description = context.getString(R.string.channel_desc) }
         context.getSystemService(NotificationManager::class.java)
             .createNotificationChannel(channel)
     }
@@ -59,13 +59,13 @@ object Notifications {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Time for $medName")
-            .setContentText("Dose due at $time")
+            .setContentTitle(context.getString(R.string.notif_title, medName))
+            .setContentText(context.getString(R.string.notif_text, time))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(openPi)
-            .addAction(action(ACTION_TAKE, "Mark taken", 1000))
-            .addAction(action(ACTION_SKIP, "Skip", 2000))
+            .addAction(action(ACTION_TAKE, context.getString(R.string.mark_taken), 1000))
+            .addAction(action(ACTION_SKIP, context.getString(R.string.skip), 2000))
             .build()
 
         try {

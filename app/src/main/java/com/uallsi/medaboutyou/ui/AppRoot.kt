@@ -29,6 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
+import com.uallsi.medaboutyou.R
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,14 +45,14 @@ import com.uallsi.medaboutyou.ui.today.TodayScreen
 
 private enum class Tab(
     val route: String,
-    val label: String,
+    val labelRes: Int,
     val selectedIcon: ImageVector,
     val icon: ImageVector,
 ) {
-    TODAY("today", "Today", Icons.Filled.Home, Icons.Outlined.Home),
-    SEARCH("search", "Search", Icons.Filled.Search, Icons.Outlined.Search),
-    CALENDAR("calendar", "Calendar", Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
-    INSIGHTS("insights", "Insights", Icons.Filled.BarChart, Icons.Outlined.BarChart),
+    TODAY("today", R.string.nav_today, Icons.Filled.Home, Icons.Outlined.Home),
+    SEARCH("search", R.string.nav_search, Icons.Filled.Search, Icons.Outlined.Search),
+    CALENDAR("calendar", R.string.nav_calendar, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
+    INSIGHTS("insights", R.string.nav_insights, Icons.Filled.BarChart, Icons.Outlined.BarChart),
 }
 
 @OptIn(
@@ -66,17 +68,21 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
     // Detail is a full-screen route with its own top bar; hide app chrome there.
     val immersive = currentRoute == "detail"
 
-    val title = when (currentRoute) {
-        Tab.SEARCH.route -> "Find a medicine"
-        Tab.CALENDAR.route -> "Calendar"
-        Tab.INSIGHTS.route -> "Adherence & refills"
-        "settings" -> "Settings"
-        else -> "Today"
-    }
+    val title = stringResource(
+        when (currentRoute) {
+            Tab.SEARCH.route -> R.string.title_search
+            Tab.CALENDAR.route -> R.string.title_calendar
+            Tab.INSIGHTS.route -> R.string.title_insights
+            "settings" -> R.string.title_settings
+            else -> R.string.title_today
+        }
+    )
 
     val layoutType =
         if (immersive) NavigationSuiteType.None
         else NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+
+    val tabLabels = Tab.entries.associateWith { stringResource(it.labelRes) }
 
     NavigationSuiteScaffold(
         modifier = modifier,
@@ -84,6 +90,7 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
         navigationSuiteItems = {
             Tab.entries.forEach { tab ->
                 val selected = currentRoute == tab.route
+                val label = tabLabels.getValue(tab)
                 item(
                     selected = selected,
                     onClick = {
@@ -93,8 +100,8 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                             restoreState = true
                         }
                     },
-                    icon = { Icon(if (selected) tab.selectedIcon else tab.icon, contentDescription = tab.label) },
-                    label = { Text(tab.label) },
+                    icon = { Icon(if (selected) tab.selectedIcon else tab.icon, contentDescription = label) },
+                    label = { Text(label) },
                 )
             }
         },
@@ -110,7 +117,7 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                         actions = {
                             if (currentRoute != "settings") {
                                 IconButton(onClick = { navController.navigate("settings") }) {
-                                    Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                                    Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
                                 }
                             }
                         },
@@ -140,6 +147,8 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                             onBack = { navController.popBackStack() },
                             onSchedule = { m ->
                                 CalendarPrefill.name = m.name
+                                CalendarPrefill.source = m.source
+                                CalendarPrefill.extId = m.extId
                                 navController.navigate(Tab.CALENDAR.route) {
                                     popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                     launchSingleTop = true
@@ -151,6 +160,8 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                 composable(Tab.CALENDAR.route) {
                     CalendarScreen(
                         prefillName = CalendarPrefill.name,
+                        prefillSource = CalendarPrefill.source,
+                        prefillExtId = CalendarPrefill.extId,
                         onConsumePrefill = { CalendarPrefill.name = null },
                     )
                 }
@@ -161,8 +172,14 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
     }
 }
 
-/** One-shot holder for the medicine name to prefill the new-schedule dialog. */
+/** One-shot holder for the medicine identity to prefill the new-schedule dialog. */
 object CalendarPrefill {
     @Volatile
     var name: String? = null
+
+    @Volatile
+    var source: com.uallsi.medaboutyou.model.Source = com.uallsi.medaboutyou.model.Source.EMA
+
+    @Volatile
+    var extId: String = ""
 }

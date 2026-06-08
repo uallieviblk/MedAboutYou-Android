@@ -42,6 +42,11 @@ Reports land in `app/build/reports/` (`tests/`, `lint-results-debug.html`,
 - `ScheduleRepositoryInstrumentedTest` (4) — create→snapshot, dose logging,
   single-occurrence cancel (override), soft-cancel a schedule.
 - `TodayScreenUiTest` (1) — Today screen composes and shows its header.
+- `FullUsageTest` (1) — **end-to-end real-usage flow** driving the whole app:
+  seed a prescription → Today shows the due dose (ring 0/1) → mark it taken via
+  the checkbox (ring → 1/1, stock 10→9 asserted) → Insights renders → Calendar
+  lists the schedule → add a second prescription through the New-schedule dialog
+  (asserts both persist). Needs a clean state (`adb shell pm clear`).
 
 ## Other analyses available (not wired in)
 

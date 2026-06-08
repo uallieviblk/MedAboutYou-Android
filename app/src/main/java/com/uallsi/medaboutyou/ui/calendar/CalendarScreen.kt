@@ -16,17 +16,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,11 +35,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.theme.MedColors
@@ -49,36 +52,43 @@ import java.time.LocalDate
 fun CalendarScreen(
     modifier: Modifier = Modifier,
     prefillName: String? = null,
+    prefillSource: Source = Source.EMA,
+    prefillExtId: String = "",
     onConsumePrefill: () -> Unit = {},
 ) {
     val vm: CalendarViewModel = viewModel(factory = AppViewModelFactory)
     val state by vm.state.collectAsStateWithLifecycle()
     var showNew by remember { mutableStateOf(false) }
     var prefill by remember { mutableStateOf<String?>(null) }
+    // Schedule pending a cancel confirmation (id to name).
+    var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
+    // Identity to attach to a prefilled schedule, so its stock is the same row
+    // the medicine record edits (key "source:extId").
+    var prefillMedSource by remember { mutableStateOf(Source.EMA) }
+    var prefillMedExt by remember { mutableStateOf("") }
 
     androidx.compose.runtime.LaunchedEffect(prefillName) {
-        if (prefillName != null) { prefill = prefillName; showNew = true; onConsumePrefill() }
+        if (prefillName != null) {
+            prefill = prefillName
+            prefillMedSource = prefillSource
+            prefillMedExt = prefillExtId
+            showNew = true
+            onConsumePrefill()
+        }
     }
 
-    Scaffold(
-        modifier = modifier,
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text("New schedule") },
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                onClick = { prefill = null; showNew = true },
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+    // Schedules are created from a medicine record (Search → medicine → "Add to
+    // my medication schedule"), so the schedule always carries the medicine's
+    // identity for stock tracking. There is no free-text "New schedule" button.
+    LazyColumn(
+        modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
             item { MonthHeader(state.year, state.month, onPrev = { vm.shiftMonth(-1) }, onNext = { vm.shiftMonth(1) }) }
             item { MonthGrid(state, onSelect = vm::selectDay) }
             item {
                 Text(
-                    "Doses on %04d-%02d-%02d".format(state.year, state.month, state.selectedDay),
+                    stringResource(R.string.doses_on, "%04d-%02d-%02d".format(state.year, state.month, state.selectedDay)),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 8.dp),
@@ -87,7 +97,7 @@ fun CalendarScreen(
             if (state.agenda.isEmpty()) {
                 item {
                     Text(
-                        "No doses scheduled. Tap + to add one, or pick another day.",
+                        stringResource(R.string.calendar_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -100,26 +110,43 @@ fun CalendarScreen(
             if (state.schedules.isNotEmpty()) {
                 item {
                     Text(
-                        "Active schedules",
+                        stringResource(R.string.active_schedules),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(top = 12.dp),
                     )
                 }
                 items(state.schedules, key = { it.id }) { sch ->
-                    ScheduleRow(sch.medName, sch.startDate, onCancel = { vm.cancelSchedule(sch.id) })
+                    ScheduleRow(sch.medName, sch.startDate, onCancel = { pendingCancel = sch.id to sch.medName })
                 }
             }
-        }
     }
 
     if (showNew) {
         NewScheduleDialog(
             prefillName = prefill ?: "",
-            prefillSource = Source.EMA,
-            prefillExtId = "",
+            prefillSource = prefillMedSource,
+            prefillExtId = prefillMedExt,
             onCreate = { vm.createSchedule(it); showNew = false },
             onDismiss = { showNew = false },
+        )
+    }
+
+    pendingCancel?.let { (id, name) ->
+        AlertDialog(
+            onDismissRequest = { pendingCancel = null },
+            icon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MedColors.error) },
+            title = { Text(stringResource(R.string.confirm_cancel_title)) },
+            text = { Text("$name\n\n" + stringResource(R.string.confirm_cancel_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = { vm.cancelSchedule(id); pendingCancel = null },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MedColors.error),
+                ) { Text(stringResource(R.string.cancel_prescription)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingCancel = null }) { Text(stringResource(R.string.keep)) }
+            },
         )
     }
 }
@@ -131,10 +158,10 @@ private fun MonthHeader(year: Int, month: Int, onPrev: () -> Unit, onNext: () ->
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onPrev) { Icon(Icons.Default.ChevronLeft, "Previous month") }
+        IconButton(onClick = onPrev) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.previous_month)) }
         val name = java.time.Month.of(month).getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
         Text("$name $year", style = MaterialTheme.typography.titleLarge)
-        IconButton(onClick = onNext) { Icon(Icons.Default.ChevronRight, "Next month") }
+        IconButton(onClick = onNext) { Icon(Icons.Default.ChevronRight, stringResource(R.string.next_month)) }
     }
 }
 
@@ -148,7 +175,7 @@ private fun MonthGrid(state: CalendarState, onSelect: (Int) -> Unit) {
 
     Column {
         Row(Modifier.fillMaxWidth()) {
-            listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach {
+            (0..6).map { java.time.DayOfWeek.MONDAY.plus(it.toLong()).getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()) }.forEach {
                 Text(
                     it, style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -227,11 +254,13 @@ private fun stateColor(state: DayState?): Color? = when (state) {
 @Composable
 private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit) {
     val occ = item.occ
-    val statusText = when {
-        occ.status == "taken" -> "taken"
-        item.isPast -> "missed"
-        else -> "upcoming"
-    }
+    val statusText = stringResource(
+        when {
+            occ.status == "taken" -> R.string.agenda_status_taken
+            item.isPast -> R.string.agenda_status_missed
+            else -> R.string.agenda_status_upcoming
+        }
+    )
     val rowColor = when {
         occ.status == "taken" -> MedColors.successContainer
         item.isPast -> MedColors.errorContainer
@@ -253,9 +282,10 @@ private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit) {
             )
             Column(Modifier.weight(1f)) {
                 Text("${occ.timeLabel()} — ${occ.medName}", style = MaterialTheme.typography.titleSmall)
-                val warn = if (item.stock <= 0) "  ⚠ no stock" else ""
+                val inStock = pluralStringResource(R.plurals.in_stock, item.stock, item.stock)
+                val warn = if (item.stock <= 0) "  " + stringResource(R.string.agenda_warn_no_stock) else ""
                 Text(
-                    "±${occ.windowMinutes} min · $statusText · ${item.stock} in stock$warn",
+                    stringResource(R.string.agenda_subtitle, occ.windowMinutes, statusText, inStock) + warn,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -273,10 +303,10 @@ private fun ScheduleRow(name: String, startDate: String, onCancel: () -> Unit) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(name, style = MaterialTheme.typography.bodyLarge)
-            Text("from $startDate", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.from_date, startDate), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         IconButton(onClick = onCancel) {
-            Icon(Icons.Default.Delete, contentDescription = "Cancel prescription", tint = MedColors.error)
+            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cancel_prescription), tint = MedColors.error)
         }
     }
 }

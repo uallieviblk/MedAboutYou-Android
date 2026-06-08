@@ -15,7 +15,7 @@ import com.uallsi.medaboutyou.data.remote.ImageService
  * owns as members.
  */
 class AppContainer(context: Context) {
-    private val appContext = context.applicationContext
+    val appContext: Context = context.applicationContext
     val db: MedDatabase by lazy { MedDatabase.get(appContext) }
     val medicines: MedicineStore by lazy { MedicineStore(db) }
     val schedules: ScheduleRepository by lazy { ScheduleRepository(db) }

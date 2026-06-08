@@ -15,8 +15,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.uallsi.medaboutyou.R
 
 /**
  * A labelled numeric stepper (−/value/+) — replaces free-text numeric entry for
@@ -38,7 +40,7 @@ fun Stepper(
             FilledTonalIconButton(
                 onClick = { onChange((value - step).coerceAtLeast(min)) },
                 enabled = value > min,
-            ) { Icon(Icons.Default.Remove, contentDescription = "Decrease") }
+            ) { Icon(Icons.Default.Remove, contentDescription = stringResource(R.string.action_decrease)) }
             Text(
                 value.toString(),
                 style = MaterialTheme.typography.titleMedium,
@@ -48,7 +50,7 @@ fun Stepper(
             FilledTonalIconButton(
                 onClick = { onChange((value + step).coerceAtMost(max)) },
                 enabled = value < max,
-            ) { Icon(Icons.Default.Add, contentDescription = "Increase") }
+            ) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_increase)) }
         }
     }
 }

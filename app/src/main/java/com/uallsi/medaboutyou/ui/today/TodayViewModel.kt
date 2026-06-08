@@ -23,7 +23,7 @@ data class TodayState(
     val refreshing: Boolean = false,
     val doses: List<TodayDose> = emptyList(),
     val takenToday: Int = 0,
-    val dueToday: Int = 0,
+    val totalToday: Int = 0,
     val streak: Int = 0,
     val nextRefill: RefillForecast? = null,
 )
@@ -53,22 +53,31 @@ class TodayViewModel(private val container: AppContainer) : ViewModel() {
                     isPast = ScheduleEngine.isPastDateTime(occ.year, occ.month, occ.day, occ.hour, occ.minute),
                 )
             }
-            val due = todays.filter { Insights.doseIsDue(it, now) }
-            val taken = due.count { it.status == "taken" }
+            // The ring tracks progress over ALL of today's doses (including ones
+            // still upcoming), so a dose you've yet to take is reflected.
+            val takenToday = todays.count { it.status == "taken" }
+            val totalToday = todays.size
             val streak = Insights.currentStreak(snapshot, now)
 
             val refills = withContext(Dispatchers.IO) {
                 Insights.refillForecast(snapshot, dosesAvailable(), now)
+            }
+            // Only surface the home banner when a run-out is genuinely near; the
+            // full, urgency-sorted list lives in Insights → Next refill.
+            val today = java.time.LocalDate.of(now.year, now.month, now.day)
+            val soonest = refills.firstOrNull()?.takeIf { r ->
+                val runOut = java.time.LocalDate.of(r.year, r.month, r.day)
+                java.time.temporal.ChronoUnit.DAYS.between(today, runOut) <= REFILL_SOON_DAYS
             }
 
             _state.value = TodayState(
                 loading = false,
                 refreshing = false,
                 doses = doses,
-                takenToday = taken,
-                dueToday = due.size,
+                takenToday = takenToday,
+                totalToday = totalToday,
                 streak = streak,
-                nextRefill = refills.firstOrNull(),
+                nextRefill = soonest,
             )
         }
     }
@@ -95,6 +104,11 @@ class TodayViewModel(private val container: AppContainer) : ViewModel() {
             }
             refresh()
         }
+    }
+
+    private companion object {
+        // A run-out within this many days counts as "refill soon" on the home banner.
+        const val REFILL_SOON_DAYS = 10L
     }
 
     private suspend fun dosesAvailable(): com.uallsi.medaboutyou.domain.DosesAvailable {

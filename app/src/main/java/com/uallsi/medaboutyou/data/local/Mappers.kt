@@ -118,6 +118,7 @@ fun ScheduleEntity.toModel() = Schedule(
     periodUnit = when (periodUnit) {
         "hours" -> PeriodUnit.HOURS
         "weeks" -> PeriodUnit.WEEKS
+        "months" -> PeriodUnit.MONTHS
         else -> PeriodUnit.DAYS
     },
     periodN = periodN,

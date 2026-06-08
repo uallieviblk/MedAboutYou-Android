@@ -3,6 +3,7 @@ package com.uallsi.medaboutyou.ui.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.Medicine
 import com.uallsi.medaboutyou.model.Source
 import kotlinx.coroutines.Dispatchers
@@ -88,11 +89,11 @@ class SearchViewModel(private val container: AppContainer) : ViewModel() {
                     _state.value = _state.value.copy(
                         results = emptyList(),
                         loading = false,
-                        statusLine = "Type at least 2 letters to search AIFA",
+                        statusLine = ctx.getString(R.string.aifa_min_chars),
                     )
                     return@launch
                 }
-                _state.value = _state.value.copy(loading = true, statusLine = "Searching AIFA…")
+                _state.value = _state.value.copy(loading = true, statusLine = ctx.getString(R.string.searching_aifa))
                 delay(250) // debounce keystrokes
                 val results = withContext(Dispatchers.IO) { container.aifa.search(s.query) }
                 _state.value = _state.value.copy(
@@ -108,7 +109,7 @@ class SearchViewModel(private val container: AppContainer) : ViewModel() {
     /** Re-download the EMA dataset and cache it locally. */
     fun refreshEma(onDone: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(loading = true, statusLine = "Downloading EMA dataset…")
+            _state.value = _state.value.copy(loading = true, statusLine = ctx.getString(R.string.downloading_ema))
             val result = withContext(Dispatchers.IO) { container.ema.refresh() }
             if (result == null) {
                 _state.value = _state.value.copy(loading = false, statusLine = container.ema.lastError)
@@ -129,8 +130,10 @@ class SearchViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    private val ctx get() = container.appContext
+
     private fun countLine(count: Int, timestamp: String): String {
-        val base = "$count medicines"
-        return if (timestamp.isNotEmpty()) "$base • EMA $timestamp" else base
+        val base = ctx.resources.getQuantityString(R.plurals.medicines_count, count, count)
+        return if (timestamp.isNotEmpty()) ctx.getString(R.string.count_with_date, base, timestamp) else base
     }
 }

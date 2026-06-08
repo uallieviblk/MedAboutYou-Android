@@ -10,7 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.Medicine
 import com.uallsi.medaboutyou.ui.theme.MedColors
 
@@ -50,17 +52,17 @@ fun Badge(
     }
 }
 
-/** The medicine-type indicators that apply, as labels (desktop badge set). */
-fun Medicine.typeBadges(): List<String> = buildList {
-    if (generic) add("Generic")
-    if (orphan) add("Orphan")
-    if (biosimilar) add("Biosimilar")
-    if (prime) add("PRIME")
-    if (advancedTherapy) add("Advanced therapy")
-    if (acceleratedAssessment) add("Accelerated assessment")
-    if (conditionalApproval) add("Conditional approval")
-    if (exceptionalCircumstances) add("Exceptional circumstances")
-    if (additionalMonitoring) add("Additional monitoring")
+/** The medicine-type indicators that apply, as string-resource ids. */
+fun Medicine.typeBadges(): List<Int> = buildList {
+    if (generic) add(R.string.badge_generic)
+    if (orphan) add(R.string.badge_orphan)
+    if (biosimilar) add(R.string.badge_biosimilar)
+    if (prime) add(R.string.badge_prime)
+    if (advancedTherapy) add(R.string.badge_advanced_therapy)
+    if (acceleratedAssessment) add(R.string.badge_accelerated)
+    if (conditionalApproval) add(R.string.badge_conditional)
+    if (exceptionalCircumstances) add(R.string.badge_exceptional)
+    if (additionalMonitoring) add(R.string.badge_additional_monitoring)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -78,6 +80,6 @@ fun MedicineBadges(medicine: Medicine, modifier: Modifier = Modifier) {
         if (medicine.status.isNotEmpty()) {
             Badge(medicine.status, statusBadgeColors(medicine.status))
         }
-        medicine.typeBadges().forEach { Badge(it, accent) }
+        medicine.typeBadges().forEach { Badge(stringResource(it), accent) }
     }
 }

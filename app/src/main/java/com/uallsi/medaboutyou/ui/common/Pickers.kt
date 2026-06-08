@@ -25,8 +25,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.uallsi.medaboutyou.R
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -54,7 +56,7 @@ fun DateField(
         label = { Text(label) },
         trailingIcon = {
             androidx.compose.material3.IconButton(onClick = { open = true }) {
-                Icon(Icons.Default.CalendarMonth, contentDescription = "Pick date")
+                Icon(Icons.Default.CalendarMonth, contentDescription = stringResource(R.string.pick_date))
             }
         },
         modifier = modifier.fillMaxWidth(),
@@ -72,9 +74,9 @@ fun DateField(
                         onChange(picked.toString())
                     }
                     open = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.action_ok)) }
             },
-            dismissButton = { TextButton(onClick = { open = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
         ) { DatePicker(state = state) }
     }
 }
@@ -101,7 +103,7 @@ fun TimeField(
         label = { Text(label) },
         trailingIcon = {
             androidx.compose.material3.IconButton(onClick = { open = true }) {
-                Icon(Icons.Default.Schedule, contentDescription = "Pick time")
+                Icon(Icons.Default.Schedule, contentDescription = stringResource(R.string.pick_time))
             }
         },
         modifier = modifier.fillMaxWidth(),
@@ -122,8 +124,8 @@ fun TimeField(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.End,
                     ) {
-                        TextButton(onClick = { open = false }) { Text("Cancel") }
-                        TextButton(onClick = { onChange(state.hour, state.minute); open = false }) { Text("OK") }
+                        TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) }
+                        TextButton(onClick = { onChange(state.hour, state.minute); open = false }) { Text(stringResource(R.string.action_ok)) }
                     }
                 }
             }

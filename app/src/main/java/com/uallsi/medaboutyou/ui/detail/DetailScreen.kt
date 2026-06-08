@@ -29,12 +29,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.Medicine
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.common.MedicineBadges
@@ -62,7 +65,7 @@ fun DetailScreen(
                 title = { Text(medicine.name, maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -96,7 +99,7 @@ fun DetailScreen(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     AsyncImage(
                         model = state.imageUrl,
-                        contentDescription = "Illustration of ${medicine.name}",
+                        contentDescription = stringResource(R.string.image_desc, medicine.name),
                         modifier = Modifier.fillMaxWidth().height(200.dp).padding(8.dp),
                     )
                 }
@@ -110,17 +113,17 @@ fun DetailScreen(
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
                 ) {
                     Column {
-                        Text("Stock", style = MaterialTheme.typography.labelMedium)
-                        Text("${state.stock} doses", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.stock), style = MaterialTheme.typography.labelMedium)
+                        Text(pluralStringResource(R.plurals.doses_count, state.stock, state.stock), style = MaterialTheme.typography.titleMedium)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { vm.supplyStock(30) }) { Text("+30") }
-                        Button(onClick = { stockDialog = true }) { Text("Set stock…") }
+                        OutlinedButton(onClick = { vm.supplyStock(30) }) { Text(stringResource(R.string.supply_30)) }
+                        Button(onClick = { stockDialog = true }) { Text(stringResource(R.string.set_stock)) }
                     }
                 }
             }
 
-            InfoSection("Therapeutic indication", medicine.therapeuticIndication)
+            InfoSection(stringResource(R.string.section_indication), medicine.therapeuticIndication)
             ClassificationSection(medicine)
             AuthorisationSection(medicine)
             PosologySection(medicine, context)
@@ -131,7 +134,7 @@ fun DetailScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                Text("  Add to my medication schedule")
+                Text("  " + stringResource(R.string.add_to_schedule))
             }
             if (medicine.url.isNotEmpty()) {
                 OutlinedButton(
@@ -141,7 +144,7 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Default.OpenInNew, contentDescription = null)
-                    Text(if (medicine.source == com.uallsi.medaboutyou.model.Source.AIFA) "  Open AIFA page" else "  Open EPAR page")
+                    Text("  " + stringResource(if (medicine.source == com.uallsi.medaboutyou.model.Source.AIFA) R.string.open_aifa else R.string.open_epar))
                 }
             }
         }
@@ -168,26 +171,26 @@ private fun InfoSection(title: String, body: String) {
 @Composable
 private fun ClassificationSection(med: Medicine) {
     val rows = buildList {
-        if (med.activeSubstance.isNotEmpty()) add("Active substance" to med.activeSubstance)
-        if (med.atcCode.isNotEmpty()) add("ATC code" to med.atcCode)
-        if (med.pharmacotherapeuticGroup.isNotEmpty()) add("Pharmacotherapeutic group" to med.pharmacotherapeuticGroup)
-        if (med.therapeuticArea.isNotEmpty()) add("Therapeutic area" to med.therapeuticArea)
-        if (med.pharmaceuticalForm.isNotEmpty()) add("Pharmaceutical form" to med.pharmaceuticalForm)
-        if (med.route.isNotEmpty()) add("Route" to med.route)
+        if (med.activeSubstance.isNotEmpty()) add(stringResource(R.string.label_active_substance) to med.activeSubstance)
+        if (med.atcCode.isNotEmpty()) add(stringResource(R.string.label_atc) to med.atcCode)
+        if (med.pharmacotherapeuticGroup.isNotEmpty()) add(stringResource(R.string.label_pharmacotherapeutic) to med.pharmacotherapeuticGroup)
+        if (med.therapeuticArea.isNotEmpty()) add(stringResource(R.string.label_therapeutic_area) to med.therapeuticArea)
+        if (med.pharmaceuticalForm.isNotEmpty()) add(stringResource(R.string.label_pharmaceutical_form) to med.pharmaceuticalForm)
+        if (med.route.isNotEmpty()) add(stringResource(R.string.label_route) to med.route)
     }
-    LabeledGroup("Classification", rows)
+    LabeledGroup(stringResource(R.string.section_classification), rows)
 }
 
 @Composable
 private fun AuthorisationSection(med: Medicine) {
     val rows = buildList {
-        if (med.marketingAuthorisationHolder.isNotEmpty()) add("MA holder" to med.marketingAuthorisationHolder)
-        if (med.productNumber.isNotEmpty()) add("Product number" to med.productNumber)
-        if (med.marketingAuthorisationDate.isNotEmpty()) add("MA date" to med.marketingAuthorisationDate)
-        if (med.lastUpdated.isNotEmpty()) add("Last updated" to med.lastUpdated)
-        if (med.prescription.isNotEmpty()) add("Supply" to med.prescription)
+        if (med.marketingAuthorisationHolder.isNotEmpty()) add(stringResource(R.string.label_ma_holder) to med.marketingAuthorisationHolder)
+        if (med.productNumber.isNotEmpty()) add(stringResource(R.string.label_product_number) to med.productNumber)
+        if (med.marketingAuthorisationDate.isNotEmpty()) add(stringResource(R.string.label_ma_date) to med.marketingAuthorisationDate)
+        if (med.lastUpdated.isNotEmpty()) add(stringResource(R.string.label_last_updated) to med.lastUpdated)
+        if (med.prescription.isNotEmpty()) add(stringResource(R.string.label_supply) to med.prescription)
     }
-    LabeledGroup("Authorisation", rows)
+    LabeledGroup(stringResource(R.string.section_authorisation), rows)
 }
 
 @Composable
@@ -220,15 +223,15 @@ private fun PosologySection(med: Medicine, context: android.content.Context) {
     }
     if (link.isEmpty()) return
     Column(Modifier.fillMaxWidth()) {
-        Text("Posology & administration", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.section_posology), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Text(
-            "Dosing is published in the official product information.",
+            stringResource(R.string.posology_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, link.toUri())) }) {
             Icon(Icons.Default.OpenInNew, contentDescription = null)
-            Text(if (med.hasRcp) "  Read the RCP (§4.2)" else "  Read product information")
+            Text("  " + stringResource(if (med.hasRcp) R.string.read_rcp else R.string.read_product_info))
         }
     }
 }
@@ -239,16 +242,16 @@ private fun SetStockDialog(initial: Int, onConfirm: (Int) -> Unit, onDismiss: ()
     var text by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(initial.toString()) }
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Set stock") },
+        title = { Text(stringResource(R.string.set_stock_title)) },
         text = {
             androidx.compose.material3.OutlinedTextField(
                 value = text,
                 onValueChange = { text = it.filter { c -> c.isDigit() }.take(5) },
-                label = { Text("Doses on hand") },
+                label = { Text(stringResource(R.string.doses_on_hand)) },
                 singleLine = true,
             )
         },
-        confirmButton = { TextButton(onClick = { onConfirm(text.toIntOrNull() ?: 0) }) { Text("Save") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { TextButton(onClick = { onConfirm(text.toIntOrNull() ?: 0) }) { Text(stringResource(R.string.action_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

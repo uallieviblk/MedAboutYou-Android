@@ -1,3 +1,185 @@
 <resources>
     <string name="app_name">MedAboutYou</string>
+
+    <!-- Navigation / titles -->
+    <string name="nav_today">Today</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_insights">Insights</string>
+    <string name="title_today">Today</string>
+    <string name="title_search">Find a medicine</string>
+    <string name="title_calendar">Calendar</string>
+    <string name="title_insights">Adherence &amp; refills</string>
+    <string name="title_settings">Settings</string>
+    <string name="language">Language</string>
+
+    <!-- Common -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_back">Back</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_decrease">Decrease</string>
+    <string name="action_increase">Increase</string>
+
+    <!-- Search -->
+    <string name="source_ema">EMA (Europe)</string>
+    <string name="source_aifa">AIFA (Italy)</string>
+    <string name="search_placeholder">Search by name, INN or substance…</string>
+    <string name="vet">Vet</string>
+    <string name="refresh_dataset">Refresh dataset</string>
+    <string name="searching_aifa">Searching AIFA…</string>
+    <string name="aifa_min_chars">Type at least 2 letters to search AIFA</string>
+    <string name="downloading_ema">Downloading EMA dataset…</string>
+    <string name="dataset_not_downloaded">The EMA medicines dataset isn\'t downloaded yet.</string>
+    <string name="dataset_cached_note">It is cached on-device for fast, offline browsing.</string>
+    <string name="download_dataset">Download dataset</string>
+    <string name="count_with_date">%1$s • EMA %2$s</string>
+    <plurals name="medicines_count">
+        <item quantity="one">%d medicine</item>
+        <item quantity="other">%d medicines</item>
+    </plurals>
+
+    <!-- Medicine detail -->
+    <string name="stock">Stock</string>
+    <string name="supply_30">+30</string>
+    <string name="set_stock">Set stock…</string>
+    <string name="set_stock_title">Set stock</string>
+    <string name="doses_on_hand">Doses on hand</string>
+    <string name="add_to_schedule">Add to my medication schedule</string>
+    <string name="open_epar">Open EPAR page</string>
+    <string name="open_aifa">Open AIFA page</string>
+    <string name="section_indication">Therapeutic indication</string>
+    <string name="section_classification">Classification</string>
+    <string name="section_authorisation">Authorisation</string>
+    <string name="section_posology">Posology &amp; administration</string>
+    <string name="posology_note">Dosing is published in the official product information.</string>
+    <string name="read_rcp">Read the RCP (§4.2)</string>
+    <string name="read_product_info">Read product information</string>
+    <string name="label_active_substance">Active substance</string>
+    <string name="label_atc">ATC code</string>
+    <string name="label_pharmacotherapeutic">Pharmacotherapeutic group</string>
+    <string name="label_therapeutic_area">Therapeutic area</string>
+    <string name="label_pharmaceutical_form">Pharmaceutical form</string>
+    <string name="label_route">Route</string>
+    <string name="label_ma_holder">Marketing-authorisation holder</string>
+    <string name="label_product_number">Product number</string>
+    <string name="label_ma_date">Marketing-authorisation date</string>
+    <string name="label_last_updated">Last updated</string>
+    <string name="label_supply">Supply</string>
+    <string name="image_desc">Illustration of %1$s</string>
+    <plurals name="doses_count">
+        <item quantity="one">%d dose</item>
+        <item quantity="other">%d doses</item>
+    </plurals>
+
+    <!-- Medicine-type badges -->
+    <string name="badge_generic">Generic</string>
+    <string name="badge_orphan">Orphan</string>
+    <string name="badge_biosimilar">Biosimilar</string>
+    <string name="badge_prime">PRIME</string>
+    <string name="badge_advanced_therapy">Advanced therapy</string>
+    <string name="badge_accelerated">Accelerated assessment</string>
+    <string name="badge_conditional">Conditional approval</string>
+    <string name="badge_exceptional">Exceptional circumstances</string>
+    <string name="badge_additional_monitoring">Additional monitoring</string>
+
+    <!-- Today -->
+    <string name="todays_doses">Today\'s doses</string>
+    <string name="nothing_scheduled_today">Nothing scheduled today</string>
+    <string name="all_taken">All %d taken</string>
+    <string name="taken_progress">%1$d of %2$d taken · %3$d to go</string>
+    <string name="today_empty">No doses scheduled for today.\nAdd a medicine from Search to get started.</string>
+    <string name="block_morning">Morning</string>
+    <string name="block_afternoon">Afternoon</string>
+    <string name="block_evening">Evening</string>
+    <string name="block_night">Night</string>
+    <string name="take_all">Take all</string>
+    <string name="status_taken">Taken</string>
+    <string name="status_due_now">Due now</string>
+    <string name="status_upcoming">Upcoming</string>
+    <string name="no_stock">No stock</string>
+    <string name="refill_soon">Refill soon: %1$s</string>
+    <string name="runs_out">Runs out %1$s · %2$s</string>
+    <plurals name="day_streak">
+        <item quantity="one">%d-day streak</item>
+        <item quantity="other">%d-day streak</item>
+    </plurals>
+    <plurals name="in_stock">
+        <item quantity="one">%d in stock</item>
+        <item quantity="other">%d in stock</item>
+    </plurals>
+    <plurals name="doses_left">
+        <item quantity="one">%d left</item>
+        <item quantity="other">%d left</item>
+    </plurals>
+
+    <!-- Calendar -->
+    <string name="new_schedule">New schedule</string>
+    <string name="doses_on">Doses on %1$s</string>
+    <string name="calendar_empty">No doses scheduled. Tap + to add one, or pick another day.</string>
+    <string name="active_schedules">Active schedules</string>
+    <string name="from_date">from %1$s</string>
+    <string name="cancel_prescription">Cancel prescription</string>
+    <string name="confirm_cancel_title">Cancel this prescription?</string>
+    <string name="confirm_cancel_message">No further doses will be scheduled. The prescription is kept in history, not deleted.</string>
+    <string name="keep">Keep</string>
+    <string name="previous_month">Previous month</string>
+    <string name="next_month">Next month</string>
+    <string name="agenda_subtitle">±%1$d min · %2$s · %3$s</string>
+    <string name="agenda_warn_no_stock">⚠ no stock</string>
+    <string name="agenda_status_taken">taken</string>
+    <string name="agenda_status_missed">missed</string>
+    <string name="agenda_status_upcoming">upcoming</string>
+
+    <!-- New-schedule dialog -->
+    <string name="medicine_name">Medicine name</string>
+    <string name="start_date">Start date</string>
+    <string name="end_date">End date</string>
+    <string name="repeat_every">Repeat every</string>
+    <string name="unit_hours">Hours</string>
+    <string name="unit_days">Days</string>
+    <string name="unit_weeks">Weeks</string>
+    <string name="unit_months">Months</string>
+    <string name="interval_label">Interval (every N %1$s)</string>
+    <string name="window_label">Allowed window (± minutes)</string>
+    <string name="time_of_dose">Time of dose</string>
+    <string name="ends">Ends</string>
+    <string name="end_ongoing">Ongoing</string>
+    <string name="end_on_date">On date</string>
+    <string name="end_after_n">After N</string>
+    <string name="number_of_doses">Number of doses</string>
+    <string name="notes_optional">Notes (optional)</string>
+    <string name="add_to_calendar">Add to calendar</string>
+    <string name="pick_date">Pick date</string>
+    <string name="pick_time">Pick time</string>
+
+    <!-- Insights -->
+    <string name="rate_7">7-day</string>
+    <string name="rate_30">30-day</string>
+    <string name="rate_90">90-day</string>
+    <string name="day_streak_label">Day streak</string>
+    <string name="missed_30">Missed (30d)</string>
+    <string name="last_30_days">Last 30 days</string>
+    <string name="adherence_by_medicine">Adherence by medicine (30 days)</string>
+    <string name="next_refill">Next refill</string>
+    <string name="well_stocked">Everything is well stocked.</string>
+    <string name="refill_by">Refill by %1$s · %2$s</string>
+
+    <!-- Settings -->
+    <string name="enable_reminders">Enable dose reminders</string>
+    <string name="enable_reminders_desc">Notify me when a scheduled dose is due</string>
+    <string name="start_at_boot">Start at boot</string>
+    <string name="start_at_boot_desc">Re-arm reminders automatically after a reboot</string>
+    <string name="about">About MedAboutYou</string>
+    <string name="about_version">Version %1$s · App ID %2$s</string>
+    <string name="privacy_note">Data sources: European Medicines Agency public dataset; Italian AIFA database.\nAll your schedules, dose log and stock stay on this device — nothing is uploaded.</string>
+
+    <!-- Notifications -->
+    <string name="channel_name">Dose reminders</string>
+    <string name="channel_desc">Reminds you when a scheduled dose is due</string>
+    <string name="notif_title">Time for %1$s</string>
+    <string name="notif_text">Dose due at %1$s</string>
+    <string name="mark_taken">Mark taken</string>
+    <string name="skip">Skip</string>
 </resources>

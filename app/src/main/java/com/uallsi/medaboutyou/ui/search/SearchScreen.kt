@@ -30,10 +30,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.Medicine
 import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
@@ -55,12 +57,12 @@ fun SearchScreen(
                 selected = state.source == Source.EMA,
                 onClick = { vm.setSource(Source.EMA) },
                 shape = SegmentedButtonDefaults.itemShape(0, 2),
-            ) { Text("EMA (Europe)") }
+            ) { Text(stringResource(R.string.source_ema)) }
             SegmentedButton(
                 selected = state.source == Source.AIFA,
                 onClick = { vm.setSource(Source.AIFA) },
                 shape = SegmentedButtonDefaults.itemShape(1, 2),
-            ) { Text("AIFA (Italy)") }
+            ) { Text(stringResource(R.string.source_aifa)) }
         }
 
         OutlinedTextField(
@@ -69,7 +71,7 @@ fun SearchScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            placeholder = { Text("Search by name, INN or substance…") },
+            placeholder = { Text(stringResource(R.string.search_placeholder)) },
         )
 
         Row(
@@ -87,10 +89,10 @@ fun SearchScreen(
                     FilterChip(
                         selected = state.vetIncluded,
                         onClick = { vm.setVetIncluded(!state.vetIncluded) },
-                        label = { Text("Vet") },
+                        label = { Text(stringResource(R.string.vet)) },
                     )
                     IconButton(onClick = { vm.refreshEma() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh dataset")
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh_dataset))
                     }
                 }
             }
@@ -148,17 +150,17 @@ private fun EmptyDownload(loading: Boolean, onDownload: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "The EMA medicines dataset isn't downloaded yet.",
+                stringResource(R.string.dataset_not_downloaded),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
-                "It is cached on-device for fast, offline browsing.",
+                stringResource(R.string.dataset_cached_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
             )
             if (loading) CircularProgressIndicator()
-            else Button(onClick = onDownload) { Text("Download dataset") }
+            else Button(onClick = onDownload) { Text(stringResource(R.string.download_dataset)) }
         }
     }
 }

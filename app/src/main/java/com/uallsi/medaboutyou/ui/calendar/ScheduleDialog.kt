@@ -20,7 +20,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.PeriodUnit
 import com.uallsi.medaboutyou.model.Schedule
@@ -29,6 +31,26 @@ import com.uallsi.medaboutyou.ui.common.DateField
 import com.uallsi.medaboutyou.ui.common.Stepper
 import com.uallsi.medaboutyou.ui.common.TimeField
 import java.time.LocalDate
+
+/** Localised label for a repeat unit. */
+@Composable
+fun periodUnitLabel(unit: PeriodUnit): String = stringResource(
+    when (unit) {
+        PeriodUnit.HOURS -> R.string.unit_hours
+        PeriodUnit.DAYS -> R.string.unit_days
+        PeriodUnit.WEEKS -> R.string.unit_weeks
+        PeriodUnit.MONTHS -> R.string.unit_months
+    }
+)
+
+@Composable
+private fun endModeLabel(mode: EndMode): String = stringResource(
+    when (mode) {
+        EndMode.NEVER -> R.string.end_ongoing
+        EndMode.DATE -> R.string.end_on_date
+        EndMode.COUNT -> R.string.end_after_n
+    }
+)
 
 /** New-schedule form (Android port of the calendar's "New schedule" dialog). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,7 +77,7 @@ fun NewScheduleDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New schedule") },
+        title = { Text(stringResource(R.string.new_schedule)) },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -63,45 +85,40 @@ fun NewScheduleDialog(
             ) {
                 OutlinedTextField(
                     value = name, onValueChange = { name = it },
-                    label = { Text("Medicine name") }, singleLine = true,
+                    label = { Text(stringResource(R.string.medicine_name)) }, singleLine = true,
                     isError = name.isBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                DateField("Start date", startDate) { startDate = it }
+                DateField(stringResource(R.string.start_date), startDate) { startDate = it }
 
-                Text("Repeat every", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.repeat_every), style = MaterialTheme.typography.labelMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     PeriodUnit.entries.forEach { u ->
                         FilterChip(
                             selected = unit == u,
                             onClick = { unit = u },
-                            label = { Text(u.name.lowercase().replaceFirstChar { it.uppercase() }) },
+                            label = { Text(periodUnitLabel(u)) },
                         )
                     }
                 }
-                Stepper("Interval (every N ${unit.name.lowercase()})", intervalN, 1, 99) { intervalN = it }
-                TimeField("Time of dose", hour, minute) { h, m -> hour = h; minute = m }
-                Stepper("Allowed window (± minutes)", window, 0, 360, step = 5) { window = it }
+                Stepper(stringResource(R.string.interval_label, periodUnitLabel(unit).lowercase()), intervalN, 1, 99) { intervalN = it }
+                TimeField(stringResource(R.string.time_of_dose), hour, minute) { h, m -> hour = h; minute = m }
+                Stepper(stringResource(R.string.window_label), window, 0, 360, step = 5) { window = it }
 
-                Text("Ends", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.ends), style = MaterialTheme.typography.labelMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     EndMode.entries.forEach { m ->
-                        val label = when (m) {
-                            EndMode.NEVER -> "Ongoing"
-                            EndMode.DATE -> "On date"
-                            EndMode.COUNT -> "After N"
-                        }
-                        FilterChip(selected = endMode == m, onClick = { endMode = m }, label = { Text(label) })
+                        FilterChip(selected = endMode == m, onClick = { endMode = m }, label = { Text(endModeLabel(m)) })
                     }
                 }
                 when (endMode) {
-                    EndMode.DATE -> DateField("End date", endDate) { endDate = it }
-                    EndMode.COUNT -> Stepper("Number of doses", doseCount, 1, 999) { doseCount = it }
+                    EndMode.DATE -> DateField(stringResource(R.string.end_date), endDate) { endDate = it }
+                    EndMode.COUNT -> Stepper(stringResource(R.string.number_of_doses), doseCount, 1, 999) { doseCount = it }
                     EndMode.NEVER -> {}
                 }
                 OutlinedTextField(
                     value = notes, onValueChange = { notes = it },
-                    label = { Text("Notes (optional)") }, modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.notes_optional)) }, modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
@@ -128,8 +145,8 @@ fun NewScheduleDialog(
                         )
                     )
                 },
-            ) { Text("Add to calendar") }
+            ) { Text(stringResource(R.string.add_to_calendar)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

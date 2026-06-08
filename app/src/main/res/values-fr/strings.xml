@@ -1,0 +1,174 @@
+<resources>
+    <string name="app_name">MedAboutYou</string>
+
+    <string name="nav_today">Aujourd\'hui</string>
+    <string name="nav_search">Rechercher</string>
+    <string name="nav_calendar">Calendrier</string>
+    <string name="nav_insights">Statistiques</string>
+    <string name="title_today">Aujourd\'hui</string>
+    <string name="title_search">Trouver un médicament</string>
+    <string name="title_calendar">Calendrier</string>
+    <string name="title_insights">Observance et stocks</string>
+    <string name="title_settings">Paramètres</string>
+    <string name="language">Langue</string>
+
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_back">Retour</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="action_decrease">Diminuer</string>
+    <string name="action_increase">Augmenter</string>
+
+    <string name="source_ema">EMA (Europe)</string>
+    <string name="source_aifa">AIFA (Italie)</string>
+    <string name="search_placeholder">Rechercher par nom, DCI ou substance…</string>
+    <string name="vet">Vét.</string>
+    <string name="refresh_dataset">Actualiser les données</string>
+    <string name="searching_aifa">Recherche sur AIFA…</string>
+    <string name="aifa_min_chars">Saisissez au moins 2 lettres pour rechercher sur AIFA</string>
+    <string name="downloading_ema">Téléchargement des données EMA…</string>
+    <string name="dataset_not_downloaded">Le jeu de données des médicaments EMA n\'est pas encore téléchargé.</string>
+    <string name="dataset_cached_note">Il est enregistré sur l\'appareil pour une consultation rapide et hors ligne.</string>
+    <string name="download_dataset">Télécharger les données</string>
+    <string name="count_with_date">%1$s • EMA %2$s</string>
+    <plurals name="medicines_count">
+        <item quantity="one">%d médicament</item>
+        <item quantity="other">%d médicaments</item>
+    </plurals>
+
+    <string name="stock">Stock</string>
+    <string name="supply_30">+30</string>
+    <string name="set_stock">Définir le stock…</string>
+    <string name="set_stock_title">Définir le stock</string>
+    <string name="doses_on_hand">Doses disponibles</string>
+    <string name="add_to_schedule">Ajouter à mon traitement</string>
+    <string name="open_epar">Ouvrir la page EPAR</string>
+    <string name="open_aifa">Ouvrir la page AIFA</string>
+    <string name="section_indication">Indication thérapeutique</string>
+    <string name="section_classification">Classification</string>
+    <string name="section_authorisation">Autorisation</string>
+    <string name="section_posology">Posologie et administration</string>
+    <string name="posology_note">La posologie est publiée dans les informations officielles du produit.</string>
+    <string name="read_rcp">Lire le RCP (§4.2)</string>
+    <string name="read_product_info">Lire les informations produit</string>
+    <string name="label_active_substance">Substance active</string>
+    <string name="label_atc">Code ATC</string>
+    <string name="label_pharmacotherapeutic">Groupe pharmacothérapeutique</string>
+    <string name="label_therapeutic_area">Domaine thérapeutique</string>
+    <string name="label_pharmaceutical_form">Forme pharmaceutique</string>
+    <string name="label_route">Voie d\'administration</string>
+    <string name="label_ma_holder">Titulaire de l\'AMM</string>
+    <string name="label_product_number">Numéro de produit</string>
+    <string name="label_ma_date">Date d\'AMM</string>
+    <string name="label_last_updated">Dernière mise à jour</string>
+    <string name="label_supply">Délivrance</string>
+    <string name="image_desc">Illustration de %1$s</string>
+    <plurals name="doses_count">
+        <item quantity="one">%d dose</item>
+        <item quantity="other">%d doses</item>
+    </plurals>
+
+    <string name="badge_generic">Générique</string>
+    <string name="badge_orphan">Orphelin</string>
+    <string name="badge_biosimilar">Biosimilaire</string>
+    <string name="badge_prime">PRIME</string>
+    <string name="badge_advanced_therapy">Thérapie innovante</string>
+    <string name="badge_accelerated">Évaluation accélérée</string>
+    <string name="badge_conditional">Autorisation conditionnelle</string>
+    <string name="badge_exceptional">Circonstances exceptionnelles</string>
+    <string name="badge_additional_monitoring">Surveillance supplémentaire</string>
+
+    <string name="todays_doses">Doses du jour</string>
+    <string name="nothing_scheduled_today">Rien de prévu aujourd\'hui</string>
+    <string name="all_taken">Les %d prises effectuées</string>
+    <string name="taken_progress">%1$d sur %2$d prises · %3$d à prendre</string>
+    <string name="today_empty">Aucune dose prévue aujourd\'hui.\nAjoutez un médicament depuis la recherche pour commencer.</string>
+    <string name="block_morning">Matin</string>
+    <string name="block_afternoon">Après-midi</string>
+    <string name="block_evening">Soir</string>
+    <string name="block_night">Nuit</string>
+    <string name="take_all">Tout prendre</string>
+    <string name="status_taken">Prise</string>
+    <string name="status_due_now">À prendre maintenant</string>
+    <string name="status_upcoming">À venir</string>
+    <string name="no_stock">Stock épuisé</string>
+    <string name="refill_soon">Réapprovisionner bientôt : %1$s</string>
+    <string name="runs_out">Épuisé le %1$s · %2$s</string>
+    <plurals name="day_streak">
+        <item quantity="one">série de %d jour</item>
+        <item quantity="other">série de %d jours</item>
+    </plurals>
+    <plurals name="in_stock">
+        <item quantity="one">%d en stock</item>
+        <item quantity="other">%d en stock</item>
+    </plurals>
+    <plurals name="doses_left">
+        <item quantity="one">%d restante</item>
+        <item quantity="other">%d restantes</item>
+    </plurals>
+
+    <string name="new_schedule">Nouveau traitement</string>
+    <string name="doses_on">Doses du %1$s</string>
+    <string name="calendar_empty">Aucune dose prévue. Ajoutez un médicament depuis la recherche pour le programmer.</string>
+    <string name="active_schedules">Traitements actifs</string>
+    <string name="from_date">depuis le %1$s</string>
+    <string name="cancel_prescription">Annuler la prescription</string>
+    <string name="confirm_cancel_title">Annuler cette prescription ?</string>
+    <string name="confirm_cancel_message">Aucune dose ne sera plus programmée. La prescription est conservée dans l\'historique, pas supprimée.</string>
+    <string name="keep">Conserver</string>
+    <string name="previous_month">Mois précédent</string>
+    <string name="next_month">Mois suivant</string>
+    <string name="agenda_subtitle">±%1$d min · %2$s · %3$s</string>
+    <string name="agenda_warn_no_stock">⚠ stock épuisé</string>
+    <string name="agenda_status_taken">prise</string>
+    <string name="agenda_status_missed">manquée</string>
+    <string name="agenda_status_upcoming">à venir</string>
+
+    <string name="medicine_name">Nom du médicament</string>
+    <string name="start_date">Date de début</string>
+    <string name="end_date">Date de fin</string>
+    <string name="repeat_every">Répéter tous les</string>
+    <string name="unit_hours">Heures</string>
+    <string name="unit_days">Jours</string>
+    <string name="unit_weeks">Semaines</string>
+    <string name="unit_months">Mois</string>
+    <string name="interval_label">Intervalle (tous les N %1$s)</string>
+    <string name="window_label">Fenêtre autorisée (± minutes)</string>
+    <string name="time_of_dose">Heure de la prise</string>
+    <string name="ends">Fin</string>
+    <string name="end_ongoing">En continu</string>
+    <string name="end_on_date">À une date</string>
+    <string name="end_after_n">Après N</string>
+    <string name="number_of_doses">Nombre de doses</string>
+    <string name="notes_optional">Notes (facultatif)</string>
+    <string name="add_to_calendar">Ajouter au calendrier</string>
+    <string name="pick_date">Choisir une date</string>
+    <string name="pick_time">Choisir une heure</string>
+
+    <string name="rate_7">7 jours</string>
+    <string name="rate_30">30 jours</string>
+    <string name="rate_90">90 jours</string>
+    <string name="day_streak_label">Jours d\'affilée</string>
+    <string name="missed_30">Manquées (30 j)</string>
+    <string name="last_30_days">30 derniers jours</string>
+    <string name="adherence_by_medicine">Observance par médicament (30 jours)</string>
+    <string name="next_refill">Prochain réapprovisionnement</string>
+    <string name="well_stocked">Tous les stocks sont suffisants.</string>
+    <string name="refill_by">Réapprovisionner avant le %1$s · %2$s</string>
+
+    <string name="enable_reminders">Activer les rappels de prise</string>
+    <string name="enable_reminders_desc">M\'avertir quand une prise programmée est due</string>
+    <string name="start_at_boot">Lancer au démarrage</string>
+    <string name="start_at_boot_desc">Réactiver les rappels automatiquement après un redémarrage</string>
+    <string name="about">À propos de MedAboutYou</string>
+    <string name="about_version">Version %1$s · ID appli %2$s</string>
+    <string name="privacy_note">Sources de données : jeu de données public de l\'Agence européenne des médicaments ; base de données AIFA.\nVos traitements, votre journal de prises et vos stocks restent sur cet appareil : rien n\'est transféré en ligne.</string>
+
+    <string name="channel_name">Rappels de prise</string>
+    <string name="channel_desc">Vous rappelle quand une prise programmée est due</string>
+    <string name="notif_title">C\'est l\'heure de %1$s</string>
+    <string name="notif_text">Prise prévue à %1$s</string>
+    <string name="mark_taken">Marquer comme prise</string>
+    <string name="skip">Ignorer</string>
+</resources>

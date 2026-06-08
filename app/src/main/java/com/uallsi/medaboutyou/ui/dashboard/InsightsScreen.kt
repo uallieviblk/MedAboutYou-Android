@@ -29,10 +29,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.domain.DayAdherence
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.theme.MedColors
@@ -63,23 +66,23 @@ fun InsightsScreen(modifier: Modifier = Modifier) {
     ) {
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatCard("7-day", state.rate7, Modifier.weight(1f))
-                StatCard("30-day", state.rate30, Modifier.weight(1f))
-                StatCard("90-day", state.rate90, Modifier.weight(1f))
+                StatCard(stringResource(R.string.rate_7), state.rate7, Modifier.weight(1f))
+                StatCard(stringResource(R.string.rate_30), state.rate30, Modifier.weight(1f))
+                StatCard(stringResource(R.string.rate_90), state.rate90, Modifier.weight(1f))
             }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ValueCard("Day streak", state.streak.toString(), Modifier.weight(1f))
-                ValueCard("Missed (30d)", state.missed30.toString(), Modifier.weight(1f))
+                ValueCard(stringResource(R.string.day_streak_label), state.streak.toString(), Modifier.weight(1f))
+                ValueCard(stringResource(R.string.missed_30), state.missed30.toString(), Modifier.weight(1f))
             }
         }
 
-        item { SectionTitle("Last 30 days") }
+        item { SectionTitle(stringResource(R.string.last_30_days)) }
         item { Heatmap(state.heatmap) }
 
         if (state.byMedicine.isNotEmpty()) {
-            item { SectionTitle("Adherence by medicine (30 days)") }
+            item { SectionTitle(stringResource(R.string.adherence_by_medicine)) }
             items(state.byMedicine) { (name, stats) ->
                 Column(Modifier.fillMaxWidth()) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -95,11 +98,11 @@ fun InsightsScreen(modifier: Modifier = Modifier) {
             }
         }
 
-        item { SectionTitle("Next refill") }
+        item { SectionTitle(stringResource(R.string.next_refill)) }
         if (state.refills.isEmpty()) {
             item {
                 Text(
-                    "Everything is well stocked.",
+                    stringResource(R.string.well_stocked),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -112,7 +115,7 @@ fun InsightsScreen(modifier: Modifier = Modifier) {
                 ) {
                     Text(r.name, style = MaterialTheme.typography.bodyMedium)
                     Text(
-                        "Refill by %04d-%02d-%02d · %d left".format(r.year, r.month, r.day, r.dosesLeft),
+                        stringResource(R.string.refill_by, "%04d-%02d-%02d".format(r.year, r.month, r.day), pluralStringResource(R.plurals.doses_left, r.dosesLeft, r.dosesLeft)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
