@@ -1,9 +1,11 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.data.local
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 /**
  * Cached medicine record. Mirrors the C++ `medicines` table in
@@ -28,6 +30,8 @@ data class MedicineEntity(
     @ColumnInfo(name = "pharmacotherapeutic_group") val pharmacotherapeuticGroup: String = "",
     @ColumnInfo(name = "therapeutic_indication") val therapeuticIndication: String = "",
     @ColumnInfo(name = "ma_holder") val marketingAuthorisationHolder: String = "",
+    // Legacy column, no longer surfaced in the domain model. Retained (always
+    // "") so the re-downloadable medicines cache needs no destructive migration.
     val species: String = "",
     @ColumnInfo(name = "pharmaceutical_form") val pharmaceuticalForm: String = "",
     val route: String = "",
@@ -62,6 +66,7 @@ data class MetaEntity(
  * Stock on hand, keyed `ema:<ext_id>` or `name:<lowercased name>` exactly as
  * the C++ `inventory` table.
  */
+@Serializable
 @Entity(tableName = "inventory")
 data class InventoryEntity(
     @PrimaryKey @ColumnInfo(name = "med_key") val medKey: String,
@@ -69,6 +74,7 @@ data class InventoryEntity(
 )
 
 /** A prescription. Append-only in spirit (cancel = active 0). */
+@Serializable
 @Entity(tableName = "schedules")
 data class ScheduleEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -98,6 +104,7 @@ data class ScheduleEntity(
 )
 
 /** Whether a specific occurrence was taken or skipped. */
+@Serializable
 @Entity(
     tableName = "dose_log",
     indices = [Index(value = ["schedule_id", "scheduled_at"], unique = true)],
@@ -111,6 +118,7 @@ data class DoseLogEntity(
 )
 
 /** A single-occurrence override (retime or cancel one dose). */
+@Serializable
 @Entity(
     tableName = "occ_override",
     indices = [Index(value = ["schedule_id", "scheduled_at"], unique = true)],
@@ -131,6 +139,7 @@ data class OccOverrideEntity(
  * the worker can pace the repeating local reminder and fire the caregiver SMS
  * once. [kind] is "local" or "caregiver".
  */
+@Serializable
 @Entity(
     tableName = "dose_alert",
     indices = [Index(value = ["schedule_id", "scheduled_at", "kind"], unique = true)],
@@ -143,20 +152,11 @@ data class DoseAlertEntity(
     @ColumnInfo(name = "sent_at") val sentAt: String,
 )
 
-/** Cached packaging image (BLOB) or a negative-cache marker. */
-@Entity(tableName = "image_cache")
-data class ImageCacheEntity(
+/** A medicine the user added to their refill shopping list (from a refill alert). */
+@Serializable
+@Entity(tableName = "shopping_item")
+data class ShoppingItemEntity(
     @PrimaryKey @ColumnInfo(name = "med_key") val medKey: String,
-    val bytes: ByteArray?,
-    @ColumnInfo(name = "source_url") val sourceUrl: String,
-    val status: String,   // "ok" | "unavailable"
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is ImageCacheEntity) return false
-        return medKey == other.medKey && status == other.status &&
-            sourceUrl == other.sourceUrl && (bytes?.contentEquals(other.bytes ?: ByteArray(0)) ?: (other.bytes == null))
-    }
-
-    override fun hashCode(): Int = medKey.hashCode()
-}
+    @ColumnInfo(name = "med_name") val medName: String,
+    @ColumnInfo(name = "added_at") val addedAt: String,
+)

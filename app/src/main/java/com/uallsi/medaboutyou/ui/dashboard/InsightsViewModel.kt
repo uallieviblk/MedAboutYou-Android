@@ -1,8 +1,10 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.data.local.ShoppingItemEntity
 import com.uallsi.medaboutyou.domain.AdherenceStats
 import com.uallsi.medaboutyou.domain.DayAdherence
 import com.uallsi.medaboutyou.domain.Insights
@@ -26,6 +28,7 @@ data class InsightsState(
     val heatmap: List<DayAdherence> = emptyList(),
     val byMedicine: List<Pair<String, AdherenceStats>> = emptyList(),
     val refills: List<RefillForecast> = emptyList(),
+    val shoppingList: List<ShoppingItemEntity> = emptyList(),
 )
 
 /** Adherence & refills dashboard state — Android port of `DashboardView`. */
@@ -42,6 +45,7 @@ class InsightsViewModel(private val container: AppContainer) : ViewModel() {
             val now = Now.local()
             val snapshot = withContext(Dispatchers.IO) { container.schedules.snapshot() }
             val doses = withContext(Dispatchers.IO) { dosesAvailable() }
+            val shopping = withContext(Dispatchers.IO) { container.shopping.all() }
             withContext(Dispatchers.Default) {
                 val s = InsightsState(
                     loading = false,
@@ -54,9 +58,17 @@ class InsightsViewModel(private val container: AppContainer) : ViewModel() {
                     heatmap = Insights.dailyAdherence(snapshot, 30, now),
                     byMedicine = Insights.adherenceByMedicine(snapshot, 30, now),
                     refills = Insights.refillForecast(snapshot, doses, now),
+                    shoppingList = shopping,
                 )
                 _state.value = s
             }
+        }
+    }
+
+    fun removeFromShopping(medKey: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { container.shopping.remove(medKey) }
+            refresh()
         }
     }
 

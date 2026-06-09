@@ -142,7 +142,13 @@
     <string name="add_time">Añadir hora</string>
     <string name="action_remove">Eliminar</string>
     <string name="label_minute">En el minuto</string>
-    <string name="label_weekday">Día de la semana</string>
+    <!-- Diálogo de edición de dosis -->
+    <string name="edit_dose">Editar dosis</string>
+    <string name="edit_dose_title">Editar dosis</string>
+    <string name="skip_this_dose">Omitir esta dosis</string>
+    <string name="edit_scope">Aplicar a</string>
+    <string name="edit_scope_this">Solo esta dosis</string>
+    <string name="edit_scope_following">Esta y las siguientes</string>
     <string name="label_day_of_month">Día del mes</string>
     <string name="label_month">Mes</string>
     <string name="date_of_dose">Fecha de la dosis</string>
@@ -212,4 +218,35 @@
     <string name="pause_1month">Durante 1 mes</string>
     <string name="pause_until_date">Hasta una fecha…</string>
     <string name="paused_until">En pausa hasta %1$s</string>
+
+    <!-- Copia de seguridad y restauración -->
+    <string name="backup_section">Copia de seguridad y restauración</string>
+    <string name="backup_desc">Guarda una copia cifrada de tus tratamientos, registro de dosis y existencias en un archivo, o restáurala. Permanece en tu dispositivo.</string>
+    <string name="backup_export">Hacer copia…</string>
+    <string name="backup_restore">Restaurar…</string>
+    <string name="backup_set_password">Define una contraseña de copia</string>
+    <string name="backup_enter_password">Introduce la contraseña de la copia</string>
+    <string name="backup_password">Contraseña</string>
+    <string name="backup_password_hint">Necesitarás esta contraseña para restaurar la copia; no se puede recuperar.</string>
+    <string name="backup_saved">Copia guardada.</string>
+    <string name="backup_restored">%d tratamientos restaurados.</string>
+
+    <!-- Avisos de reposición y lista de la compra -->
+    <string name="channel_refill_name">Avisos de reposición</string>
+    <string name="channel_refill_desc">Te avisa cuando un medicamento se está agotando</string>
+    <string name="refill_notif_title">Casi agotado: %1$s</string>
+    <string name="refill_notif_text">Se agota alrededor del %1$s</string>
+    <string name="add_to_shopping">Añadir a la lista de la compra</string>
+    <string name="shopping_list">Lista de la compra</string>
+
+    <!-- Posología en la app -->
+    <string name="show_posology">Mostrar la posología (§4.2)</string>
+    <string name="loading_posology">Cargando posología…</string>
+    <string name="posology_unavailable">No se pudo cargar la posología aquí. Abre el documento oficial abajo.</string>
+
+    <!-- Escanear un envase -->
+    <string name="scan_package">Escanear un envase</string>
+    <string name="scan_hint">Apunta la cámara al código de barras o datamatrix del envase</string>
+    <string name="scan_permission_needed">Se necesita permiso de cámara para escanear un envase.</string>
+    <string name="scan_grant_camera">Permitir cámara</string>
 </resources>

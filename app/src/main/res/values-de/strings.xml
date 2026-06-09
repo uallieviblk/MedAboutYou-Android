@@ -142,7 +142,13 @@
     <string name="add_time">Zeit hinzufügen</string>
     <string name="action_remove">Entfernen</string>
     <string name="label_minute">Zur Minute</string>
-    <string name="label_weekday">Wochentag</string>
+    <!-- Dialog „Dosis bearbeiten“ -->
+    <string name="edit_dose">Dosis bearbeiten</string>
+    <string name="edit_dose_title">Dosis bearbeiten</string>
+    <string name="skip_this_dose">Diese Dosis überspringen</string>
+    <string name="edit_scope">Anwenden auf</string>
+    <string name="edit_scope_this">Nur diese Dosis</string>
+    <string name="edit_scope_following">Diese und folgende</string>
     <string name="label_day_of_month">Tag des Monats</string>
     <string name="label_month">Monat</string>
     <string name="date_of_dose">Datum der Dosis</string>
@@ -212,4 +218,35 @@
     <string name="pause_1month">Für 1 Monat</string>
     <string name="pause_until_date">Bis zu einem Datum…</string>
     <string name="paused_until">Pausiert bis %1$s</string>
+
+    <!-- Sicherung & Wiederherstellung -->
+    <string name="backup_section">Sicherung &amp; Wiederherstellung</string>
+    <string name="backup_desc">Speichere eine verschlüsselte Kopie deiner Therapiepläne, des Einnahmeprotokolls und des Vorrats in einer Datei – oder stelle sie wieder her. Bleibt auf deinem Gerät.</string>
+    <string name="backup_export">Sichern…</string>
+    <string name="backup_restore">Wiederherstellen…</string>
+    <string name="backup_set_password">Sicherungspasswort festlegen</string>
+    <string name="backup_enter_password">Sicherungspasswort eingeben</string>
+    <string name="backup_password">Passwort</string>
+    <string name="backup_password_hint">Du brauchst dieses Passwort zum Wiederherstellen der Sicherung – es kann nicht wiederhergestellt werden.</string>
+    <string name="backup_saved">Sicherung gespeichert.</string>
+    <string name="backup_restored">%d Therapiepläne wiederhergestellt.</string>
+
+    <!-- Nachschub-Erinnerungen & Einkaufsliste -->
+    <string name="channel_refill_name">Nachschub-Erinnerungen</string>
+    <string name="channel_refill_desc">Meldet, wenn ein Arzneimittel zur Neige geht</string>
+    <string name="refill_notif_title">Geht zur Neige: %1$s</string>
+    <string name="refill_notif_text">Aufgebraucht etwa am %1$s</string>
+    <string name="add_to_shopping">Zur Einkaufsliste hinzufügen</string>
+    <string name="shopping_list">Einkaufsliste</string>
+
+    <!-- Dosierung in der App -->
+    <string name="show_posology">Dosierung anzeigen (§4.2)</string>
+    <string name="loading_posology">Dosierung wird geladen…</string>
+    <string name="posology_unavailable">Dosierung konnte hier nicht geladen werden. Öffne unten das offizielle Dokument.</string>
+
+    <!-- Packung scannen -->
+    <string name="scan_package">Packung scannen</string>
+    <string name="scan_hint">Richte die Kamera auf den Barcode oder Data-Matrix-Code auf der Packung</string>
+    <string name="scan_permission_needed">Zum Scannen einer Packung wird die Kameraberechtigung benötigt.</string>
+    <string name="scan_grant_camera">Kamera erlauben</string>
 </resources>

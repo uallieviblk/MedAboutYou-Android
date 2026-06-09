@@ -1,8 +1,10 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.data.remote.PosologyService
 import com.uallsi.medaboutyou.model.Medicine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,11 +13,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** In-app posology (SmPC §4.2) load state for the detail screen. */
+sealed interface PosologyUi {
+    data object Idle : PosologyUi
+    data object Loading : PosologyUi
+    data class Loaded(val text: String) : PosologyUi
+    data object Unavailable : PosologyUi
+    data class Error(val message: String) : PosologyUi
+}
+
 data class DetailState(
     val medicine: Medicine? = null,
     val stock: Int = 0,
     val imageUrl: String? = null,
     val imageLoading: Boolean = false,
+    val posology: PosologyUi = PosologyUi.Idle,
 )
 
 /** Backing state for the medicine record screen (Android port of `MedicineDetail`). */
@@ -52,6 +64,23 @@ class DetailViewModel(private val container: AppContainer) : ViewModel() {
                 container.medicines.adjustDoses(med.source, med.extId, med.name, amount)
             }
             refreshStock()
+        }
+    }
+
+    /** Fetch and extract the SmPC §4.2 posology text in-app (EMA records). */
+    fun loadPosology() {
+        val med = _state.value.medicine ?: return
+        if (_state.value.posology == PosologyUi.Loading) return
+        _state.value = _state.value.copy(posology = PosologyUi.Loading)
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { container.posology.fetch(med) }
+            _state.value = _state.value.copy(
+                posology = when (result) {
+                    is PosologyService.Result.Text -> PosologyUi.Loaded(result.section)
+                    PosologyService.Result.Unavailable -> PosologyUi.Unavailable
+                    is PosologyService.Result.Error -> PosologyUi.Error(result.message)
+                },
+            )
         }
     }
 

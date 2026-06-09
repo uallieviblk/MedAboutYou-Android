@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.data.local
 
 import android.content.Context
@@ -21,9 +22,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         DoseLogEntity::class,
         OccOverrideEntity::class,
         DoseAlertEntity::class,
-        ImageCacheEntity::class,
+        ShoppingItemEntity::class,
     ],
-    version = 5,
+    version = 7,
     exportSchema = false,
 )
 abstract class MedDatabase : RoomDatabase() {
@@ -34,7 +35,8 @@ abstract class MedDatabase : RoomDatabase() {
     abstract fun doseLogDao(): DoseLogDao
     abstract fun occOverrideDao(): OccOverrideDao
     abstract fun doseAlertDao(): DoseAlertDao
-    abstract fun imageCacheDao(): ImageCacheDao
+    abstract fun shoppingDao(): ShoppingDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         @Volatile
@@ -87,14 +89,37 @@ abstract class MedDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v5 → v6: drop the never-used `image_cache` table (image fetch is a
+         * live Wikipedia lookup; nothing was ever written here).
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS image_cache")
+            }
+        }
+
+        /** v6 → v7: add the refill shopping-list table. */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS shopping_item (" +
+                        "med_key TEXT PRIMARY KEY NOT NULL, " +
+                        "med_name TEXT NOT NULL, " +
+                        "added_at TEXT NOT NULL)",
+                )
+            }
+        }
+
         fun get(context: Context): MedDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     MedDatabase::class.java,
                     "medicines.db",
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
-                    .build().also { instance = it }
+                ).addMigrations(
+                    MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,
+                ).build().also { instance = it }
             }
     }
 }

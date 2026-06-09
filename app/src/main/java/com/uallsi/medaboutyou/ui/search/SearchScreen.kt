@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.search
 
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -49,9 +51,21 @@ fun SearchScreen(
     onOpenMedicine: (Medicine) -> Unit,
     modifier: Modifier = Modifier,
     onCustomMedicine: (String) -> Unit = {},
+    onScan: () -> Unit = {},
+    prefillQuery: String? = null,
+    onConsumePrefill: () -> Unit = {},
 ) {
     val vm: SearchViewModel = viewModel(factory = AppViewModelFactory)
     val state by vm.state.collectAsStateWithLifecycle()
+
+    // A scanned package arrives as an AIFA query.
+    androidx.compose.runtime.LaunchedEffect(prefillQuery) {
+        if (prefillQuery != null) {
+            vm.setSource(Source.AIFA)
+            vm.setQuery(prefillQuery)
+            onConsumePrefill()
+        }
+    }
 
     Column(modifier = modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
@@ -73,6 +87,11 @@ fun SearchScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             singleLine = true,
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = {
+                IconButton(onClick = onScan) {
+                    Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.scan_package))
+                }
+            },
             placeholder = { Text(stringResource(R.string.search_placeholder)) },
         )
 

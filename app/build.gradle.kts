@@ -17,8 +17,8 @@ android {
         applicationId = "com.uallsi.medaboutyou"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -100,6 +100,16 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.coil.compose)
+
+    // #11 In-app posology: extract SmPC §4.2 from the Product Information PDF.
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
+    // #7 Scan a medicine package — on-device CameraX preview + bundled ML Kit
+    // barcode/Datamatrix recognition (no Play Services dependency).
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.data.local
 
 import androidx.room.Dao
@@ -32,9 +33,6 @@ interface MedicineDao {
 
     @Query("SELECT COUNT(*) FROM medicines WHERE source = :source")
     suspend fun count(source: String): Int
-
-    @Query("SELECT * FROM medicines WHERE source = :source AND ext_id = :extId LIMIT 1")
-    suspend fun find(source: String, extId: String): MedicineEntity?
 }
 
 @Dao
@@ -107,11 +105,37 @@ interface DoseAlertDao {
     suspend fun lastSentAt(scheduleId: Long, scheduledAt: String, kind: String): String?
 }
 
+/** Refill shopping list (medicines the user flagged from a refill alert). */
 @Dao
-interface ImageCacheDao {
-    @Query("SELECT * FROM image_cache WHERE med_key = :key LIMIT 1")
-    suspend fun get(key: String): ImageCacheEntity?
+interface ShoppingDao {
+    @Query("SELECT * FROM shopping_item ORDER BY added_at DESC")
+    suspend fun all(): List<ShoppingItemEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun set(row: ImageCacheEntity)
+    suspend fun upsert(row: ShoppingItemEntity)
+
+    @Query("DELETE FROM shopping_item WHERE med_key = :key")
+    suspend fun remove(key: String)
+}
+
+/** Bulk table dump/restore for the local encrypted backup (user data only). */
+@Dao
+interface BackupDao {
+    @Query("SELECT * FROM schedules") suspend fun schedules(): List<ScheduleEntity>
+    @Query("SELECT * FROM dose_log") suspend fun doseLogs(): List<DoseLogEntity>
+    @Query("SELECT * FROM occ_override") suspend fun overrides(): List<OccOverrideEntity>
+    @Query("SELECT * FROM inventory") suspend fun inventory(): List<InventoryEntity>
+    @Query("SELECT * FROM dose_alert") suspend fun doseAlerts(): List<DoseAlertEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putSchedules(rows: List<ScheduleEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putDoseLogs(rows: List<DoseLogEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putOverrides(rows: List<OccOverrideEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putInventory(rows: List<InventoryEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putDoseAlerts(rows: List<DoseAlertEntity>)
+
+    @Query("DELETE FROM schedules") suspend fun clearSchedules()
+    @Query("DELETE FROM dose_log") suspend fun clearDoseLogs()
+    @Query("DELETE FROM occ_override") suspend fun clearOverrides()
+    @Query("DELETE FROM inventory") suspend fun clearInventory()
+    @Query("DELETE FROM dose_alert") suspend fun clearDoseAlerts()
 }

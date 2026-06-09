@@ -150,7 +150,13 @@
     <string name="add_time">Add time</string>
     <string name="action_remove">Remove</string>
     <string name="label_minute">At minute</string>
-    <string name="label_weekday">Weekday</string>
+    <!-- Edit-dose dialog -->
+    <string name="edit_dose">Edit dose</string>
+    <string name="edit_dose_title">Edit dose</string>
+    <string name="skip_this_dose">Skip this dose</string>
+    <string name="edit_scope">Apply to</string>
+    <string name="edit_scope_this">This dose only</string>
+    <string name="edit_scope_following">This and following</string>
     <string name="label_day_of_month">Day of month</string>
     <string name="label_month">Month</string>
     <string name="date_of_dose">Date of dose</string>
@@ -223,4 +229,35 @@
     <string name="pause_1month">For 1 month</string>
     <string name="pause_until_date">Until a date…</string>
     <string name="paused_until">Paused until %1$s</string>
+
+    <!-- Backup & restore -->
+    <string name="backup_section">Backup &amp; restore</string>
+    <string name="backup_desc">Save an encrypted copy of your schedules, dose log and stock to a file, or restore one. It stays on your device.</string>
+    <string name="backup_export">Back up…</string>
+    <string name="backup_restore">Restore…</string>
+    <string name="backup_set_password">Set a backup password</string>
+    <string name="backup_enter_password">Enter the backup password</string>
+    <string name="backup_password">Password</string>
+    <string name="backup_password_hint">You\'ll need this password to restore the backup — it can\'t be recovered.</string>
+    <string name="backup_saved">Backup saved.</string>
+    <string name="backup_restored">Restored %d schedules.</string>
+
+    <!-- Refill reminders & shopping list -->
+    <string name="channel_refill_name">Refill reminders</string>
+    <string name="channel_refill_desc">Tells you when a medicine is running low</string>
+    <string name="refill_notif_title">Running low: %1$s</string>
+    <string name="refill_notif_text">Runs out around %1$s</string>
+    <string name="add_to_shopping">Add to shopping list</string>
+    <string name="shopping_list">Shopping list</string>
+
+    <!-- In-app posology -->
+    <string name="show_posology">Show posology (§4.2)</string>
+    <string name="loading_posology">Loading posology…</string>
+    <string name="posology_unavailable">Couldn\'t load the posology here. Open the official document below.</string>
+
+    <!-- Scan a package -->
+    <string name="scan_package">Scan a package</string>
+    <string name="scan_hint">Point the camera at the barcode or data-matrix on the medicine box</string>
+    <string name="scan_permission_needed">Camera permission is needed to scan a package.</string>
+    <string name="scan_grant_camera">Allow camera</string>
 </resources>

@@ -142,7 +142,13 @@
     <string name="add_time">Ajouter une heure</string>
     <string name="action_remove">Supprimer</string>
     <string name="label_minute">À la minute</string>
-    <string name="label_weekday">Jour de la semaine</string>
+    <!-- Boîte de dialogue Modifier la prise -->
+    <string name="edit_dose">Modifier la prise</string>
+    <string name="edit_dose_title">Modifier la prise</string>
+    <string name="skip_this_dose">Ignorer cette prise</string>
+    <string name="edit_scope">Appliquer à</string>
+    <string name="edit_scope_this">Cette prise uniquement</string>
+    <string name="edit_scope_following">Celle-ci et les suivantes</string>
     <string name="label_day_of_month">Jour du mois</string>
     <string name="label_month">Mois</string>
     <string name="date_of_dose">Date de la prise</string>
@@ -212,4 +218,35 @@
     <string name="pause_1month">Pendant 1 mois</string>
     <string name="pause_until_date">Jusqu\'à une date…</string>
     <string name="paused_until">En pause jusqu\'au %1$s</string>
+
+    <!-- Sauvegarde et restauration -->
+    <string name="backup_section">Sauvegarde et restauration</string>
+    <string name="backup_desc">Enregistrez une copie chiffrée de vos traitements, du journal de prises et du stock dans un fichier, ou restaurez-la. Reste sur votre appareil.</string>
+    <string name="backup_export">Sauvegarder…</string>
+    <string name="backup_restore">Restaurer…</string>
+    <string name="backup_set_password">Définir un mot de passe de sauvegarde</string>
+    <string name="backup_enter_password">Saisissez le mot de passe de la sauvegarde</string>
+    <string name="backup_password">Mot de passe</string>
+    <string name="backup_password_hint">Ce mot de passe sera nécessaire pour restaurer la sauvegarde ; il est irrécupérable.</string>
+    <string name="backup_saved">Sauvegarde enregistrée.</string>
+    <string name="backup_restored">%d traitements restaurés.</string>
+
+    <!-- Rappels de réapprovisionnement et liste de courses -->
+    <string name="channel_refill_name">Rappels de réapprovisionnement</string>
+    <string name="channel_refill_desc">Vous prévient quand un médicament est presque épuisé</string>
+    <string name="refill_notif_title">Bientôt épuisé : %1$s</string>
+    <string name="refill_notif_text">Épuisé vers le %1$s</string>
+    <string name="add_to_shopping">Ajouter à la liste de courses</string>
+    <string name="shopping_list">Liste de courses</string>
+
+    <!-- Posologie dans l\'app -->
+    <string name="show_posology">Afficher la posologie (§4.2)</string>
+    <string name="loading_posology">Chargement de la posologie…</string>
+    <string name="posology_unavailable">Impossible de charger la posologie ici. Ouvrez le document officiel ci-dessous.</string>
+
+    <!-- Scanner une boîte -->
+    <string name="scan_package">Scanner une boîte</string>
+    <string name="scan_hint">Visez le code-barres ou le datamatrix sur la boîte du médicament</string>
+    <string name="scan_permission_needed">L\'autorisation caméra est nécessaire pour scanner une boîte.</string>
+    <string name="scan_grant_camera">Autoriser la caméra</string>
 </resources>

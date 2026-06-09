@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui
 
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.data.remote.BarcodeLookup
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,6 +48,7 @@ import com.uallsi.medaboutyou.ui.calendar.CalendarScreen
 import com.uallsi.medaboutyou.ui.dashboard.InsightsScreen
 import com.uallsi.medaboutyou.ui.detail.DetailScreen
 import com.uallsi.medaboutyou.ui.schedules.SchedulesScreen
+import com.uallsi.medaboutyou.ui.search.ScanScreen
 import com.uallsi.medaboutyou.ui.search.SearchScreen
 import com.uallsi.medaboutyou.ui.settings.SettingsScreen
 import com.uallsi.medaboutyou.ui.today.TodayScreen
@@ -75,8 +78,8 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
-    // Detail is a full-screen route with its own top bar; hide app chrome there.
-    val immersive = currentRoute == "detail"
+    // Detail and the camera scanner are full-screen; hide app chrome there.
+    val immersive = currentRoute == "detail" || currentRoute == "scan"
     val subPage = currentRoute in SUB_PAGES
 
     val title = stringResource(
@@ -183,6 +186,18 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                                 launchSingleTop = true
                             }
                         },
+                        onScan = { navController.navigate("scan") },
+                        prefillQuery = ScanPrefill.query,
+                        onConsumePrefill = { ScanPrefill.query = null },
+                    )
+                }
+                composable("scan") {
+                    ScanScreen(
+                        onResult = { raw ->
+                            ScanPrefill.query = BarcodeLookup.toQuery(raw)
+                            navController.popBackStack()
+                        },
+                        onClose = { navController.popBackStack() },
                     )
                 }
                 composable("detail") {
@@ -235,4 +250,10 @@ object CalendarPrefill {
 
     @Volatile
     var extId: String = ""
+}
+
+/** One-shot holder for a scanned package code, consumed by Search as an AIFA query. */
+object ScanPrefill {
+    @Volatile
+    var query: String? = null
 }

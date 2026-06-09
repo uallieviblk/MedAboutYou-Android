@@ -142,7 +142,13 @@
     <string name="add_time">Aggiungi orario</string>
     <string name="action_remove">Rimuovi</string>
     <string name="label_minute">Al minuto</string>
-    <string name="label_weekday">Giorno della settimana</string>
+    <!-- Dialogo modifica dose -->
+    <string name="edit_dose">Modifica dose</string>
+    <string name="edit_dose_title">Modifica dose</string>
+    <string name="skip_this_dose">Salta questa dose</string>
+    <string name="edit_scope">Applica a</string>
+    <string name="edit_scope_this">Solo questa dose</string>
+    <string name="edit_scope_following">Questa e le successive</string>
     <string name="label_day_of_month">Giorno del mese</string>
     <string name="label_month">Mese</string>
     <string name="date_of_dose">Data della dose</string>
@@ -212,4 +218,35 @@
     <string name="pause_1month">Per 1 mese</string>
     <string name="pause_until_date">Fino a una data…</string>
     <string name="paused_until">In pausa fino al %1$s</string>
+
+    <!-- Backup e ripristino -->
+    <string name="backup_section">Backup e ripristino</string>
+    <string name="backup_desc">Salva una copia cifrata di terapie, registro dosi e scorte in un file, o ripristinala. Resta sul tuo dispositivo.</string>
+    <string name="backup_export">Esegui backup…</string>
+    <string name="backup_restore">Ripristina…</string>
+    <string name="backup_set_password">Imposta una password di backup</string>
+    <string name="backup_enter_password">Inserisci la password del backup</string>
+    <string name="backup_password">Password</string>
+    <string name="backup_password_hint">Ti servirà questa password per ripristinare il backup: non può essere recuperata.</string>
+    <string name="backup_saved">Backup salvato.</string>
+    <string name="backup_restored">Ripristinate %d terapie.</string>
+
+    <!-- Promemoria scorte e lista della spesa -->
+    <string name="channel_refill_name">Promemoria scorte</string>
+    <string name="channel_refill_desc">Ti avvisa quando un medicinale sta per finire</string>
+    <string name="refill_notif_title">In esaurimento: %1$s</string>
+    <string name="refill_notif_text">Finisce intorno al %1$s</string>
+    <string name="add_to_shopping">Aggiungi alla lista della spesa</string>
+    <string name="shopping_list">Lista della spesa</string>
+
+    <!-- Posologia in-app -->
+    <string name="show_posology">Mostra la posologia (§4.2)</string>
+    <string name="loading_posology">Caricamento posologia…</string>
+    <string name="posology_unavailable">Impossibile caricare qui la posologia. Apri il documento ufficiale qui sotto.</string>
+
+    <!-- Scansiona una confezione -->
+    <string name="scan_package">Scansiona una confezione</string>
+    <string name="scan_hint">Inquadra il codice a barre o datamatrix sulla scatola del medicinale</string>
+    <string name="scan_permission_needed">Serve il permesso fotocamera per scansionare una confezione.</string>
+    <string name="scan_grant_camera">Consenti fotocamera</string>
 </resources>

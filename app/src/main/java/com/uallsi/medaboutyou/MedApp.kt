@@ -1,6 +1,8 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou
 
 import android.app.Application
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.uallsi.medaboutyou.reminders.Notifications
 import com.uallsi.medaboutyou.reminders.Reminders
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +18,8 @@ class MedApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        // PDFBox font/resource loader — needed before extracting posology text.
+        PDFBoxResourceLoader.init(this)
         Notifications.ensureChannel(this)
         // Keep the background reminder/caregiver-alert scan armed whenever
         // reminders are enabled (idempotent). BootReceiver re-arms it after a

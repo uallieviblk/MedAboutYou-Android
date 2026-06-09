@@ -1,9 +1,14 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.reminders
 
 import android.content.Context
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.domain.DosesAvailable
+import com.uallsi.medaboutyou.domain.Insights
+import com.uallsi.medaboutyou.domain.Now
 import com.uallsi.medaboutyou.widget.TodayWidgetProvider
 import kotlinx.coroutines.flow.first
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -20,6 +25,8 @@ object AlertEngine {
 
     private const val KIND_LOCAL = "local"
     private const val KIND_CAREGIVER = "caregiver"
+    private const val REFILL_SOON_DAYS = 7L
+    private const val META_REFILL_SCAN = "refill_scan_date"
     private val STAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     suspend fun runOnce(context: Context): Long? {
@@ -85,9 +92,36 @@ object AlertEngine {
             }
         }
 
+        // Refill reminders: once a day, notify for medicines running out soon
+        // (skipping any already on the shopping list). Deduped via a meta date.
+        val todayIso = now.toLocalDate().toString()
+        if (container.medicines.getMeta(META_REFILL_SCAN) != todayIso) {
+            val refills = Insights.refillForecast(snapshot, stockLookup(container), Now.local())
+            val onList = container.shopping.all().map { it.medKey }.toSet()
+            for (r in refills) {
+                val days = ChronoUnit.DAYS.between(now.toLocalDate(), LocalDate.of(r.year, r.month, r.day))
+                if (days > REFILL_SOON_DAYS) continue
+                val key = Insights.medKey(r.source, r.ext, r.name)
+                if (key !in onList) {
+                    Notifications.showRefill(ctx, key, r.name, "%04d-%02d-%02d".format(r.year, r.month, r.day))
+                }
+            }
+            container.medicines.setMeta(META_REFILL_SCAN, todayIso)
+        }
+
         val nextMillis = candidates.filter { it.isAfter(now) }.min()
             .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         // Never schedule in the past / too tight a loop.
         return maxOf(nextMillis, System.currentTimeMillis() + 5_000)
+    }
+
+    private suspend fun stockLookup(container: AppContainer): DosesAvailable {
+        val schedules = container.schedules.list(true)
+        val map = HashMap<String, Int>()
+        for (sch in schedules) {
+            val k = Insights.medKey(sch.medSource, sch.medExtId, sch.medName)
+            if (k !in map) map[k] = container.medicines.availableDoses(sch.medSource, sch.medExtId, sch.medName)
+        }
+        return { s, e, n -> map[Insights.medKey(s, e, n)] ?: 0 }
     }
 }

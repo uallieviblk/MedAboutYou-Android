@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
@@ -15,8 +16,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
@@ -94,6 +99,22 @@ fun InsightsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                         color = rateColor(stats.rate),
                     )
+                }
+            }
+        }
+
+        if (state.shoppingList.isNotEmpty()) {
+            item { SectionTitle(stringResource(R.string.shopping_list)) }
+            items(state.shoppingList, key = { it.medKey }) { entry ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(entry.medName, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { vm.removeFromShopping(entry.medKey) }) {
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_remove))
+                    }
                 }
             }
         }

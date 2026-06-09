@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.reminders
 
 import android.content.BroadcastReceiver
@@ -16,6 +17,24 @@ import kotlinx.coroutines.launch
  */
 class DoseActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        val appCtx0 = context.applicationContext
+
+        // Refill alert: "Add to shopping list".
+        if (intent.action == Notifications.ACTION_SHOPPING) {
+            val medKey = intent.getStringExtra(Notifications.EXTRA_MED_KEY) ?: return
+            val medName = intent.getStringExtra(Notifications.EXTRA_MED_NAME) ?: return
+            val pendingShop = goAsync()
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    AppContainer(appCtx0).shopping.add(medKey, medName)
+                    Notifications.withdrawRefill(appCtx0, medKey)
+                } finally {
+                    pendingShop.finish()
+                }
+            }
+            return
+        }
+
         val payload = intent.getStringExtra(Notifications.EXTRA_PAYLOAD) ?: return
         val parts = payload.split('\u001F')
         if (parts.size != 2) return

@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.settings
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -38,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.os.LocaleListCompat
@@ -91,6 +97,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             caregivers = state.caregivers,
             onChange = vm::setCaregivers,
         )
+        HorizontalDivider()
+        BackupSection(vm)
         HorizontalDivider()
         ListItem(
             headlineContent = { Text(stringResource(R.string.about)) },
@@ -206,3 +214,101 @@ private fun LanguageRow() {
         },
     )
 }
+
+/** Encrypted, fully local backup & restore (the privacy-safe alternative to cloud sync). */
+@Composable
+private fun BackupSection(vm: SettingsViewModel) {
+    val context = LocalContext.current
+    var exportPwd by remember { mutableStateOf("") }
+    var showExportPwd by remember { mutableStateOf(false) }
+    var importUri by remember { mutableStateOf<Uri?>(null) }
+    var showImportPwd by remember { mutableStateOf(false) }
+
+    val createDoc = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream"),
+    ) { uri ->
+        if (uri != null) {
+            vm.exportBackup(uri, exportPwd) { r ->
+                toast(context, r.fold({ context.getString(R.string.backup_saved) }, { it.message ?: "Backup failed" }))
+            }
+        }
+        exportPwd = ""
+    }
+    val openDoc = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) { importUri = uri; showImportPwd = true }
+    }
+
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.backup_section), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(R.string.backup_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { showExportPwd = true }) { Text(stringResource(R.string.backup_export)) }
+            OutlinedButton(onClick = { openDoc.launch(arrayOf("application/octet-stream", "*/*")) }) {
+                Text(stringResource(R.string.backup_restore))
+            }
+        }
+    }
+
+    if (showExportPwd) {
+        PasswordDialog(
+            title = stringResource(R.string.backup_set_password),
+            confirmLabel = stringResource(R.string.backup_export),
+            onConfirm = { pwd -> showExportPwd = false; exportPwd = pwd; createDoc.launch("medaboutyou-backup.mab") },
+            onDismiss = { showExportPwd = false },
+        )
+    }
+    if (showImportPwd) {
+        PasswordDialog(
+            title = stringResource(R.string.backup_enter_password),
+            confirmLabel = stringResource(R.string.backup_restore),
+            onConfirm = { pwd ->
+                showImportPwd = false
+                importUri?.let { uri ->
+                    vm.importBackup(uri, pwd) { r ->
+                        toast(context, r.fold({ context.getString(R.string.backup_restored, it) }, { it.message ?: "Restore failed" }))
+                    }
+                }
+            },
+            onDismiss = { showImportPwd = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PasswordDialog(
+    title: String,
+    confirmLabel: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var pwd by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.backup_password_hint), style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(
+                    value = pwd,
+                    onValueChange = { pwd = it },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.backup_password)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = pwd.length >= 4, onClick = { onConfirm(pwd) }) { Text(confirmLabel) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+private fun toast(context: Context, message: String) =
+    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
