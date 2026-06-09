@@ -187,4 +187,13 @@
     <string name="notif_text">Dosis prevista a las %1$s</string>
     <string name="mark_taken">Marcar como tomada</string>
     <string name="skip">Omitir</string>
+    <string name="caregiver_section">Avisos al cuidador</string>
+    <string name="caregiver_desc">Si una dosis se retrasa, envía un SMS a estos cuidadores (usa los SMS del teléfono).</string>
+    <string name="caregiver_name">Nombre del cuidador</string>
+    <string name="caregiver_phone">Teléfono del cuidador</string>
+    <string name="caregiver_add">Añadir cuidador</string>
+    <string name="caregiver_grant_sms">Conceder permiso de SMS</string>
+    <string name="caregiver_alert_after">Avisar al cuidador tras (min, 0 = no)</string>
+    <string name="caregiver_refresh_every">Reavisar cada (min, 0 = una vez)</string>
+    <string name="sms_caregiver_text">MedAboutYou: la dosis de %1$s prevista a las %2$s no se ha tomado.</string>
 </resources>

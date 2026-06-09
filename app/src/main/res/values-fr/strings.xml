@@ -187,4 +187,13 @@
     <string name="notif_text">Prise prévue à %1$s</string>
     <string name="mark_taken">Marquer comme prise</string>
     <string name="skip">Ignorer</string>
+    <string name="caregiver_section">Alertes à l\'aidant</string>
+    <string name="caregiver_desc">Si une prise est en retard, envoie un SMS à ces aidants (utilise les SMS du téléphone).</string>
+    <string name="caregiver_name">Nom de l\'aidant</string>
+    <string name="caregiver_phone">Téléphone de l\'aidant</string>
+    <string name="caregiver_add">Ajouter un aidant</string>
+    <string name="caregiver_grant_sms">Autoriser l\'envoi de SMS</string>
+    <string name="caregiver_alert_after">Alerter l\'aidant après (min, 0 = off)</string>
+    <string name="caregiver_refresh_every">Relancer l\'alerte toutes les (min, 0 = une fois)</string>
+    <string name="sms_caregiver_text">MedAboutYou : la prise de %1$s prévue à %2$s n\'a pas été effectuée.</string>
 </resources>

@@ -126,6 +126,8 @@ fun Schedule.toEntity(createdAt: String, updatedAt: String) = ScheduleEntity(
     minute = minute,
     times = encodeTimes(times),
     windowMinutes = windowMinutes,
+    caregiverAlertMin = caregiverAlertMin,
+    alertRefreshMin = alertRefreshMin,
     notes = notes,
     active = active,
     createdAt = createdAt,
@@ -157,6 +159,8 @@ fun ScheduleEntity.toModel() = Schedule(
     // Prefer the serialised list; fall back to the legacy single (hour, minute).
     times = decodeTimes(times).ifEmpty { listOf(DoseTime(hour = hour, minute = minute)) },
     windowMinutes = windowMinutes,
+    caregiverAlertMin = caregiverAlertMin,
+    alertRefreshMin = alertRefreshMin,
     notes = notes,
     active = active,
 )

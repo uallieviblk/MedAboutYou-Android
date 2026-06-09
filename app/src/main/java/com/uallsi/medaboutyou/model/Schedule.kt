@@ -75,6 +75,14 @@ data class Schedule(
     val periodN: Int = 1,                      // repeat every n units (>= 1)
     val times: List<DoseTime> = listOf(DoseTime(hour = 8, minute = 0)),
     val windowMinutes: Int = 30,
+    // Minutes after the scheduled time at which an untaken dose alerts the
+    // caregiver (0 = off). Must be < [windowMinutes] (the intake deadline) so
+    // the caregiver is notified before the dose can no longer be taken on time.
+    val caregiverAlertMin: Int = 0,
+    // How often (minutes) the caregiver alert re-sends while the dose stays
+    // untaken (0 = send once). Also < [windowMinutes]; alerts stop once the
+    // window closes.
+    val alertRefreshMin: Int = 0,
     val notes: String = "",
     val active: Boolean = true,
 ) {

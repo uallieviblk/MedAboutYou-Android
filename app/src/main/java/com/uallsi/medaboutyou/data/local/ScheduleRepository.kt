@@ -18,6 +18,7 @@ class ScheduleRepository(db: MedDatabase) {
     private val scheduleDao = db.scheduleDao()
     private val doseLogDao = db.doseLogDao()
     private val overrideDao = db.occOverrideDao()
+    private val caregiverAlertDao = db.caregiverAlertDao()
 
     private fun nowIso(): String =
         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
@@ -146,6 +147,17 @@ class ScheduleRepository(db: MedDatabase) {
                 doseCount = carriedCount,
                 active = true,
             )
+        )
+    }
+
+    /** Timestamp ("yyyy-MM-dd HH:mm:ss") of the last caregiver SMS, or null. */
+    suspend fun caregiverAlertLastSent(scheduleId: Long, keyIso: String): String? =
+        caregiverAlertDao.lastSentAt(scheduleId, keyIso)
+
+    /** Record (or refresh) that a caregiver SMS was just sent for this occurrence. */
+    suspend fun recordCaregiverAlert(scheduleId: Long, keyIso: String) {
+        caregiverAlertDao.upsert(
+            CaregiverAlertEntity(scheduleId = scheduleId, scheduledAt = keyIso, sentAt = nowIso()),
         )
     }
 

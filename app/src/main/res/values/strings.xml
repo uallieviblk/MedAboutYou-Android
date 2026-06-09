@@ -198,4 +198,13 @@
     <string name="notif_text">Dose due at %1$s</string>
     <string name="mark_taken">Mark taken</string>
     <string name="skip">Skip</string>
+    <string name="caregiver_section">Caregiver alerts</string>
+    <string name="caregiver_desc">If a dose is overdue, send an SMS to these caregivers (uses your phone\'s SMS).</string>
+    <string name="caregiver_name">Caregiver name</string>
+    <string name="caregiver_phone">Caregiver phone</string>
+    <string name="caregiver_add">Add caregiver</string>
+    <string name="caregiver_grant_sms">Grant SMS permission</string>
+    <string name="caregiver_alert_after">Alert caregiver after (min, 0 = off)</string>
+    <string name="caregiver_refresh_every">Re-alert every (min, 0 = once)</string>
+    <string name="sms_caregiver_text">MedAboutYou: the %1$s dose scheduled at %2$s has not been taken.</string>
 </resources>

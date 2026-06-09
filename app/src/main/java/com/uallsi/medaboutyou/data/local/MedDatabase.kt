@@ -20,9 +20,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ScheduleEntity::class,
         DoseLogEntity::class,
         OccOverrideEntity::class,
+        CaregiverAlertEntity::class,
         ImageCacheEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class MedDatabase : RoomDatabase() {
@@ -32,6 +33,7 @@ abstract class MedDatabase : RoomDatabase() {
     abstract fun scheduleDao(): ScheduleDao
     abstract fun doseLogDao(): DoseLogDao
     abstract fun occOverrideDao(): OccOverrideDao
+    abstract fun caregiverAlertDao(): CaregiverAlertDao
     abstract fun imageCacheDao(): ImageCacheDao
 
     companion object {
@@ -49,13 +51,33 @@ abstract class MedDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v2 → v3: add the per-schedule caregiver-alert timeout and a dedupe
+         * table so each overdue dose only triggers one caregiver SMS.
+         */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE schedules ADD COLUMN caregiver_alert_min INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE schedules ADD COLUMN alert_refresh_min INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS caregiver_alert (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "schedule_id INTEGER NOT NULL, scheduled_at TEXT NOT NULL, sent_at TEXT NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_caregiver_alert_schedule_id_scheduled_at " +
+                        "ON caregiver_alert (schedule_id, scheduled_at)",
+                )
+            }
+        }
+
         fun get(context: Context): MedDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     MedDatabase::class.java,
                     "medicines.db",
-                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build().also { instance = it }
             }
     }
 }

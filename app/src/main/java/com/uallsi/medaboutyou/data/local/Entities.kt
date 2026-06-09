@@ -87,6 +87,8 @@ data class ScheduleEntity(
     val minute: Int,
     @ColumnInfo(name = "times") val times: String = "",
     @ColumnInfo(name = "window_minutes") val windowMinutes: Int,
+    @ColumnInfo(name = "caregiver_alert_min") val caregiverAlertMin: Int = 0,
+    @ColumnInfo(name = "alert_refresh_min") val alertRefreshMin: Int = 0,
     val notes: String,
     val active: Boolean,
     @ColumnInfo(name = "created_at") val createdAt: String,
@@ -120,6 +122,18 @@ data class OccOverrideEntity(
     @ColumnInfo(name = "window_minutes") val windowMinutes: Int,
     val cancelled: Boolean,
     @ColumnInfo(name = "updated_at") val updatedAt: String,
+)
+
+/** Records that a caregiver SMS was already sent for an occurrence (dedupe). */
+@Entity(
+    tableName = "caregiver_alert",
+    indices = [Index(value = ["schedule_id", "scheduled_at"], unique = true)],
+)
+data class CaregiverAlertEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "schedule_id") val scheduleId: Long,
+    @ColumnInfo(name = "scheduled_at") val scheduledAt: String,  // key_iso
+    @ColumnInfo(name = "sent_at") val sentAt: String,
 )
 
 /** Cached packaging image (BLOB) or a negative-cache marker. */

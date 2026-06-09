@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.data.local.Caregiver
 import com.uallsi.medaboutyou.reminders.Reminders
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 data class SettingsState(
     val remindersEnabled: Boolean = true,
     val startAtBoot: Boolean = false,
+    val caregivers: List<Caregiver> = emptyList(),
 )
 
 /** Preferences screen state — Android port of `AppSettings` + the Preferences dialog. */
@@ -26,7 +28,8 @@ class SettingsViewModel(
         combine(
             container.settings.remindersEnabledFlow,
             container.settings.startAtBootFlow,
-        ) { reminders, boot -> SettingsState(reminders, boot) }
+            container.settings.caregiversFlow,
+        ) { reminders, boot, caregivers -> SettingsState(reminders, boot, caregivers) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsState())
 
     fun setRemindersEnabled(enabled: Boolean) {
@@ -38,5 +41,9 @@ class SettingsViewModel(
 
     fun setStartAtBoot(enabled: Boolean) {
         viewModelScope.launch { container.settings.setStartAtBoot(enabled) }
+    }
+
+    fun setCaregivers(list: List<Caregiver>) {
+        viewModelScope.launch { container.settings.setCaregivers(list) }
     }
 }

@@ -95,6 +95,16 @@ interface OccOverrideDao {
 }
 
 @Dao
+interface CaregiverAlertDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(row: CaregiverAlertEntity)
+
+    /** Timestamp of the last caregiver SMS for this occurrence, or null if none. */
+    @Query("SELECT sent_at FROM caregiver_alert WHERE schedule_id = :scheduleId AND scheduled_at = :scheduledAt LIMIT 1")
+    suspend fun lastSentAt(scheduleId: Long, scheduledAt: String): String?
+}
+
+@Dao
 interface ImageCacheDao {
     @Query("SELECT * FROM image_cache WHERE med_key = :key LIMIT 1")
     suspend fun get(key: String): ImageCacheEntity?

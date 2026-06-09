@@ -138,6 +138,8 @@ fun ScheduleEditorDialog(
         )
     }
     var window by remember { mutableIntStateOf(existing?.windowMinutes ?: 30) }
+    var caregiverAlert by remember { mutableIntStateOf(existing?.caregiverAlertMin ?: 0) }
+    var alertRefresh by remember { mutableIntStateOf(existing?.alertRefreshMin ?: 0) }
     var endMode by remember { mutableStateOf(existing?.endMode ?: EndMode.NEVER) }
     var endDate by remember { mutableStateOf(existing?.endDate?.ifBlank { todayIso } ?: todayIso) }
     var doseCount by remember { mutableIntStateOf(existing?.doseCount?.takeIf { it > 0 } ?: 10) }
@@ -242,7 +244,19 @@ fun ScheduleEditorDialog(
                     )
                 }
 
-                Stepper(stringResource(R.string.window_label), window, 0, 360, step = 5) { window = it }
+                Stepper(stringResource(R.string.window_label), window, 0, 360, step = 5) {
+                    window = it
+                    val cap = (it - 5).coerceAtLeast(0)
+                    if (caregiverAlert >= it) caregiverAlert = cap
+                    if (alertRefresh >= it) alertRefresh = cap
+                }
+                // Caregiver alert + refresh must both fire before the window closes.
+                Stepper(stringResource(R.string.caregiver_alert_after), caregiverAlert, 0, (window - 5).coerceAtLeast(0), step = 5) {
+                    caregiverAlert = it
+                }
+                Stepper(stringResource(R.string.caregiver_refresh_every), alertRefresh, 0, (window - 5).coerceAtLeast(0), step = 5) {
+                    alertRefresh = it
+                }
 
                 if (unit != PeriodUnit.ONCE) {
                     Text(stringResource(R.string.ends), style = MaterialTheme.typography.labelMedium)
@@ -285,6 +299,8 @@ fun ScheduleEditorDialog(
                             periodN = if (once) 1 else intervalN,
                             times = built,
                             windowMinutes = window,
+                            caregiverAlertMin = caregiverAlert,
+                            alertRefreshMin = alertRefresh,
                             notes = notes.trim(),
                             active = existing?.active ?: true,
                         )

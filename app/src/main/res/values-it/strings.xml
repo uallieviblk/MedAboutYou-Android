@@ -187,4 +187,13 @@
     <string name="notif_text">Dose prevista alle %1$s</string>
     <string name="mark_taken">Segna assunta</string>
     <string name="skip">Salta</string>
+    <string name="caregiver_section">Avvisi al caregiver</string>
+    <string name="caregiver_desc">Se una dose è in ritardo, invia un SMS a questi caregiver (usa gli SMS del telefono).</string>
+    <string name="caregiver_name">Nome del caregiver</string>
+    <string name="caregiver_phone">Telefono del caregiver</string>
+    <string name="caregiver_add">Aggiungi caregiver</string>
+    <string name="caregiver_grant_sms">Concedi il permesso SMS</string>
+    <string name="caregiver_alert_after">Avvisa il caregiver dopo (min, 0 = off)</string>
+    <string name="caregiver_refresh_every">Ripeti l\'avviso ogni (min, 0 = una volta)</string>
+    <string name="sms_caregiver_text">MedAboutYou: la dose di %1$s prevista alle %2$s non è stata assunta.</string>
 </resources>

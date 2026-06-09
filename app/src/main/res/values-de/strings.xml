@@ -187,4 +187,13 @@
     <string name="notif_text">Dosis fällig um %1$s</string>
     <string name="mark_taken">Als eingenommen markieren</string>
     <string name="skip">Überspringen</string>
+    <string name="caregiver_section">Betreuer-Benachrichtigungen</string>
+    <string name="caregiver_desc">Sendet eine SMS an diese Betreuer, wenn eine Dosis überfällig ist (nutzt die SMS des Telefons).</string>
+    <string name="caregiver_name">Name des Betreuers</string>
+    <string name="caregiver_phone">Telefon des Betreuers</string>
+    <string name="caregiver_add">Betreuer hinzufügen</string>
+    <string name="caregiver_grant_sms">SMS-Berechtigung erteilen</string>
+    <string name="caregiver_alert_after">Betreuer benachrichtigen nach (Min, 0 = aus)</string>
+    <string name="caregiver_refresh_every">Erneut benachrichtigen alle (Min, 0 = einmal)</string>
+    <string name="sms_caregiver_text">MedAboutYou: Die für %2$s geplante Dosis %1$s wurde nicht eingenommen.</string>
 </resources>
