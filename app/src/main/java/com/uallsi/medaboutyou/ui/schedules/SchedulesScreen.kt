@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.PeriodUnit
 import com.uallsi.medaboutyou.model.Schedule
+import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.calendar.ScheduleEditorDialog
 import com.uallsi.medaboutyou.ui.calendar.periodUnitLabel
@@ -53,28 +56,48 @@ fun SchedulesScreen(modifier: Modifier = Modifier) {
     val schedules by vm.schedules.collectAsStateWithLifecycle()
     var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var editing by remember { mutableStateOf<Schedule?>(null) }
+    var showNew by remember { mutableStateOf(false) }
 
-    if (schedules.isEmpty()) {
-        Box(modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+    Box(modifier.fillMaxSize()) {
+        if (schedules.isEmpty()) {
             Text(
                 stringResource(R.string.schedules_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.Center).padding(32.dp),
             )
-        }
-    } else {
-        LazyColumn(
-            modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(schedules, key = { it.id }) { sch ->
-                ScheduleCard(
-                    sch,
-                    onEdit = { editing = sch },
-                    onCancel = { pendingCancel = sch.id to sch.medName },
-                )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 4.dp, bottom = 88.dp),
+            ) {
+                items(schedules, key = { it.id }) { sch ->
+                    ScheduleCard(
+                        sch,
+                        onEdit = { editing = sch },
+                        onCancel = { pendingCancel = sch.id to sch.medName },
+                    )
+                }
             }
         }
+
+        ExtendedFloatingActionButton(
+            onClick = { showNew = true },
+            icon = { Icon(Icons.Default.Add, contentDescription = null) },
+            text = { Text(stringResource(R.string.add_medicine)) },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+        )
+    }
+
+    if (showNew) {
+        ScheduleEditorDialog(
+            prefillName = "",
+            prefillSource = Source.EMA,
+            prefillExtId = "",
+            onCreate = { vm.create(it); showNew = false },
+            onDismiss = { showNew = false },
+        )
     }
 
     editing?.let { sch ->

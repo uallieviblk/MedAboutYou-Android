@@ -199,4 +199,5 @@
     <string name="user_name">Il tuo nome (inviato ai caregiver)</string>
     <string name="sms_caregiver_text_named">%1$s: la dose di %2$s prevista alle %3$s non è stata assunta.</string>
     <string name="widget_empty">Nessuna dose oggi.</string>
+    <string name="add_medicine">Aggiungi medicinale</string>
 </resources>
