@@ -31,7 +31,7 @@ import java.time.LocalDate
  * End-to-end test simulating real usage against the real (persistent) Room
  * database and the full navigation graph:
  *   seed a prescription → see today's dose → mark it taken (stock debits,
- *   adherence ring fills) → check Insights → check Calendar lists it.
+ *   adherence ring fills) → check Insights → check the Schedules page lists it.
  *
  * Run with a clean app state (`adb shell pm clear com.uallsi.medaboutyou`).
  */
@@ -111,8 +111,8 @@ class FullUsageTest {
         }
         composeRule.onNodeWithText("Last 30 days").assertIsDisplayed()
 
-        // --- Calendar lists the active prescription and its agenda row. ---
-        composeRule.onNodeWithText("Calendar").performSemanticsAction(SemanticsActions.OnClick)
+        // --- The Schedules page lists the active prescription. ---
+        composeRule.onNodeWithText("Schedules").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
         composeRule.waitUntil(10_000) {
             composeRule.onAllNodesWithText("Active schedules").fetchSemanticsNodes().isNotEmpty()
