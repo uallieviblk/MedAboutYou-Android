@@ -30,6 +30,10 @@ class ScheduleRepository(db: MedDatabase) {
 
     suspend fun cancel(scheduleId: Long) = scheduleDao.cancel(scheduleId, nowIso())
 
+    /** Pause/resume a schedule (no doses generated while suspended). */
+    suspend fun setSuspended(scheduleId: Long, suspended: Boolean) =
+        scheduleDao.setSuspended(scheduleId, suspended, nowIso())
+
     /**
      * Apply an edit to a schedule **from now on**, leaving the past untouched:
      * the original is ended yesterday (so its history and adherence stay intact)
@@ -202,7 +206,7 @@ class ScheduleSnapshot(
     override fun occurrencesOn(year: Int, month: Int, day: Int): List<Occurrence> {
         val result = mutableListOf<Occurrence>()
         for (sch in all) {
-            if (!sch.active) continue
+            if (!sch.active || sch.suspended) continue   // suspended = paused, no doses
             val ov = overrides[sch.id].orEmpty()
             val log = logs[sch.id].orEmpty()
             for (occ in ScheduleEngine.occurrencesOn(sch, year, month, day)) {

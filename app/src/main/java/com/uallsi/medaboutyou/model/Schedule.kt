@@ -75,6 +75,9 @@ data class Schedule(
     val periodN: Int = 1,                      // repeat every n units (>= 1)
     val times: List<DoseTime> = listOf(DoseTime(hour = 8, minute = 0)),
     val windowMinutes: Int = 30,
+    // Temporarily paused: kept in the list but generates no doses/reminders
+    // until resumed. Distinct from [active] (cancel/retire).
+    val suspended: Boolean = false,
     // Minutes after the scheduled time at which an untaken dose alerts the
     // caregiver (0 = off). Must be < [windowMinutes] (the intake deadline) so
     // the caregiver is notified before the dose can no longer be taken on time.

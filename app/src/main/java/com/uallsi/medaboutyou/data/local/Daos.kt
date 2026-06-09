@@ -69,6 +69,9 @@ interface ScheduleDao {
     @Query("UPDATE schedules SET active = 0, updated_at = :now WHERE id = :id")
     suspend fun cancel(id: Long, now: String)
 
+    @Query("UPDATE schedules SET suspended = :suspended, updated_at = :now WHERE id = :id")
+    suspend fun setSuspended(id: Long, suspended: Boolean, now: String)
+
     @Query(
         "UPDATE schedules SET end_mode = :endMode, end_date = :endDate, " +
             "dose_count = :doseCount, updated_at = :now WHERE id = :id"

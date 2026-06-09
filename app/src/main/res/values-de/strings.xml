@@ -202,4 +202,7 @@
     <string name="add_package">Packung hinzufügen</string>
     <string name="menu_more">Weitere Optionen</string>
     <string name="use_as_custom">„%1$s“ als eigenes Medikament hinzufügen</string>
+    <string name="suspended_label">Pausiert</string>
+    <string name="suspend_therapy">Pausieren</string>
+    <string name="resume_therapy">Fortsetzen</string>
 </resources>

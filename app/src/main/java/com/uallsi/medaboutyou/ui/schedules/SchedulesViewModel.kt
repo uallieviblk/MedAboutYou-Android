@@ -58,6 +58,15 @@ class SchedulesViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
+    /** Pause or resume a therapy. */
+    fun setSuspended(id: Long, suspended: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { container.schedules.setSuspended(id, suspended) }
+            refresh()
+            DoseAlarms.kickNow(container.appContext)
+        }
+    }
+
     /** Save edits to a schedule, effective from today (past is preserved). */
     fun applyEdit(schedule: Schedule) {
         viewModelScope.launch {

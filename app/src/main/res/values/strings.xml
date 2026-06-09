@@ -213,4 +213,7 @@
     <string name="add_package">Add a package</string>
     <string name="menu_more">More options</string>
     <string name="use_as_custom">Add “%1$s” as a custom medicine</string>
+    <string name="suspended_label">Suspended</string>
+    <string name="suspend_therapy">Suspend</string>
+    <string name="resume_therapy">Resume</string>
 </resources>

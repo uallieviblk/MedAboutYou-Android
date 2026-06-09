@@ -202,4 +202,7 @@
     <string name="add_package">Añadir un envase</string>
     <string name="menu_more">Más opciones</string>
     <string name="use_as_custom">Añadir «%1$s» como medicamento personalizado</string>
+    <string name="suspended_label">Suspendida</string>
+    <string name="suspend_therapy">Suspender</string>
+    <string name="resume_therapy">Reanudar</string>
 </resources>

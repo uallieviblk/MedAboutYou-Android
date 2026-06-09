@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -74,6 +76,7 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
                     ScheduleCard(
                         sch,
                         onEdit = { editing = sch },
+                        onToggleSuspend = { vm.setSuspended(sch.id, !sch.suspended) },
                         onCancel = { pendingCancel = sch.id to sch.medName },
                     )
                 }
@@ -119,7 +122,12 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ScheduleCard(schedule: Schedule, onEdit: () -> Unit, onCancel: () -> Unit) {
+private fun ScheduleCard(
+    schedule: Schedule,
+    onEdit: () -> Unit,
+    onToggleSuspend: () -> Unit,
+    onCancel: () -> Unit,
+) {
     Card(onClick = onEdit, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
@@ -127,6 +135,13 @@ private fun ScheduleCard(schedule: Schedule, onEdit: () -> Unit, onCancel: () ->
         ) {
             Column(Modifier.weight(1f)) {
                 Text(schedule.medName, style = MaterialTheme.typography.titleMedium)
+                if (schedule.suspended) {
+                    Text(
+                        stringResource(R.string.suspended_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
                 Text(
                     recurrenceSummary(schedule),
                     style = MaterialTheme.typography.bodyMedium,
@@ -137,6 +152,13 @@ private fun ScheduleCard(schedule: Schedule, onEdit: () -> Unit, onCancel: () ->
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            IconButton(onClick = onToggleSuspend) {
+                if (schedule.suspended) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.resume_therapy))
+                } else {
+                    Icon(Icons.Default.Pause, contentDescription = stringResource(R.string.suspend_therapy))
+                }
             }
             IconButton(onClick = onCancel) {
                 Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cancel_prescription), tint = MedColors.error)
