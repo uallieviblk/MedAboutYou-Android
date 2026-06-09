@@ -18,15 +18,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,8 +56,6 @@ fun CalendarScreen(
     val state by vm.state.collectAsStateWithLifecycle()
     var showNew by remember { mutableStateOf(false) }
     var prefill by remember { mutableStateOf<String?>(null) }
-    // Schedule pending a cancel confirmation (id to name).
-    var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
     // Identity to attach to a prefilled schedule, so its stock is the same row
     // the medicine record edits (key "source:extId").
     var prefillMedSource by remember { mutableStateOf(Source.EMA) }
@@ -107,19 +101,6 @@ fun CalendarScreen(
                     AgendaRow(item, onToggle = { vm.toggleDose(item, it) })
                 }
             }
-            if (state.schedules.isNotEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.active_schedules),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 12.dp),
-                    )
-                }
-                items(state.schedules, key = { it.id }) { sch ->
-                    ScheduleRow(sch.medName, sch.startDate, onCancel = { pendingCancel = sch.id to sch.medName })
-                }
-            }
     }
 
     if (showNew) {
@@ -129,24 +110,6 @@ fun CalendarScreen(
             prefillExtId = prefillMedExt,
             onCreate = { vm.createSchedule(it); showNew = false },
             onDismiss = { showNew = false },
-        )
-    }
-
-    pendingCancel?.let { (id, name) ->
-        AlertDialog(
-            onDismissRequest = { pendingCancel = null },
-            icon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MedColors.error) },
-            title = { Text(stringResource(R.string.confirm_cancel_title)) },
-            text = { Text("$name\n\n" + stringResource(R.string.confirm_cancel_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = { vm.cancelSchedule(id); pendingCancel = null },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MedColors.error),
-                ) { Text(stringResource(R.string.cancel_prescription)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingCancel = null }) { Text(stringResource(R.string.keep)) }
-            },
         )
     }
 }
@@ -294,19 +257,3 @@ private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit) {
     }
 }
 
-@Composable
-private fun ScheduleRow(name: String, startDate: String, onCancel: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(name, style = MaterialTheme.typography.bodyLarge)
-            Text(stringResource(R.string.from_date, startDate), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        IconButton(onClick = onCancel) {
-            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cancel_prescription), tint = MedColors.error)
-        }
-    }
-}

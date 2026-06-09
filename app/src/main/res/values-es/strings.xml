@@ -5,6 +5,7 @@
     <string name="nav_search">Buscar</string>
     <string name="nav_calendar">Calendario</string>
     <string name="nav_insights">Estadísticas</string>
+    <string name="nav_schedules">Pautas</string>
     <string name="title_today">Hoy</string>
     <string name="title_search">Buscar un medicamento</string>
     <string name="title_calendar">Calendario</string>
@@ -111,7 +112,8 @@
     <string name="new_schedule">Nuevo tratamiento</string>
     <string name="doses_on">Dosis del %1$s</string>
     <string name="calendar_empty">No hay dosis programadas. Añade un medicamento desde la búsqueda para programarlo.</string>
-    <string name="active_schedules">Tratamientos activos</string>
+    <string name="title_schedules">Tratamientos activos</string>
+    <string name="schedules_empty">No hay tratamientos activos.\nAñade un medicamento desde Buscar para empezar.</string>
     <string name="from_date">desde el %1$s</string>
     <string name="cancel_prescription">Cancelar prescripción</string>
     <string name="confirm_cancel_title">¿Cancelar esta prescripción?</string>

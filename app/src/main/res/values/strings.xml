@@ -6,6 +6,7 @@
     <string name="nav_search">Search</string>
     <string name="nav_calendar">Calendar</string>
     <string name="nav_insights">Insights</string>
+    <string name="nav_schedules">Schedules</string>
     <string name="title_today">Today</string>
     <string name="title_search">Find a medicine</string>
     <string name="title_calendar">Calendar</string>
@@ -118,7 +119,8 @@
     <string name="new_schedule">New schedule</string>
     <string name="doses_on">Doses on %1$s</string>
     <string name="calendar_empty">No doses scheduled. Tap + to add one, or pick another day.</string>
-    <string name="active_schedules">Active schedules</string>
+    <string name="title_schedules">Active schedules</string>
+    <string name="schedules_empty">No active schedules.\nAdd a medicine from Search to get started.</string>
     <string name="from_date">from %1$s</string>
     <string name="cancel_prescription">Cancel prescription</string>
     <string name="confirm_cancel_title">Cancel this prescription?</string>

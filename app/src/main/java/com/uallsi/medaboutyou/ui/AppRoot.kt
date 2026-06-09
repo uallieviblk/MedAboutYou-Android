@@ -5,11 +5,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import com.uallsi.medaboutyou.ui.calendar.CalendarScreen
 import com.uallsi.medaboutyou.ui.dashboard.InsightsScreen
 import com.uallsi.medaboutyou.ui.detail.DetailScreen
+import com.uallsi.medaboutyou.ui.schedules.SchedulesScreen
 import com.uallsi.medaboutyou.ui.search.SearchScreen
 import com.uallsi.medaboutyou.ui.settings.SettingsScreen
 import com.uallsi.medaboutyou.ui.today.TodayScreen
@@ -52,6 +55,7 @@ private enum class Tab(
     TODAY("today", R.string.nav_today, Icons.Filled.Home, Icons.Outlined.Home),
     SEARCH("search", R.string.nav_search, Icons.Filled.Search, Icons.Outlined.Search),
     CALENDAR("calendar", R.string.nav_calendar, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
+    SCHEDULES("schedules", R.string.nav_schedules, Icons.Filled.Medication, Icons.Outlined.Medication),
     INSIGHTS("insights", R.string.nav_insights, Icons.Filled.BarChart, Icons.Outlined.BarChart),
 }
 
@@ -72,6 +76,7 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
         when (currentRoute) {
             Tab.SEARCH.route -> R.string.title_search
             Tab.CALENDAR.route -> R.string.title_calendar
+            Tab.SCHEDULES.route -> R.string.title_schedules
             Tab.INSIGHTS.route -> R.string.title_insights
             "settings" -> R.string.title_settings
             else -> R.string.title_today
@@ -165,6 +170,7 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                         onConsumePrefill = { CalendarPrefill.name = null },
                     )
                 }
+                composable(Tab.SCHEDULES.route) { SchedulesScreen() }
                 composable(Tab.INSIGHTS.route) { InsightsScreen() }
                 composable("settings") { SettingsScreen() }
             }

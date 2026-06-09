@@ -5,6 +5,7 @@
     <string name="nav_search">Cerca</string>
     <string name="nav_calendar">Calendario</string>
     <string name="nav_insights">Statistiche</string>
+    <string name="nav_schedules">Terapie</string>
     <string name="title_today">Oggi</string>
     <string name="title_search">Trova un medicinale</string>
     <string name="title_calendar">Calendario</string>
@@ -111,7 +112,8 @@
     <string name="new_schedule">Nuova terapia</string>
     <string name="doses_on">Dosi del %1$s</string>
     <string name="calendar_empty">Nessuna dose programmata. Tocca + per aggiungerne una o scegli un altro giorno.</string>
-    <string name="active_schedules">Terapie attive</string>
+    <string name="title_schedules">Terapie attive</string>
+    <string name="schedules_empty">Nessuna terapia attiva.\nAggiungi un medicinale dalla Ricerca per iniziare.</string>
     <string name="from_date">dal %1$s</string>
     <string name="cancel_prescription">Annulla prescrizione</string>
     <string name="confirm_cancel_title">Annullare questa prescrizione?</string>
