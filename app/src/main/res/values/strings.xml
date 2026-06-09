@@ -209,4 +209,5 @@
     <string name="sms_caregiver_text">MedAboutYou: the %1$s dose scheduled at %2$s has not been taken.</string>
     <string name="user_name">Your name (sent to caregivers)</string>
     <string name="sms_caregiver_text_named">%1$s: the %2$s dose scheduled at %3$s has not been taken.</string>
+    <string name="widget_empty">No doses today.</string>
 </resources>

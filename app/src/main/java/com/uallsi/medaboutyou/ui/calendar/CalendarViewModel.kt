@@ -10,6 +10,7 @@ import com.uallsi.medaboutyou.model.Occurrence
 import com.uallsi.medaboutyou.model.Schedule
 import com.uallsi.medaboutyou.model.ScheduleEngine
 import com.uallsi.medaboutyou.model.Source
+import com.uallsi.medaboutyou.reminders.DoseAlarms
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -148,6 +149,7 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
                 container.medicines.adjustDoses(occ.medSource, occ.medExtId, occ.medName, delta)
             }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 
@@ -155,6 +157,7 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { container.schedules.create(schedule) }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 
@@ -162,6 +165,7 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { container.schedules.cancel(id) }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 
@@ -169,6 +173,7 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { container.schedules.updateEnd(id, endMode, endDate, doseCount) }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 
@@ -178,6 +183,7 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
                 container.schedules.editSingle(occ.scheduleId, occ.keyIso, hour, minute, window, cancelled)
             }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 
@@ -189,6 +195,7 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
                 )
             }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 }

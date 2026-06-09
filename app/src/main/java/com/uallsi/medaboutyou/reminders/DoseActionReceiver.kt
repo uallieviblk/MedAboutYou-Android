@@ -37,6 +37,8 @@ class DoseActionReceiver : BroadcastReceiver() {
                     )
                 }
                 Notifications.withdraw(appContext, keyIso)
+                // Re-evaluate so a taken dose stops repeating immediately.
+                DoseAlarms.kickNow(appContext)
             } finally {
                 pending.finish()
             }

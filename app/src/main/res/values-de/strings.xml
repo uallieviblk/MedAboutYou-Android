@@ -198,4 +198,5 @@
     <string name="sms_caregiver_text">MedAboutYou: Die für %2$s geplante Dosis %1$s wurde nicht eingenommen.</string>
     <string name="user_name">Ihr Name (an Betreuer gesendet)</string>
     <string name="sms_caregiver_text_named">%1$s: Die für %3$s geplante Dosis %2$s wurde nicht eingenommen.</string>
+    <string name="widget_empty">Heute keine Dosen.</string>
 </resources>

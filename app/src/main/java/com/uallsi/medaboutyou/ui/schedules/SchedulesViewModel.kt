@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.Schedule
+import com.uallsi.medaboutyou.reminders.DoseAlarms
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,6 +54,7 @@ class SchedulesViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { container.schedules.cancel(id) }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 
@@ -61,6 +63,7 @@ class SchedulesViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { container.schedules.editFromNow(schedule) }
             refresh()
+            DoseAlarms.kickNow(container.appContext)
         }
     }
 }

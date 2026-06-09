@@ -12,6 +12,10 @@ object Reminders {
 
     fun enable(context: Context) {
         Notifications.ensureChannel(context)
+        // Precise, on-the-minute alerts via a self-rescheduling exact alarm…
+        DoseAlarms.kickNow(context)
+        // …plus a 15-min WorkManager fallback that re-arms the alarm if it's
+        // ever dropped (reboot, app standby).
         val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES).build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             WORK_NAME,
@@ -21,6 +25,7 @@ object Reminders {
     }
 
     fun disable(context: Context) {
+        DoseAlarms.cancel(context)
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
     }
 }

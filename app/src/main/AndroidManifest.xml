@@ -9,6 +9,12 @@
     <!-- Optional: only used when the user configures a caregiver phone to alert. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <!-- On-the-minute dose reminders need exact alarms. USE_EXACT_ALARM is the
+         policy-allowed permission for alarm/medication apps (no runtime prompt);
+         SCHEDULE_EXACT_ALARM covers API 31–32. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
         android:name=".MedApp"
@@ -46,6 +52,26 @@
         <receiver
             android:name=".reminders.DoseActionReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".reminders.DoseAlarmReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".widget.TodayWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/today_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".widget.TodayWidgetService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
 
         <receiver
             android:name=".reminders.BootReceiver"
