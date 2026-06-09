@@ -72,14 +72,17 @@ class AlertNotificationTest {
 
     @Test
     fun due_dose_posts_a_reminder_and_take_action_logs_it() {
-        val today = LocalDate.now().toString()
+        val now = java.time.LocalDateTime.now()
+        val today = now.toLocalDate().toString()
         val id = runBlocking {
             val id = app.container.schedules.create(
                 Schedule(
                     medSource = Source.EMA, medExtId = "", medName = "Notiftest",
                     startDate = today, endMode = EndMode.NEVER,
                     periodUnit = PeriodUnit.DAYS, periodN = 1,
-                    times = listOf(DoseTime(hour = 0, minute = 0)), // 00:00 today → already due
+                    // Due right now and within its 30-min window (a dose well past
+                    // its window is "missed" and intentionally posts no reminder).
+                    times = listOf(DoseTime(hour = now.hour, minute = now.minute)),
                     windowMinutes = 30,
                 ),
             )
@@ -157,6 +160,35 @@ class AlertNotificationTest {
         assertTrue(
             "expected a refill notification; active=${activeTitles()}",
             waitForTitle { it.contains("Refilltest") },
+        )
+    }
+
+    @Test
+    fun hourly_schedule_does_not_flood_notifications() {
+        // An hourly schedule has ~24 doses/day; only the one currently inside its
+        // window should ever have a live reminder — never one per past hour.
+        runBlocking {
+            app.container.schedules.create(
+                Schedule(
+                    medSource = Source.EMA, medExtId = "", medName = "Hourlytest",
+                    startDate = LocalDate.now().toString(), endMode = EndMode.NEVER,
+                    periodUnit = PeriodUnit.HOURS, periodN = 1,
+                    times = listOf(DoseTime(minute = 0)), // every hour at :00
+                    windowMinutes = 30,
+                ),
+            )
+            app.container.medicines.setDoses(Source.EMA, "", "Hourlytest", 50)
+        }
+
+        runBlocking { AlertEngine.runOnce(app) }
+        Thread.sleep(1500) // let any notification post
+
+        // Count only dose reminders ("Time for …"); a refill alert ("Running low: …")
+        // for the same medicine is a separate, legitimate notification.
+        val doseReminders = activeTitles().count { it.startsWith("Time for") && it.contains("Hourlytest") }
+        assertTrue(
+            "an hourly schedule must post at most one dose reminder, got $doseReminders (active=${activeTitles()})",
+            doseReminders <= 1,
         )
     }
 }

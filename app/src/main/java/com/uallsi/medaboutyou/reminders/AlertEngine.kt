@@ -27,6 +27,11 @@ object AlertEngine {
     private const val KIND_CAREGIVER = "caregiver"
     private const val REFILL_SOON_DAYS = 7L
     private const val META_REFILL_SCAN = "refill_scan_date"
+
+    // A live dose reminder is kept only while the dose is within its intake
+    // window; this is the floor for that window (so tiny/zero windows still fire
+    // the on-time reminder, and high-frequency schedules don't back-fill).
+    private const val MIN_REMINDER_MIN = 10L
     private val STAMP = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     suspend fun runOnce(context: Context): Long? {
@@ -60,25 +65,36 @@ object AlertEngine {
                 continue
             }
 
-            // Local reminder: first now, then every alertRefreshMin until taken.
-            val lastLocal = parse(container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_LOCAL))
-            val localDue = lastLocal == null ||
-                (sch.alertRefreshMin > 0 && ChronoUnit.MINUTES.between(lastLocal, now) >= sch.alertRefreshMin)
-            if (localDue) {
-                Notifications.show(ctx, occ.scheduleId, occ.keyIso, occ.medName, occ.timeLabel())
-                container.schedules.recordAlert(occ.scheduleId, occ.keyIso, KIND_LOCAL)
-            }
-            if (sch.alertRefreshMin > 0) {
-                val base = if (localDue) now else lastLocal!!
-                candidates += base.plusMinutes(sch.alertRefreshMin.toLong())
+            // Past dose, still unlogged. Keep a live reminder only while it's
+            // within its intake window; once the window closes it's "missed", so
+            // withdraw any stale reminder instead of leaving it. This stops
+            // high-frequency schedules (e.g. hourly) from posting a separate
+            // notification for every past dose since midnight.
+            val windowEnd = scheduled.plusMinutes(maxOf(sch.windowMinutes.toLong(), MIN_REMINDER_MIN))
+            if (now.isAfter(windowEnd)) {
+                Notifications.withdraw(ctx, occ.keyIso)
+            } else {
+                // Local reminder: when due, then every alertRefreshMin (within the window) until taken.
+                val lastLocal = parse(container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_LOCAL))
+                val localDue = lastLocal == null ||
+                    (sch.alertRefreshMin > 0 && ChronoUnit.MINUTES.between(lastLocal, now) >= sch.alertRefreshMin)
+                if (localDue) {
+                    Notifications.show(ctx, occ.scheduleId, occ.keyIso, occ.medName, occ.timeLabel())
+                    container.schedules.recordAlert(occ.scheduleId, occ.keyIso, KIND_LOCAL)
+                }
+                if (sch.alertRefreshMin > 0) {
+                    val next = (if (localDue) now else lastLocal!!).plusMinutes(sch.alertRefreshMin.toLong())
+                    if (!next.isAfter(windowEnd)) candidates += next
+                }
             }
 
-            // Caregiver escalation once the dose stays untaken past caregiverAlertMin.
+            // Caregiver escalation once the dose stays untaken past caregiverAlertMin
+            // — but only while it's still within the window (no late/duplicate SMS).
             if (sch.caregiverAlertMin > 0) {
                 val escalateAt = scheduled.plusMinutes(sch.caregiverAlertMin.toLong())
                 if (now.isBefore(escalateAt)) {
                     candidates += escalateAt
-                } else if (canSms &&
+                } else if (!now.isAfter(windowEnd) && canSms &&
                     container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_CAREGIVER) == null
                 ) {
                     var anySent = false
