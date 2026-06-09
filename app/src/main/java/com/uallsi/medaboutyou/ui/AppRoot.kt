@@ -154,6 +154,9 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                                 CalendarPrefill.name = m.name
                                 CalendarPrefill.source = m.source
                                 CalendarPrefill.extId = m.extId
+                                // Drop the medicine-detail screen so going back to
+                                // Search shows the search list, not this medicine.
+                                navController.popBackStack(route = "detail", inclusive = true)
                                 navController.navigate(Tab.CALENDAR.route) {
                                     popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                     launchSingleTop = true
