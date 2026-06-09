@@ -42,16 +42,19 @@ import com.uallsi.medaboutyou.model.DoseTime
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.PeriodUnit
 import com.uallsi.medaboutyou.model.Schedule
+import com.uallsi.medaboutyou.model.ScheduleEngine
 import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.ui.common.DateField
 import com.uallsi.medaboutyou.ui.common.Stepper
 import com.uallsi.medaboutyou.ui.common.TimeField
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 /** Localised label for a repeat unit. */
@@ -79,7 +82,9 @@ private fun endModeLabel(mode: EndMode): String = stringResource(
 /** A sensible default dose-time entry for a freshly-selected [unit]. */
 private fun defaultTime(unit: PeriodUnit, today: LocalDate): DoseTime = when (unit) {
     PeriodUnit.ONCE -> DoseTime(year = today.year, month = today.monthValue, dayOfMonth = today.dayOfMonth, hour = 8)
-    PeriodUnit.HOURS -> DoseTime(minute = 0)
+    // HOURS anchors at a start date-time, so default to the next whole hour
+    // (in the near future) rather than midnight.
+    PeriodUnit.HOURS -> LocalTime.now().truncatedTo(ChronoUnit.HOURS).plusHours(1).let { DoseTime(hour = it.hour, minute = it.minute) }
     PeriodUnit.DAYS -> DoseTime(hour = 8)
     PeriodUnit.WEEKS -> DoseTime(weekday = today.dayOfWeek.value, hour = 8)
     PeriodUnit.MONTHS -> DoseTime(dayOfMonth = today.dayOfMonth, hour = 8)
@@ -166,6 +171,41 @@ fun ScheduleEditorDialog(
 
     val timesValid = if (unit == PeriodUnit.WEEKS) weekDays.isNotEmpty() && weekTimes.isNotEmpty() else times.isNotEmpty()
 
+    // Assemble the candidate schedule from the current editor state — used both
+    // for first-dose validation and on confirm.
+    fun buildSchedule(): Schedule {
+        val once = unit == PeriodUnit.ONCE
+        val built = buildTimes()
+        return Schedule(
+            id = existing?.id ?: 0,
+            medSource = existing?.medSource ?: prefillSource,
+            medExtId = existing?.medExtId ?: prefillExtId,
+            medName = name.trim(),
+            startDate = if (once) (built.minByOrNull { "%04d%02d%02d".format(it.year, it.month, it.dayOfMonth) }
+                ?.let { "%04d-%02d-%02d".format(it.year, it.month, it.dayOfMonth) } ?: startDate) else startDate,
+            endMode = if (once) EndMode.NEVER else endMode,
+            endDate = endDate,
+            doseCount = doseCount,
+            periodUnit = unit,
+            periodN = if (once) 1 else intervalN,
+            times = built,
+            windowMinutes = window,
+            caregiverAlertMin = caregiverAlert,
+            alertRefreshMin = alertRefresh,
+            notes = notes.trim(),
+            active = existing?.active ?: true,
+        )
+    }
+
+    // A new schedule's first dose must lie strictly after "now": don't let a
+    // therapy be born already-missed. Skipped when editing (edits apply from
+    // today via the repository). For HOURS the series is anchored to the start
+    // date's midnight, so a same-day start is correctly rejected here.
+    val candidate = buildSchedule()
+    val firstOcc = if (timesValid) ScheduleEngine.firstOccurrence(candidate) else null
+    val firstDoseInPast = firstOcc != null && !firstOcc.isAfter(LocalDateTime.now())
+    val firstDoseValid = editing || (firstOcc != null && !firstDoseInPast)
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (editing) R.string.title_edit else R.string.new_schedule)) },
@@ -244,6 +284,13 @@ fun ScheduleEditorDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                if (!editing && firstDoseInPast) {
+                    Text(
+                        stringResource(R.string.first_dose_future),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
 
                 Stepper(stringResource(R.string.window_label), window, 0, 360, step = 5) {
                     window = it
@@ -282,32 +329,8 @@ fun ScheduleEditorDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = name.isNotBlank() && timesValid,
-                onClick = {
-                    val once = unit == PeriodUnit.ONCE
-                    val built = buildTimes()
-                    onCreate(
-                        Schedule(
-                            id = existing?.id ?: 0,
-                            medSource = existing?.medSource ?: prefillSource,
-                            medExtId = existing?.medExtId ?: prefillExtId,
-                            medName = name.trim(),
-                            startDate = if (once) (built.minByOrNull { "%04d%02d%02d".format(it.year, it.month, it.dayOfMonth) }
-                                ?.let { "%04d-%02d-%02d".format(it.year, it.month, it.dayOfMonth) } ?: startDate) else startDate,
-                            endMode = if (once) EndMode.NEVER else endMode,
-                            endDate = endDate,
-                            doseCount = doseCount,
-                            periodUnit = unit,
-                            periodN = if (once) 1 else intervalN,
-                            times = built,
-                            windowMinutes = window,
-                            caregiverAlertMin = caregiverAlert,
-                            alertRefreshMin = alertRefresh,
-                            notes = notes.trim(),
-                            active = existing?.active ?: true,
-                        )
-                    )
-                },
+                enabled = name.isNotBlank() && timesValid && firstDoseValid,
+                onClick = { onCreate(candidate) },
             ) { Text(stringResource(if (editing) R.string.action_save else R.string.add_to_calendar)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
@@ -336,7 +359,8 @@ private fun scheduleSummary(
     val detail = when (unit) {
         PeriodUnit.ONCE -> times.sortedBy { "%04d%02d%02d%02d%02d".format(it.year, it.month, it.dayOfMonth, it.hour, it.minute) }
             .joinToString(", ") { "${it.dayOfMonth} ${mon(it.month)} ${it.year} ${t(it.hour, it.minute)}" }
-        PeriodUnit.HOURS -> times.map { it.minute }.distinct().sorted().joinToString(", ") { ":%02d".format(it) }
+        PeriodUnit.HOURS -> times.map { it.hour to it.minute }.distinct()
+            .sortedWith(compareBy({ it.first }, { it.second })).joinToString(", ") { t(it.first, it.second) }
         PeriodUnit.DAYS -> times.sortedWith(compareBy({ it.hour }, { it.minute })).joinToString(", ") { t(it.hour, it.minute) }
         PeriodUnit.WEEKS -> {
             val days = weekDays.sorted().joinToString(", ") { dow(it) }
@@ -370,7 +394,7 @@ private fun DoseTimeRow(
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 when (unit) {
                     PeriodUnit.HOURS ->
-                        Stepper(stringResource(R.string.label_minute), time.minute, 0, 59) { onChange(time.copy(minute = it)) }
+                        TimeField(stringResource(R.string.time_of_dose), time.hour, time.minute) { h, m -> onChange(time.copy(hour = h, minute = m)) }
 
                     PeriodUnit.DAYS ->
                         TimeField(stringResource(R.string.time_of_dose), time.hour, time.minute) { h, m -> onChange(time.copy(hour = h, minute = m)) }

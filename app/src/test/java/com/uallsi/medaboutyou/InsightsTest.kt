@@ -53,11 +53,11 @@ class InsightsTest {
 
     @Test
     fun hours_schedule_yields_multiple_doses_per_day() {
-        // HOURS steps every N hours from the start date's midnight, at the
-        // entry's minute (hour is ignored for HOURS).
+        // HOURS steps every N hours from the start date-time (the entry's
+        // hour:minute) — here anchored at midnight, so 00:00, 06:00, 12:00, 18:00.
         val sch = dailySchedule().copy(
             periodUnit = PeriodUnit.HOURS, periodN = 6,
-            times = listOf(DoseTime(minute = 0)),
+            times = listOf(DoseTime(hour = 0, minute = 0)),
         )
         val day1 = ScheduleEngine.occurrencesOn(sch, 2026, 6, 1)
         assertEquals(listOf(0, 6, 12, 18), day1.map { it.hour })

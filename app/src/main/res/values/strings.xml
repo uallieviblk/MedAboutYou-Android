@@ -11,7 +11,6 @@
     <string name="title_calendar">Calendar</string>
     <string name="title_insights">Adherence &amp; refills</string>
     <string name="title_settings">Settings</string>
-    <string name="language">Language</string>
 
     <!-- Common -->
     <string name="action_ok">OK</string>
@@ -118,6 +117,7 @@
     <string name="new_schedule">New schedule</string>
     <string name="title_edit">Edit schedule</string>
     <string name="edit_from_today">Changes apply from today; past doses stay unchanged.</string>
+    <string name="first_dose_future">The first dose must be in the future. Choose a later start date or time.</string>
     <string name="doses_on">Doses on %1$s</string>
     <string name="calendar_empty">No doses scheduled. Tap + to add one, or pick another day.</string>
     <string name="title_schedules">Active schedules</string>
@@ -149,7 +149,6 @@
     <string name="dose_times">Dose times</string>
     <string name="add_time">Add time</string>
     <string name="action_remove">Remove</string>
-    <string name="label_minute">At minute</string>
     <!-- Edit-dose dialog -->
     <string name="edit_dose">Edit dose</string>
     <string name="edit_dose_title">Edit dose</string>

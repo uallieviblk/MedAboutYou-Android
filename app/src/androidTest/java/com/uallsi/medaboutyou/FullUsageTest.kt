@@ -10,12 +10,9 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
-import android.Manifest
-import android.os.Build
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.uallsi.medaboutyou.model.DoseTime
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.PeriodUnit
@@ -45,18 +42,13 @@ class FullUsageTest {
 
     private val app get() = ApplicationProvider.getApplicationContext<MedApp>()
 
-    /**
-     * Pre-grant the notification permission so the startup runtime-permission
-     * dialog doesn't cover MainActivity and break the Compose hierarchy.
-     */
     @Before
-    fun grantNotifications() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val inst = InstrumentationRegistry.getInstrumentation()
-            inst.uiAutomation.grantRuntimePermission(
-                inst.targetContext.packageName, Manifest.permission.POST_NOTIFICATIONS,
-            )
-        }
+    fun setUp() {
+        // Pre-grant notifications so the runtime dialog can't cover MainActivity,
+        // and clear the shared DB so the final "exactly Metformin" assertion is
+        // independent of whatever ran earlier in the suite.
+        grantNotificationPermission()
+        app.clearUserData()
     }
 
     @Test
@@ -86,10 +78,7 @@ class FullUsageTest {
         composeRule.waitForIdle()
 
         // --- Today shows the due dose and an empty adherence ring (0 of 1). ---
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText("Metformin", substring = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitText("Metformin", substring = true)
         composeRule.onNodeWithText("0/1").assertIsDisplayed()
 
         // --- Mark the dose taken via its checkbox (unmerged tree → the Checkbox node). ---
@@ -97,9 +86,7 @@ class FullUsageTest {
             .onFirst().performSemanticsAction(SemanticsActions.OnClick)
 
         // Adherence ring fills to 1 of 1; stock debited 10 -> 9.
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText("1/1").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitText("1/1")
         composeRule.onNodeWithText("1/1").assertIsDisplayed()
         runBlocking {
             assertEquals(9, app.container.medicines.availableDoses(Source.EMA, "", "Metformin"))
@@ -110,17 +97,13 @@ class FullUsageTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Insights").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText("Next refill").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitText("Next refill")
         composeRule.onNodeWithText("Last 30 days").assertIsDisplayed()
 
         // --- The Schedules page lists the active prescription. ---
         composeRule.onNodeWithText("Schedules").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText("Active schedules").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitText("Active schedules")
         composeRule.onAllNodesWithText("Metformin", substring = true)
             .fetchSemanticsNodes().isNotEmpty().let { require(it) }
         runBlocking {

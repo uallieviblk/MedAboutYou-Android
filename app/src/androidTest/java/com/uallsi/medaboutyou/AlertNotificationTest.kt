@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou
 
-import android.Manifest
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Intent
-import android.os.Build
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.uallsi.medaboutyou.model.DoseTime
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.PeriodUnit
@@ -42,20 +39,10 @@ class AlertNotificationTest {
 
     @Before
     fun reset() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val inst = InstrumentationRegistry.getInstrumentation()
-            inst.uiAutomation.grantRuntimePermission(
-                inst.targetContext.packageName, Manifest.permission.POST_NOTIFICATIONS,
-            )
-        }
-        // Wipe user data so each test is isolated (real persistent DB).
-        runBlocking {
-            val dao = app.container.db.backupDao()
-            dao.clearDoseAlerts(); dao.clearOverrides(); dao.clearDoseLogs()
-            dao.clearInventory(); dao.clearSchedules()
-            app.container.shopping.all().forEach { app.container.shopping.remove(it.medKey) }
-            app.container.medicines.setMeta("refill_scan_date", "") // reset the daily refill-scan guard
-        }
+        // Pre-grant notifications and wipe user data so each test is isolated
+        // against the real persistent DB (see UiTestSupport).
+        grantNotificationPermission()
+        app.clearUserData()
         nm.cancelAll()
     }
 
@@ -174,7 +161,7 @@ class AlertNotificationTest {
                     medSource = Source.EMA, medExtId = "", medName = "Hourlytest",
                     startDate = LocalDate.now().toString(), endMode = EndMode.NEVER,
                     periodUnit = PeriodUnit.HOURS, periodN = 1,
-                    times = listOf(DoseTime(minute = 0)), // every hour at :00
+                    times = listOf(DoseTime(hour = 0, minute = 0)), // every hour at :00 (anchored at midnight)
                     windowMinutes = 30,
                 ),
             )
@@ -203,7 +190,7 @@ class AlertNotificationTest {
         data class Case(val name: String, val unit: PeriodUnit, val times: List<DoseTime>)
         val cases = listOf(
             Case("OnceT", PeriodUnit.ONCE, listOf(DoseTime(year = now.year, month = now.monthValue, dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),
-            Case("HoursT", PeriodUnit.HOURS, listOf(DoseTime(minute = now.minute))),
+            Case("HoursT", PeriodUnit.HOURS, listOf(DoseTime(hour = now.hour, minute = now.minute))),
             Case("DaysT", PeriodUnit.DAYS, listOf(DoseTime(hour = now.hour, minute = now.minute))),
             Case("WeeksT", PeriodUnit.WEEKS, listOf(DoseTime(weekday = now.dayOfWeek.value, hour = now.hour, minute = now.minute))),
             Case("MonthsT", PeriodUnit.MONTHS, listOf(DoseTime(dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),

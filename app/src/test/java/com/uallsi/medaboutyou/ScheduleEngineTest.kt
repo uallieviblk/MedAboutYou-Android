@@ -7,6 +7,7 @@ import com.uallsi.medaboutyou.model.PeriodUnit
 import com.uallsi.medaboutyou.model.Schedule
 import com.uallsi.medaboutyou.model.ScheduleEngine
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
@@ -53,21 +54,31 @@ class ScheduleEngineTest {
     }
 
     // ---- HOURS ----
-    @Test fun hours_step_from_start_midnight_and_carry_across_days() {
+    // The series anchors at the start date's time-of-day (each entry's
+    // hour:minute), then steps every N hours — nothing fires before its anchor.
+    @Test fun hours_step_from_anchor_and_carry_across_days() {
         // Every 5h from 2026-06-01 00:00: day1 = 0,5,10,15,20; day2 carries to 1,6,11,16,21.
-        val s = sched("2026-06-01", PeriodUnit.HOURS, n = 5, times = listOf(DoseTime(minute = 0)))
+        val s = sched("2026-06-01", PeriodUnit.HOURS, n = 5, times = listOf(DoseTime(hour = 0, minute = 0)))
         assertEquals(listOf(0, 5, 10, 15, 20), hoursOn(s, 2026, 6, 1))
         assertEquals(listOf(1, 6, 11, 16, 21), hoursOn(s, 2026, 6, 2))
         assertTrue(ScheduleEngine.occurrencesOn(s, 2026, 5, 31).isEmpty()) // before start
     }
 
-    @Test fun hours_honour_multiple_minutes() {
-        // Every 12h, at :00 and :30.
+    @Test fun hours_anchor_at_start_time_with_no_backfill_before_it() {
+        // Every 6h from 2026-06-01 08:30 -> 08:30, 14:30, 20:30 that day (nothing
+        // earlier), then 02:30, 08:30, 14:30, 20:30 the next day.
+        val s = sched("2026-06-01", PeriodUnit.HOURS, n = 6, times = listOf(DoseTime(hour = 8, minute = 30)))
+        assertEquals(listOf(8 to 30, 14 to 30, 20 to 30), hmOn(s, 2026, 6, 1))
+        assertEquals(listOf(2 to 30, 8 to 30, 14 to 30, 20 to 30), hmOn(s, 2026, 6, 2))
+    }
+
+    @Test fun hours_honour_multiple_anchor_times() {
+        // Two anchors, each stepping every 12h: 06:00 and 09:00.
         val s = sched(
             "2026-06-01", PeriodUnit.HOURS, n = 12,
-            times = listOf(DoseTime(minute = 0), DoseTime(minute = 30)),
+            times = listOf(DoseTime(hour = 6, minute = 0), DoseTime(hour = 9, minute = 0)),
         )
-        assertEquals(listOf(0 to 0, 0 to 30, 12 to 0, 12 to 30), hmOn(s, 2026, 6, 1))
+        assertEquals(listOf(6 to 0, 9 to 0, 18 to 0, 21 to 0), hmOn(s, 2026, 6, 1))
     }
 
     // ---- DAYS ----
@@ -174,5 +185,51 @@ class ScheduleEngineTest {
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(s, 2026, 6, 3).size) // 3rd dose
         assertTrue(ScheduleEngine.occurrencesOn(s, 2026, 6, 4).isEmpty()) // 4th -> stop
+    }
+
+    // ---- firstOccurrence (the "first dose must be in the future" guard) ----
+
+    // An "every N hours" series anchors at the start date's time-of-day, so its
+    // first dose is exactly that start date-time — not midnight, not the "next
+    // hour". Picking a future start time is therefore what keeps the first dose
+    // in the future.
+    @Test fun first_occurrence_hourly_is_the_anchor_date_time() {
+        val s = sched("2026-06-01", PeriodUnit.HOURS, n = 1, times = listOf(DoseTime(hour = 9, minute = 0)))
+        assertEquals(LocalDate.of(2026, 6, 1).atTime(9, 0), ScheduleEngine.firstOccurrence(s))
+
+        val s30 = sched("2026-06-01", PeriodUnit.HOURS, n = 6, times = listOf(DoseTime(hour = 7, minute = 30)))
+        assertEquals(LocalDate.of(2026, 6, 1).atTime(7, 30), ScheduleEngine.firstOccurrence(s30))
+    }
+
+    @Test fun first_occurrence_days_is_earliest_time_on_start_date() {
+        val s = sched(
+            "2026-06-01", PeriodUnit.DAYS,
+            times = listOf(DoseTime(hour = 20), DoseTime(hour = 8, minute = 30)),
+        )
+        assertEquals(LocalDate.of(2026, 6, 1).atTime(8, 30), ScheduleEngine.firstOccurrence(s))
+    }
+
+    @Test fun first_occurrence_weeks_is_earliest_selected_weekday() {
+        // Start Mon 2026-06-01, fires Wed & Fri -> first is that Wednesday.
+        val s = sched(
+            "2026-06-01", PeriodUnit.WEEKS,
+            times = listOf(DoseTime(weekday = 5, hour = 9), DoseTime(weekday = 3, hour = 9)),
+        )
+        assertEquals(LocalDate.of(2026, 6, 3).atTime(9, 0), ScheduleEngine.firstOccurrence(s))
+    }
+
+    @Test fun first_occurrence_once_is_earliest_entry() {
+        val s = sched(
+            "2026-06-01", PeriodUnit.ONCE,
+            times = listOf(
+                DoseTime(year = 2026, month = 6, dayOfMonth = 20, hour = 9),
+                DoseTime(year = 2026, month = 6, dayOfMonth = 10, hour = 21, minute = 15),
+            ),
+        )
+        assertEquals(LocalDate.of(2026, 6, 10).atTime(21, 15), ScheduleEngine.firstOccurrence(s))
+    }
+
+    @Test fun first_occurrence_null_when_no_times() {
+        assertNull(ScheduleEngine.firstOccurrence(sched("2026-06-01", PeriodUnit.DAYS, times = emptyList())))
     }
 }

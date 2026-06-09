@@ -12,6 +12,8 @@ local.properties
 
 # Published APK binaries — regenerate with website/update-apk.sh (latest.json is kept)
 /website/downloads/*.apk
+# Local build/test artifacts (release APK + UI screenshots) — regenerable, never committed
+/dist/
 # AI-assistant project files — kept local, never published
 /CLAUDE.md
 /.claude/

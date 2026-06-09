@@ -7,8 +7,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,8 +17,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,25 +42,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uallsi.medaboutyou.BuildConfig
 import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.data.local.Caregiver
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
-
-/** One selectable UI language (empty tag = follow the system). */
-private data class AppLanguage(val tag: String, val label: String)
-
-private val languages = listOf(
-    AppLanguage("", "System default"),
-    AppLanguage("en", "English"),
-    AppLanguage("it", "Italiano"),
-    AppLanguage("fr", "Français"),
-    AppLanguage("es", "Español"),
-    AppLanguage("de", "Deutsch"),
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,8 +56,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val state by vm.state.collectAsStateWithLifecycle()
 
     Column(modifier.fillMaxSize()) {
-        LanguageRow()
-        HorizontalDivider()
         ListItem(
             headlineContent = { Text(stringResource(R.string.enable_reminders)) },
             supportingContent = { Text(stringResource(R.string.enable_reminders_desc)) },
@@ -182,37 +163,6 @@ private fun CaregiverSection(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LanguageRow() {
-    var expanded by remember { mutableStateOf(false) }
-    val current = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-        .substringBefore(",").ifEmpty { "" }
-    val currentLabel = languages.firstOrNull { it.tag == current }?.label ?: languages.first().label
-
-    ListItem(
-        modifier = Modifier.clickable { expanded = true },
-        headlineContent = { Text(stringResource(R.string.language)) },
-        supportingContent = { Text(currentLabel) },
-        trailingContent = {
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                languages.forEach { lang ->
-                    DropdownMenuItem(
-                        text = { Text(lang.label) },
-                        onClick = {
-                            expanded = false
-                            AppCompatDelegate.setApplicationLocales(
-                                if (lang.tag.isEmpty()) LocaleListCompat.getEmptyLocaleList()
-                                else LocaleListCompat.forLanguageTags(lang.tag),
-                            )
-                        },
-                    )
-                }
-            }
-        },
-    )
 }
 
 /** Encrypted, fully local backup & restore (the privacy-safe alternative to cloud sync). */

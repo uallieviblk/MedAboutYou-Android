@@ -238,22 +238,23 @@ object ScheduleEngine {
             PeriodUnit.ONCE -> {} // handled by onceOccurrences
 
             PeriodUnit.HOURS -> {
-                val startMidnight = start.atStartOfDay()
+                // Each entry is an independent anchor: the start date at the
+                // entry's time-of-day, then every N hours. Nothing fires before
+                // its anchor, so an hourly schedule never back-fills the start
+                // day before its start time.
                 val dayBegin = target.atStartOfDay()
                 val dayEnd = target.plusDays(1).atStartOfDay()
-                val minutes = schedule.times.map { it.minute.coerceIn(0, 59) }.distinct().sorted()
-                val hoursToDay = ChronoUnit.HOURS.between(startMidnight, dayBegin)
-                var k = if (hoursToDay <= 0) 0L else (hoursToDay + n - 1) / n
-                while (true) {
-                    val block = startMidnight.plusHours(k * n)
-                    if (!block.isBefore(dayEnd)) break
-                    if (!block.isBefore(dayBegin)) {
-                        for (m in minutes) {
-                            val dt = block.plusMinutes(m.toLong())
-                            if (dt.toLocalDate() == target && !dt.isBefore(startMidnight)) out.add(dt)
-                        }
+                val stepMin = n.toLong() * 60
+                for (t in schedule.times) {
+                    val anchor = start.atTime(LocalTime.of(t.hour.coerceIn(0, 23), t.minute.coerceIn(0, 59)))
+                    val gapMin = ChronoUnit.MINUTES.between(anchor, dayBegin)
+                    var k = if (gapMin <= 0) 0L else (gapMin + stepMin - 1) / stepMin
+                    while (true) {
+                        val dt = anchor.plusHours(k * n)
+                        if (!dt.isBefore(dayEnd)) break
+                        if (!dt.isBefore(dayBegin)) out.add(dt)
+                        k++
                     }
-                    k++
                 }
             }
 
@@ -317,7 +318,6 @@ object ScheduleEngine {
         if (limit <= 0) return emptyList()
         val n = schedule.periodN.coerceAtLeast(1)
         val out = mutableListOf<LocalDateTime>()
-        val startMidnight = start.atStartOfDay()
         // Hard backstop so an all-filtered first period can never spin forever.
         val maxPeriods = limit + 24
 
@@ -332,15 +332,13 @@ object ScheduleEngine {
             }
 
             PeriodUnit.HOURS -> {
-                val minutes = schedule.times.map { it.minute.coerceIn(0, 59) }.distinct().sorted()
+                // Each entry anchors at the start date's time-of-day; step every n hours.
+                val anchors = schedule.times.map {
+                    start.atTime(LocalTime.of(it.hour.coerceIn(0, 23), it.minute.coerceIn(0, 59)))
+                }
                 var k = 0L
                 while (out.size < limit && k < maxPeriods.toLong() * 24) {
-                    val block = startMidnight.plusHours(k * n)
-                    for (m in minutes) {
-                        val dt = block.plusMinutes(m.toLong())
-                        if (!dt.isBefore(startMidnight)) out.add(dt)
-                        if (out.size >= limit) break
-                    }
+                    anchors.forEach { out.add(it.plusHours(k * n)) }
                     k++
                 }
                 out.sort()
@@ -408,6 +406,26 @@ object ScheduleEngine {
             }
         }
         return out.take(limit)
+    }
+
+    /**
+     * The earliest dose date-time this schedule would ever generate, or null if
+     * it produces none (no dose times, or an unparseable start date for a
+     * recurring unit).
+     *
+     * Used to enforce that a newly-created schedule's first dose lies in the
+     * future. For [PeriodUnit.HOURS] the series anchors at the start date's
+     * time-of-day (each entry's hour:minute), so the first occurrence is that
+     * start date-time — letting an hourly schedule begin at a chosen moment and
+     * step forward from there, with no back-filled doses before it.
+     */
+    fun firstOccurrence(schedule: Schedule): LocalDateTime? {
+        if (schedule.times.isEmpty()) return null
+        if (schedule.periodUnit == PeriodUnit.ONCE) {
+            return generateOrdered(schedule, LocalDate.MIN, 1).firstOrNull()
+        }
+        val start = parseDate(schedule.startDate) ?: return null
+        return generateOrdered(schedule, start, 1).firstOrNull()
     }
 
     /** True if the given local date/time is at or before now. */

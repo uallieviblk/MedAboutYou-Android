@@ -60,6 +60,10 @@ import java.util.Locale
 fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
     val vm: SchedulesViewModel = viewModel(factory = AppViewModelFactory)
     val schedules by vm.schedules.collectAsStateWithLifecycle()
+    // Re-query on every (re)entry: the VM is retained across tab switches and only
+    // self-refreshes after its own mutations, so a schedule added from the
+    // Search → Detail → Add flow would otherwise not appear until a process restart.
+    androidx.compose.runtime.LaunchedEffect(Unit) { vm.refresh() }
     var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var editing by remember { mutableStateOf<Schedule?>(null) }
     var pausing by remember { mutableStateOf<Long?>(null) }   // schedule id to pause
@@ -243,7 +247,8 @@ private fun recurrenceSummary(schedule: Schedule): String {
     val detail = when (schedule.periodUnit) {
         PeriodUnit.ONCE -> times.sortedBy { "%04d%02d%02d%02d%02d".format(it.year, it.month, it.dayOfMonth, it.hour, it.minute) }
             .joinToString(", ") { "${it.dayOfMonth} ${mon(it.month)} ${it.year} ${t(it.hour, it.minute)}" }
-        PeriodUnit.HOURS -> times.map { it.minute }.distinct().sorted().joinToString(", ") { ":%02d".format(it) }
+        PeriodUnit.HOURS -> times.map { it.hour to it.minute }.distinct()
+            .sortedWith(compareBy({ it.first }, { it.second })).joinToString(", ") { t(it.first, it.second) }
         PeriodUnit.DAYS -> times.sortedWith(compareBy({ it.hour }, { it.minute })).joinToString(", ") { t(it.hour, it.minute) }
         PeriodUnit.WEEKS -> {
             val days = times.map { it.weekday }.distinct().sorted().joinToString(", ") { dow(it) }

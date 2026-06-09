@@ -10,7 +10,6 @@
     <string name="title_calendar">Calendrier</string>
     <string name="title_insights">Observance et stocks</string>
     <string name="title_settings">Paramètres</string>
-    <string name="language">Langue</string>
 
     <string name="action_ok">OK</string>
     <string name="action_cancel">Annuler</string>
@@ -111,6 +110,7 @@
     <string name="new_schedule">Nouveau traitement</string>
     <string name="title_edit">Modifier le traitement</string>
     <string name="edit_from_today">Les modifications s\'appliquent dès aujourd\'hui ; les prises passées sont conservées.</string>
+    <string name="first_dose_future">La première prise doit être dans le futur. Choisissez une date ou une heure de début ultérieure.</string>
     <string name="doses_on">Doses du %1$s</string>
     <string name="calendar_empty">Aucune dose prévue. Ajoutez un médicament depuis la recherche pour le programmer.</string>
     <string name="title_schedules">Traitements actifs</string>
@@ -141,7 +141,6 @@
     <string name="dose_times">Heures de la prise</string>
     <string name="add_time">Ajouter une heure</string>
     <string name="action_remove">Supprimer</string>
-    <string name="label_minute">À la minute</string>
     <!-- Boîte de dialogue Modifier la prise -->
     <string name="edit_dose">Modifier la prise</string>
     <string name="edit_dose_title">Modifier la prise</string>

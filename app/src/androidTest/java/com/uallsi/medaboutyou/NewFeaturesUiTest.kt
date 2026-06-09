@@ -1,20 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou
 
-import android.Manifest
-import android.os.Build
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.uallsi.medaboutyou.model.DoseTime
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.PeriodUnit
@@ -45,13 +41,9 @@ class NewFeaturesUiTest {
     private val app get() = ApplicationProvider.getApplicationContext<MedApp>()
 
     @Before
-    fun grantNotifications() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val inst = InstrumentationRegistry.getInstrumentation()
-            inst.uiAutomation.grantRuntimePermission(
-                inst.targetContext.packageName, Manifest.permission.POST_NOTIFICATIONS,
-            )
-        }
+    fun setUp() {
+        grantNotificationPermission()
+        app.clearUserData()
     }
 
     @Test
@@ -80,22 +72,16 @@ class NewFeaturesUiTest {
         composeRule.waitForIdle()
 
         // --- Schedules page surfaces the note (previously write-only). ---
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText("Schedules").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitText("Schedules")
         composeRule.onNodeWithText("Schedules").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText("Take with food").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitText("Take with food")
         composeRule.onNodeWithText("Take with food").assertIsDisplayed()
 
         // --- Calendar agenda → per-dose edit dialog. ---
         composeRule.onNodeWithText("Calendar").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription("Edit dose").fetchSemanticsNodes().isNotEmpty()
-        }
+        composeRule.awaitContentDescription("Edit dose")
         composeRule.onAllNodesWithContentDescription("Edit dose").onFirst()
             .performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
@@ -107,8 +93,6 @@ class NewFeaturesUiTest {
         // Skip this dose, save → today's only occurrence disappears from the agenda.
         composeRule.onNodeWithText("Skip this dose").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.onNodeWithText("Save").performSemanticsAction(SemanticsActions.OnClick)
-        composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithContentDescription("Edit dose").fetchSemanticsNodes().isEmpty()
-        }
+        composeRule.awaitContentDescriptionGone("Edit dose")
     }
 }

@@ -10,7 +10,6 @@
     <string name="title_calendar">Kalender</string>
     <string name="title_insights">Therapietreue &amp; Vorrat</string>
     <string name="title_settings">Einstellungen</string>
-    <string name="language">Sprache</string>
 
     <string name="action_ok">OK</string>
     <string name="action_cancel">Abbrechen</string>
@@ -111,6 +110,7 @@
     <string name="new_schedule">Neuer Therapieplan</string>
     <string name="title_edit">Plan bearbeiten</string>
     <string name="edit_from_today">Änderungen gelten ab heute; vergangene Dosen bleiben unverändert.</string>
+    <string name="first_dose_future">Die erste Dosis muss in der Zukunft liegen. Wähle ein späteres Startdatum oder eine spätere Uhrzeit.</string>
     <string name="doses_on">Dosen am %1$s</string>
     <string name="calendar_empty">Keine Dosen geplant. Füge über die Suche ein Arzneimittel hinzu, um es einzuplanen.</string>
     <string name="title_schedules">Aktive Therapiepläne</string>
@@ -141,7 +141,6 @@
     <string name="dose_times">Dosiszeiten</string>
     <string name="add_time">Zeit hinzufügen</string>
     <string name="action_remove">Entfernen</string>
-    <string name="label_minute">Zur Minute</string>
     <!-- Dialog „Dosis bearbeiten“ -->
     <string name="edit_dose">Dosis bearbeiten</string>
     <string name="edit_dose_title">Dosis bearbeiten</string>

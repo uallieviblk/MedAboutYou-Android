@@ -10,7 +10,6 @@
     <string name="title_calendar">Calendario</string>
     <string name="title_insights">Aderenza e scorte</string>
     <string name="title_settings">Impostazioni</string>
-    <string name="language">Lingua</string>
 
     <string name="action_ok">OK</string>
     <string name="action_cancel">Annulla</string>
@@ -111,6 +110,7 @@
     <string name="new_schedule">Nuova terapia</string>
     <string name="title_edit">Modifica terapia</string>
     <string name="edit_from_today">Le modifiche valgono da oggi; le dosi passate restano invariate.</string>
+    <string name="first_dose_future">La prima dose deve essere nel futuro. Scegli una data o un\'ora di inizio successiva.</string>
     <string name="doses_on">Dosi del %1$s</string>
     <string name="calendar_empty">Nessuna dose programmata. Tocca + per aggiungerne una o scegli un altro giorno.</string>
     <string name="title_schedules">Terapie attive</string>
@@ -141,7 +141,6 @@
     <string name="dose_times">Orari della dose</string>
     <string name="add_time">Aggiungi orario</string>
     <string name="action_remove">Rimuovi</string>
-    <string name="label_minute">Al minuto</string>
     <!-- Dialogo modifica dose -->
     <string name="edit_dose">Modifica dose</string>
     <string name="edit_dose_title">Modifica dose</string>
