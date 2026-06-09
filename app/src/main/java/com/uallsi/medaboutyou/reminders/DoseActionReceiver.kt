@@ -55,7 +55,7 @@ class DoseActionReceiver : BroadcastReceiver() {
                         schedule.medSource, schedule.medExtId, schedule.medName, delta,
                     )
                 }
-                Notifications.withdraw(appContext, keyIso)
+                Notifications.withdraw(appContext, scheduleId, keyIso)
                 // Re-evaluate so a taken dose stops repeating immediately.
                 DoseAlarms.kickNow(appContext)
             } finally {

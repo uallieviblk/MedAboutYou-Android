@@ -18,6 +18,7 @@ import com.uallsi.medaboutyou.reminders.AlertEngine
 import com.uallsi.medaboutyou.reminders.DoseActionReceiver
 import com.uallsi.medaboutyou.reminders.Notifications
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -190,5 +191,48 @@ class AlertNotificationTest {
             "an hourly schedule must post at most one dose reminder, got $doseReminders (active=${activeTitles()})",
             doseReminders <= 1,
         )
+    }
+
+    @Test
+    fun every_scheduling_type_posts_a_due_reminder() {
+        val now = java.time.LocalDateTime.now()
+        val today = now.toLocalDate().toString()
+
+        // One schedule per PeriodUnit, each with a dose landing today at "now"
+        // (so it's inside its 30-min window) and huge stock (no refill noise).
+        data class Case(val name: String, val unit: PeriodUnit, val times: List<DoseTime>)
+        val cases = listOf(
+            Case("OnceT", PeriodUnit.ONCE, listOf(DoseTime(year = now.year, month = now.monthValue, dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),
+            Case("HoursT", PeriodUnit.HOURS, listOf(DoseTime(minute = now.minute))),
+            Case("DaysT", PeriodUnit.DAYS, listOf(DoseTime(hour = now.hour, minute = now.minute))),
+            Case("WeeksT", PeriodUnit.WEEKS, listOf(DoseTime(weekday = now.dayOfWeek.value, hour = now.hour, minute = now.minute))),
+            Case("MonthsT", PeriodUnit.MONTHS, listOf(DoseTime(dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),
+            Case("YearsT", PeriodUnit.YEARS, listOf(DoseTime(month = now.monthValue, dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),
+        )
+        runBlocking {
+            cases.forEach { c ->
+                app.container.schedules.create(
+                    Schedule(
+                        medSource = Source.EMA, medExtId = "", medName = c.name,
+                        startDate = today, endMode = EndMode.NEVER,
+                        periodUnit = c.unit, periodN = 1, times = c.times, windowMinutes = 30,
+                    ),
+                )
+                app.container.medicines.setDoses(Source.EMA, "", c.name, 9999)
+            }
+        }
+
+        runBlocking { AlertEngine.runOnce(app) }
+        Thread.sleep(2000)
+
+        val titles = activeTitles()
+        cases.forEach { c ->
+            assertTrue(
+                "expected a due reminder for ${c.unit} (${c.name}); active=$titles",
+                titles.any { it == "Time for ${c.name}" },
+            )
+        }
+        // Exactly one dose reminder per schedule — no high-frequency flooding.
+        assertEquals("one dose reminder per scheduling type", cases.size, titles.count { it.startsWith("Time for") })
     }
 }

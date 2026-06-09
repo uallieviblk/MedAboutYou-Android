@@ -33,7 +33,9 @@ object Notifications {
             .createNotificationChannel(channel)
     }
 
-    fun notificationId(keyIso: String): Int = ("dose:$keyIso").hashCode()
+    // Per (schedule, occurrence) so two medicines scheduled at the same time get
+    // distinct reminders instead of colliding on one notification id.
+    fun notificationId(scheduleId: Long, keyIso: String): Int = ("dose:$scheduleId:$keyIso").hashCode()
 
     fun show(context: Context, scheduleId: Long, keyIso: String, medName: String, time: String) {
         ensureChannel(context)
@@ -74,14 +76,14 @@ object Notifications {
             .build()
 
         try {
-            NotificationManagerCompat.from(context).notify(notificationId(keyIso), notification)
+            NotificationManagerCompat.from(context).notify(notificationId(scheduleId, keyIso), notification)
         } catch (_: SecurityException) {
             // POST_NOTIFICATIONS not granted — silently skip.
         }
     }
 
-    fun withdraw(context: Context, keyIso: String) {
-        NotificationManagerCompat.from(context).cancel(notificationId(keyIso))
+    fun withdraw(context: Context, scheduleId: Long, keyIso: String) {
+        NotificationManagerCompat.from(context).cancel(notificationId(scheduleId, keyIso))
     }
 
     // --- Refill reminders (separate, lower-priority channel) ---

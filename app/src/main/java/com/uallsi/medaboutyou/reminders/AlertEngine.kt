@@ -72,7 +72,7 @@ object AlertEngine {
             // notification for every past dose since midnight.
             val windowEnd = scheduled.plusMinutes(maxOf(sch.windowMinutes.toLong(), MIN_REMINDER_MIN))
             if (now.isAfter(windowEnd)) {
-                Notifications.withdraw(ctx, occ.keyIso)
+                Notifications.withdraw(ctx, occ.scheduleId, occ.keyIso)
             } else {
                 // Local reminder: when due, then every alertRefreshMin (within the window) until taken.
                 val lastLocal = parse(container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_LOCAL))
