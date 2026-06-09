@@ -11,7 +11,7 @@ notifications, adherence analytics and refill/stock forecasting.
 
 | Field | Value |
 |-------|-------|
-| Version | 0.2.0 |
+| Version | 0.3.0 |
 | App ID | `com.uallsi.medaboutyou` |
 | Platform | Android 8.0+ (minSdk 26), target/compile SDK 35 |
 | Stack | Kotlin 2.1, Compose (Material 3), Room, WorkManager, OkHttp, kotlinx.serialization, Coroutines, Coil |

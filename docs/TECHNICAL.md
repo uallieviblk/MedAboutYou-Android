@@ -4,7 +4,7 @@ Engineering reference for the Android app: architecture, domain model, data
 layer, schema/migrations, reminders, concurrency, i18n and testing. Diagrams are
 PlantUML (workspace convention) — paste any block into a PlantUML renderer.
 
-- **App ID:** `com.uallsi.medaboutyou` · **Version:** 0.2.0 (DB schema v6)
+- **App ID:** `com.uallsi.medaboutyou` · **Version:** 0.3.0 (DB schema v6)
 - **Platform:** Android 8.0+ (minSdk 26), target/compile SDK 35
 - **Language/UI:** Kotlin 2.1.10, Jetpack Compose (Material 3)
 - **Origin:** a faithful port of the GTK4/libadwaita desktop *MedAboutYou*; the
