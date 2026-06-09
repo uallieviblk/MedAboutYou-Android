@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.calendar
 
 import androidx.compose.foundation.layout.Arrangement
