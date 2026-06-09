@@ -10,13 +10,17 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import android.Manifest
+import android.os.Build
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.uallsi.medaboutyou.model.Medicine
 import com.uallsi.medaboutyou.model.Source
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,6 +41,20 @@ class RefillFlowTest {
     val composeRule = createEmptyComposeRule()
 
     private val app get() = ApplicationProvider.getApplicationContext<MedApp>()
+
+    /**
+     * Pre-grant the notification permission so the startup runtime-permission
+     * dialog doesn't cover MainActivity and break the Compose hierarchy.
+     */
+    @Before
+    fun grantNotifications() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val inst = InstrumentationRegistry.getInstrumentation()
+            inst.uiAutomation.grantRuntimePermission(
+                inst.targetContext.packageName, Manifest.permission.POST_NOTIFICATIONS,
+            )
+        }
+    }
 
     @Test
     fun refill_stock_reaches_schedule() {
