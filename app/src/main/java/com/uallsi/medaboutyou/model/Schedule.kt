@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.model
 
 import java.time.LocalDate
@@ -413,5 +414,16 @@ object ScheduleEngine {
     fun isPastDateTime(year: Int, month: Int, day: Int, hour: Int, minute: Int): Boolean {
         val whenTime = LocalDateTime.of(year, month, day, hour, minute)
         return !whenTime.isAfter(LocalDateTime.now())
+    }
+
+    /**
+     * True if a dose at the given local date/time may be checked off now — i.e.
+     * the current time has reached the start of its intake window
+     * (scheduled time − [windowMinutes]). Lets a dose be marked taken from the
+     * opening of its window, not only once the exact scheduled minute is reached.
+     */
+    fun isWithinTakeWindow(year: Int, month: Int, day: Int, hour: Int, minute: Int, windowMinutes: Int): Boolean {
+        val opensAt = LocalDateTime.of(year, month, day, hour, minute).minusMinutes(windowMinutes.coerceAtLeast(0).toLong())
+        return !opensAt.isAfter(LocalDateTime.now())
     }
 }

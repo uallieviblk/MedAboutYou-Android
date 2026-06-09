@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.today
 
 import androidx.compose.foundation.layout.Arrangement
@@ -208,7 +209,7 @@ private fun DoseRow(dose: TodayDose, onToggle: (Boolean) -> Unit) {
     val occ = dose.occ
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = occ.status == "taken", enabled = dose.isPast, onCheckedChange = onToggle)
+            Checkbox(checked = occ.status == "taken", enabled = dose.checkable, onCheckedChange = onToggle)
             Column(Modifier.weight(1f)) {
                 Text("${occ.timeLabel()} — ${occ.medName}", style = MaterialTheme.typography.titleSmall)
                 val statusRes = when {

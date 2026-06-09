@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.today
 
 import androidx.lifecycle.ViewModel
@@ -15,8 +16,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** A dose on today's timeline. */
-data class TodayDose(val occ: Occurrence, val stock: Int, val isPast: Boolean)
+/**
+ * A dose on today's timeline. [checkable] is true once the dose's intake window
+ * has opened (scheduled time − window), so it may be marked taken from then on.
+ */
+data class TodayDose(val occ: Occurrence, val stock: Int, val isPast: Boolean, val checkable: Boolean)
 
 data class TodayState(
     val loading: Boolean = true,
@@ -51,6 +55,9 @@ class TodayViewModel(private val container: AppContainer) : ViewModel() {
                     occ = occ,
                     stock = stock,
                     isPast = ScheduleEngine.isPastDateTime(occ.year, occ.month, occ.day, occ.hour, occ.minute),
+                    checkable = ScheduleEngine.isWithinTakeWindow(
+                        occ.year, occ.month, occ.day, occ.hour, occ.minute, occ.windowMinutes,
+                    ),
                 )
             }
             // The ring tracks progress over ALL of today's doses (including ones

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.data.local
 
 import android.content.Context
@@ -30,8 +31,8 @@ fun decodeCaregivers(text: String): List<Caregiver> {
 
 /**
  * App preferences — the Android port of `AppSettings`. Fully local; stored in a
- * Preferences DataStore. Keys mirror the desktop config: source, image API key,
- * reminders on/off, plus "start at boot" (the Android analogue of autostart).
+ * Preferences DataStore. Keys mirror the desktop config: source, reminders
+ * on/off, plus "start at boot" (the Android analogue of autostart).
  */
 class Settings(private val context: Context) {
 
@@ -43,9 +44,6 @@ class Settings(private val context: Context) {
     }
     val startAtBootFlow: Flow<Boolean> = context.dataStore.data.map {
         it[START_AT_BOOT] ?: false
-    }
-    val imageApiKeyFlow: Flow<String> = context.dataStore.data.map {
-        it[IMAGE_API_KEY] ?: ""
     }
     val vetIncludedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[VET_INCLUDED] ?: false
@@ -66,9 +64,6 @@ class Settings(private val context: Context) {
     suspend fun setStartAtBoot(enabled: Boolean) =
         context.dataStore.edit { it[START_AT_BOOT] = enabled }.let {}
 
-    suspend fun setImageApiKey(key: String) =
-        context.dataStore.edit { it[IMAGE_API_KEY] = key }.let {}
-
     suspend fun setVetIncluded(included: Boolean) =
         context.dataStore.edit { it[VET_INCLUDED] = included }.let {}
 
@@ -82,7 +77,6 @@ class Settings(private val context: Context) {
         val SOURCE = stringPreferencesKey("source")
         val REMINDERS = booleanPreferencesKey("reminders_enabled")
         val START_AT_BOOT = booleanPreferencesKey("start_at_boot")
-        val IMAGE_API_KEY = stringPreferencesKey("image_api_key")
         val VET_INCLUDED = booleanPreferencesKey("vet_included")
         val USER_NAME = stringPreferencesKey("user_name")
         val CAREGIVERS = stringPreferencesKey("caregivers")

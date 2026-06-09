@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.schedules
 
 import android.text.format.DateFormat
@@ -198,6 +199,14 @@ private fun ScheduleCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (schedule.notes.isNotBlank()) {
+                    Text(
+                        schedule.notes,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                }
             }
             IconButton(onClick = if (paused) onResume else onPauseRequested) {
                 if (paused) {

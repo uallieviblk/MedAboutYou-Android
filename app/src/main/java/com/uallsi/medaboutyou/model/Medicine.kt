@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.model
 
 import kotlinx.serialization.json.JsonObject
@@ -48,7 +49,6 @@ data class Medicine(
     val pharmacotherapeuticGroup: String = "",
     val therapeuticIndication: String = "",
     val marketingAuthorisationHolder: String = "",
-    val species: String = "",
     // AIFA-specific extras (empty for EMA records).
     val pharmaceuticalForm: String = "",
     val route: String = "",
@@ -110,7 +110,6 @@ data class Medicine(
                 therapeuticIndication = field("therapeutic_indication"),
                 marketingAuthorisationHolder =
                     field("marketing_authorisation_developer_applicant_holder"),
-                species = field("species_veterinary"),
                 additionalMonitoring = flag("additional_monitoring"),
                 advancedTherapy = flag("advanced_therapy"),
                 biosimilar = flag("biosimilar"),

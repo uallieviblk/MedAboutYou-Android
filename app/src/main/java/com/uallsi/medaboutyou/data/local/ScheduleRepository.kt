@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.data.local
 
 import com.uallsi.medaboutyou.domain.ScheduleQuery
@@ -249,15 +250,5 @@ class ScheduleSnapshot(
             LocalDate.of(p[0].toInt(), p[1].toInt(), p[2].toInt())
         }.getOrNull() ?: return false
         return target.isBefore(until)
-    }
-
-    /** Days of [year]/[month] that have at least one (non-cancelled) occurrence. */
-    fun daysWithDoses(year: Int, month: Int): Set<Int> {
-        val days = sortedSetOf<Int>()
-        val last = LocalDate.of(year, month, 1).lengthOfMonth()
-        for (d in 1..last) {
-            if (occurrencesOn(year, month, d).isNotEmpty()) days.add(d)
-        }
-        return days
     }
 }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.calendar
 
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.model.Occurrence
 import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.theme.MedColors
@@ -55,6 +58,7 @@ fun CalendarScreen(
     val vm: CalendarViewModel = viewModel(factory = AppViewModelFactory)
     val state by vm.state.collectAsStateWithLifecycle()
     var showNew by remember { mutableStateOf(false) }
+    var editingOcc by remember { mutableStateOf<Occurrence?>(null) }
     var prefill by remember { mutableStateOf<String?>(null) }
     // Identity to attach to a prefilled schedule, so its stock is the same row
     // the medicine record edits (key "source:extId").
@@ -98,7 +102,11 @@ fun CalendarScreen(
                 }
             } else {
                 items(state.agenda, key = { it.occ.scheduleId.toString() + it.occ.keyIso }) { item ->
-                    AgendaRow(item, onToggle = { vm.toggleDose(item, it) })
+                    AgendaRow(
+                        item,
+                        onToggle = { vm.toggleDose(item, it) },
+                        onEdit = { editingOcc = item.occ },
+                    )
                 }
             }
     }
@@ -110,6 +118,18 @@ fun CalendarScreen(
             prefillExtId = prefillMedExt,
             onCreate = { vm.createSchedule(it); showNew = false },
             onDismiss = { showNew = false },
+        )
+    }
+
+    editingOcc?.let { occ ->
+        EditOccurrenceDialog(
+            occurrence = occ,
+            onSave = { hour, minute, window, cancelled, applyToFollowing ->
+                if (applyToFollowing) vm.splitFrom(occ, hour, minute, window, cancelled)
+                else vm.editSingle(occ, hour, minute, window, cancelled)
+                editingOcc = null
+            },
+            onDismiss = { editingOcc = null },
         )
     }
 }
@@ -215,7 +235,7 @@ private fun stateColor(state: DayState?): Color? = when (state) {
 }
 
 @Composable
-private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit) {
+private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit, onEdit: () -> Unit) {
     val occ = item.occ
     val statusText = stringResource(
         when {
@@ -235,12 +255,12 @@ private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(12.dp),
+            Modifier.fillMaxWidth().padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(
                 checked = occ.status == "taken",
-                enabled = item.isPast,
+                enabled = item.checkable,
                 onCheckedChange = { onToggle(it) },
             )
             Column(Modifier.weight(1f)) {
@@ -252,6 +272,9 @@ private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.edit_dose))
             }
         }
     }

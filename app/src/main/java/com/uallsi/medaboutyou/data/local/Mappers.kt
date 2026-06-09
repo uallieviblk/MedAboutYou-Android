@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.data.local
 
 import com.uallsi.medaboutyou.model.DoseTime
@@ -48,7 +49,6 @@ fun Medicine.toEntity() = MedicineEntity(
     pharmacotherapeuticGroup = pharmacotherapeuticGroup,
     therapeuticIndication = therapeuticIndication,
     marketingAuthorisationHolder = marketingAuthorisationHolder,
-    species = species,
     pharmaceuticalForm = pharmaceuticalForm,
     route = route,
     prescription = prescription,
@@ -86,7 +86,6 @@ fun MedicineEntity.toModel() = Medicine(
     pharmacotherapeuticGroup = pharmacotherapeuticGroup,
     therapeuticIndication = therapeuticIndication,
     marketingAuthorisationHolder = marketingAuthorisationHolder,
-    species = species,
     pharmaceuticalForm = pharmaceuticalForm,
     route = route,
     prescription = prescription,

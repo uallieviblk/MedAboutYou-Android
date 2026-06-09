@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.data.local
 
 import com.uallsi.medaboutyou.model.Medicine
@@ -16,9 +17,6 @@ class MedicineStore(db: MedDatabase) {
         medicineDao.search(source.key, query, if (humanOnly) 1 else 0, limit).map { it.toModel() }
 
     suspend fun count(source: Source): Int = medicineDao.count(source.key)
-
-    suspend fun find(source: Source, extId: String): Medicine? =
-        medicineDao.find(source.key, extId)?.toModel()
 
     suspend fun getMeta(key: String): String? = metaDao.get(key)
     suspend fun setMeta(key: String, value: String) = metaDao.set(MetaEntity(key, value))

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.calendar
 
 import androidx.lifecycle.ViewModel
@@ -5,11 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
 import com.uallsi.medaboutyou.domain.Insights
 import com.uallsi.medaboutyou.domain.Now
-import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.Occurrence
 import com.uallsi.medaboutyou.model.Schedule
 import com.uallsi.medaboutyou.model.ScheduleEngine
-import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.reminders.DoseAlarms
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +20,11 @@ import java.time.LocalDate
 
 enum class DayState { NONE, FUTURE, TAKEN, SHORTAGE, MISSED }
 
-/** One agenda row with its current stock (for the ⚠ shortage marker). */
-data class AgendaItem(val occ: Occurrence, val stock: Int, val isPast: Boolean)
+/**
+ * One agenda row with its current stock (for the ⚠ shortage marker). [checkable]
+ * is true once the dose's intake window has opened, so it may be marked taken.
+ */
+data class AgendaItem(val occ: Occurrence, val stock: Int, val isPast: Boolean, val checkable: Boolean)
 
 data class CalendarState(
     val year: Int = 0,
@@ -30,7 +32,6 @@ data class CalendarState(
     val selectedDay: Int = 0,
     val dayStates: Map<Int, DayState> = emptyMap(),
     val agenda: List<AgendaItem> = emptyList(),
-    val schedules: List<Schedule> = emptyList(),
 )
 
 /** Android port of `CalendarView` + the calendar half of `ScheduleRepository`. */
@@ -94,13 +95,15 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
                     occ = occ,
                     stock = stock,
                     isPast = ScheduleEngine.isPastDateTime(occ.year, occ.month, occ.day, occ.hour, occ.minute),
+                    checkable = ScheduleEngine.isWithinTakeWindow(
+                        occ.year, occ.month, occ.day, occ.hour, occ.minute, occ.windowMinutes,
+                    ),
                 )
             }
 
             _state.value = s.copy(
                 dayStates = states,
                 agenda = agenda,
-                schedules = snapshot.list(false),
             )
         }
     }
@@ -156,22 +159,6 @@ class CalendarViewModel(private val container: AppContainer) : ViewModel() {
     fun createSchedule(schedule: Schedule) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { container.schedules.create(schedule) }
-            refresh()
-            DoseAlarms.kickNow(container.appContext)
-        }
-    }
-
-    fun cancelSchedule(id: Long) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) { container.schedules.cancel(id) }
-            refresh()
-            DoseAlarms.kickNow(container.appContext)
-        }
-    }
-
-    fun prolong(id: Long, endMode: EndMode, endDate: String, doseCount: Int) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) { container.schedules.updateEnd(id, endMode, endDate, doseCount) }
             refresh()
             DoseAlarms.kickNow(container.appContext)
         }
