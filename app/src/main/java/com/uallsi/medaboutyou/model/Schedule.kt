@@ -77,7 +77,10 @@ data class Schedule(
     val windowMinutes: Int = 30,
     // Temporarily paused: kept in the list but generates no doses/reminders
     // until resumed. Distinct from [active] (cancel/retire).
+    // [suspended] = indefinite pause; [suspendedUntil] = "YYYY-MM-DD" auto-resume
+    // date (paused while today < it). Past dates are never hidden.
     val suspended: Boolean = false,
+    val suspendedUntil: String = "",
     // Minutes after the scheduled time at which an untaken dose alerts the
     // caregiver (0 = off). Must be < [windowMinutes] (the intake deadline) so
     // the caregiver is notified before the dose can no longer be taken on time.

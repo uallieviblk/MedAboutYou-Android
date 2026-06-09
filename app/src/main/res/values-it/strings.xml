@@ -205,4 +205,11 @@
     <string name="suspended_label">Sospesa</string>
     <string name="suspend_therapy">Sospendi</string>
     <string name="resume_therapy">Riprendi</string>
+    <string name="pause_title">Metti in pausa</string>
+    <string name="pause_indefinite">A tempo indeterminato</string>
+    <string name="pause_1week">Per 1 settimana</string>
+    <string name="pause_2weeks">Per 2 settimane</string>
+    <string name="pause_1month">Per 1 mese</string>
+    <string name="pause_until_date">Fino a una data…</string>
+    <string name="paused_until">In pausa fino al %1$s</string>
 </resources>

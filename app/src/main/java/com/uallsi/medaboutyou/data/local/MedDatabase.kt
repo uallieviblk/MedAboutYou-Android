@@ -23,7 +23,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         DoseAlertEntity::class,
         ImageCacheEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class MedDatabase : RoomDatabase() {
@@ -80,13 +80,21 @@ abstract class MedDatabase : RoomDatabase() {
             }
         }
 
+        /** v4 → v5: add the timed-pause auto-resume date. */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE schedules ADD COLUMN suspended_until TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
         fun get(context: Context): MedDatabase =
             instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     MedDatabase::class.java,
                     "medicines.db",
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .build().also { instance = it }
             }
     }
 }

@@ -42,11 +42,14 @@ import com.uallsi.medaboutyou.model.Schedule
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.calendar.ScheduleEditorDialog
 import com.uallsi.medaboutyou.ui.calendar.periodUnitLabel
+import com.uallsi.medaboutyou.ui.common.DateField
 import com.uallsi.medaboutyou.ui.theme.MedColors
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -57,6 +60,7 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
     val schedules by vm.schedules.collectAsStateWithLifecycle()
     var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var editing by remember { mutableStateOf<Schedule?>(null) }
+    var pausing by remember { mutableStateOf<Long?>(null) }   // schedule id to pause
 
     Box(modifier.fillMaxSize()) {
         if (schedules.isEmpty()) {
@@ -76,7 +80,8 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
                     ScheduleCard(
                         sch,
                         onEdit = { editing = sch },
-                        onToggleSuspend = { vm.setSuspended(sch.id, !sch.suspended) },
+                        onPauseRequested = { pausing = sch.id },
+                        onResume = { vm.setPause(sch.id, false, "") },
                         onCancel = { pendingCancel = sch.id to sch.medName },
                     )
                 }
@@ -119,15 +124,51 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
             },
         )
     }
+
+    pausing?.let { id ->
+        val today = LocalDate.now()
+        AlertDialog(
+            onDismissRequest = { pausing = null },
+            title = { Text(stringResource(R.string.pause_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    fun pauseUntil(d: LocalDate) { vm.setPause(id, false, d.toString()); pausing = null }
+                    PauseOption(stringResource(R.string.pause_indefinite)) { vm.setPause(id, true, ""); pausing = null }
+                    PauseOption(stringResource(R.string.pause_1week)) { pauseUntil(today.plusWeeks(1)) }
+                    PauseOption(stringResource(R.string.pause_2weeks)) { pauseUntil(today.plusWeeks(2)) }
+                    PauseOption(stringResource(R.string.pause_1month)) { pauseUntil(today.plusMonths(1)) }
+                    DateField(
+                        label = stringResource(R.string.pause_until_date),
+                        value = today.plusDays(1).toString(),
+                        minIso = today.plusDays(1).toString(),
+                    ) { picked -> vm.setPause(id, false, picked); pausing = null }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { pausing = null }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun PauseOption(text: String, onClick: () -> Unit) {
+    TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Text(text, modifier = Modifier.weight(1f))
+    }
 }
 
 @Composable
 private fun ScheduleCard(
     schedule: Schedule,
     onEdit: () -> Unit,
-    onToggleSuspend: () -> Unit,
+    onPauseRequested: () -> Unit,
+    onResume: () -> Unit,
     onCancel: () -> Unit,
 ) {
+    val until = runCatching { LocalDate.parse(schedule.suspendedUntil) }.getOrNull()
+    val paused = schedule.suspended || (until != null && LocalDate.now().isBefore(until))
     Card(onClick = onEdit, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
@@ -135,12 +176,16 @@ private fun ScheduleCard(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(schedule.medName, style = MaterialTheme.typography.titleMedium)
-                if (schedule.suspended) {
-                    Text(
-                        stringResource(R.string.suspended_label),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                val pausedLabel = when {
+                    schedule.suspended -> stringResource(R.string.suspended_label)
+                    paused && until != null -> stringResource(
+                        R.string.paused_until,
+                        until.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())),
                     )
+                    else -> null
+                }
+                if (pausedLabel != null) {
+                    Text(pausedLabel, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 }
                 Text(
                     recurrenceSummary(schedule),
@@ -153,8 +198,8 @@ private fun ScheduleCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            IconButton(onClick = onToggleSuspend) {
-                if (schedule.suspended) {
+            IconButton(onClick = if (paused) onResume else onPauseRequested) {
+                if (paused) {
                     Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.resume_therapy))
                 } else {
                     Icon(Icons.Default.Pause, contentDescription = stringResource(R.string.suspend_therapy))

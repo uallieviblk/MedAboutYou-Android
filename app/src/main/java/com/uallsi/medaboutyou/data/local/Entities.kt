@@ -88,6 +88,7 @@ data class ScheduleEntity(
     @ColumnInfo(name = "times") val times: String = "",
     @ColumnInfo(name = "window_minutes") val windowMinutes: Int,
     val suspended: Boolean = false,
+    @ColumnInfo(name = "suspended_until") val suspendedUntil: String = "",
     @ColumnInfo(name = "caregiver_alert_min") val caregiverAlertMin: Int = 0,
     @ColumnInfo(name = "alert_refresh_min") val alertRefreshMin: Int = 0,
     val notes: String,

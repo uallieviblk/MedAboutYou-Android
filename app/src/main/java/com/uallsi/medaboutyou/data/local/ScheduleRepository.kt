@@ -30,9 +30,12 @@ class ScheduleRepository(db: MedDatabase) {
 
     suspend fun cancel(scheduleId: Long) = scheduleDao.cancel(scheduleId, nowIso())
 
-    /** Pause/resume a schedule (no doses generated while suspended). */
-    suspend fun setSuspended(scheduleId: Long, suspended: Boolean) =
-        scheduleDao.setSuspended(scheduleId, suspended, nowIso())
+    /**
+     * Pause/resume a schedule. [suspended] = indefinite pause; [until] =
+     * "YYYY-MM-DD" timed pause (auto-resumes on that date); both clear = active.
+     */
+    suspend fun setPause(scheduleId: Long, suspended: Boolean, until: String) =
+        scheduleDao.setPause(scheduleId, suspended, until, nowIso())
 
     /**
      * Apply an edit to a schedule **from now on**, leaving the past untouched:
@@ -205,8 +208,11 @@ class ScheduleSnapshot(
 
     override fun occurrencesOn(year: Int, month: Int, day: Int): List<Occurrence> {
         val result = mutableListOf<Occurrence>()
+        val target = runCatching { LocalDate.of(year, month, day) }.getOrNull()
+        val today = LocalDate.now()
         for (sch in all) {
-            if (!sch.active || sch.suspended) continue   // suspended = paused, no doses
+            if (!sch.active) continue
+            if (target != null && isPausedOn(sch, target, today)) continue
             val ov = overrides[sch.id].orEmpty()
             val log = logs[sch.id].orEmpty()
             for (occ in ScheduleEngine.occurrencesOn(sch, year, month, day)) {
@@ -228,6 +234,21 @@ class ScheduleSnapshot(
         }
         result.sortWith(compareBy({ it.hour }, { it.minute }))
         return result
+    }
+
+    /**
+     * True if [sch] is paused on [target]. Past dates (< [today]) are never
+     * paused (history is preserved); from today on, an indefinite suspend hides
+     * everything and a timed pause hides up to (but not including) its date.
+     */
+    private fun isPausedOn(sch: Schedule, target: LocalDate, today: LocalDate): Boolean {
+        if (target.isBefore(today)) return false
+        if (sch.suspended) return true
+        val until = runCatching {
+            val p = sch.suspendedUntil.split("-")
+            LocalDate.of(p[0].toInt(), p[1].toInt(), p[2].toInt())
+        }.getOrNull() ?: return false
+        return target.isBefore(until)
     }
 
     /** Days of [year]/[month] that have at least one (non-cancelled) occurrence. */

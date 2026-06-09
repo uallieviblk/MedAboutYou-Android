@@ -58,10 +58,13 @@ class SchedulesViewModel(private val container: AppContainer) : ViewModel() {
         }
     }
 
-    /** Pause or resume a therapy. */
-    fun setSuspended(id: Long, suspended: Boolean) {
+    /**
+     * Pause a therapy: indefinitely ([suspended] = true) or until a date
+     * ([until] = "YYYY-MM-DD"). Resume by passing false / "".
+     */
+    fun setPause(id: Long, suspended: Boolean, until: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { container.schedules.setSuspended(id, suspended) }
+            withContext(Dispatchers.IO) { container.schedules.setPause(id, suspended, until) }
             refresh()
             DoseAlarms.kickNow(container.appContext)
         }
