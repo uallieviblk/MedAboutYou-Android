@@ -3,6 +3,7 @@ package com.uallsi.medaboutyou
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
@@ -77,14 +78,20 @@ class RefillFlowTest {
 
         ActivityScenario.launch(MainActivity::class.java)
         composeRule.waitForIdle()
-        // Wait for the compose hierarchy to attach before interacting.
+        // Open Search from the Schedules "Add medicine" button (Search is no
+        // longer a bottom-nav tab after the redesign).
         composeRule.waitUntil(10_000) {
-            composeRule.onAllNodesWithText("Search").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Schedules").fetchSemanticsNodes().isNotEmpty()
         }
-
-        // Search → open the record.
-        composeRule.onNodeWithText("Search").performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.onNodeWithText("Schedules").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
+        composeRule.waitUntil(10_000) {
+            composeRule.onAllNodesWithTag("addMedicineFab").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("addMedicineFab").performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
+
+        // Search list → open the seeded record.
         composeRule.waitUntil(10_000) {
             composeRule.onAllNodesWithText("Testmedicine", substring = true)
                 .fetchSemanticsNodes().isNotEmpty()

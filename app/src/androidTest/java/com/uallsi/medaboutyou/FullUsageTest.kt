@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import android.Manifest
@@ -103,7 +104,9 @@ class FullUsageTest {
             assertEquals(9, app.container.medicines.availableDoses(Source.EMA, "", "Metformin"))
         }
 
-        // --- Insights reflects the activity. ---
+        // --- Insights (now in the overflow menu) reflects the activity. ---
+        composeRule.onNodeWithContentDescription("More options").performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
         composeRule.onNodeWithText("Insights").performSemanticsAction(SemanticsActions.OnClick)
         composeRule.waitForIdle()
         composeRule.waitUntil(10_000) {

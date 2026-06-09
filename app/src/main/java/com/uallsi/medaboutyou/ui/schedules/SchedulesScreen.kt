@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -92,7 +93,7 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
             onClick = onAddMedicine,
             icon = { Icon(Icons.Default.Add, contentDescription = null) },
             text = { Text(stringResource(R.string.add_medicine)) },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).testTag("addMedicineFab"),
         )
     }
 
