@@ -86,6 +86,7 @@ Gradle 8.13 / AGP 8.9.3, built with the Studio-bundled JBR.
 | [Overview deck](docs/presentation-overview.html) | What the app is and how it's built — open in a browser |
 | [How-to deck](docs/presentation-howto.html) | A guided tour of using the app |
 | [Website](website/index.html) | Landing page with **Download latest APK** |
+| [Releasing](docs/RELEASING.md) | Tag‑driven GitHub Actions release workflow & signing |
 
 See [CLAUDE.md](CLAUDE.md) for the architecture and the porting rules that keep the
 domain logic in parity with the immutable C++ reference.

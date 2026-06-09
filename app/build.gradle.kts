@@ -24,6 +24,19 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    signingConfigs {
+        // Release signing from CI env (set by the GitHub Actions workflow when the
+        // KEYSTORE_BASE64 secret is present). Left empty for local/unconfigured builds.
+        create("release") {
+            val ks = System.getenv("KEYSTORE_FILE")?.let(::file)
+            if (ks != null && ks.exists()) {
+                storeFile = ks
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -31,6 +44,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Use the release keystore when CI provides one; otherwise fall back to
+            // the debug key so the release APK is always installable (sideload/CI).
+            signingConfig = if (System.getenv("KEYSTORE_FILE")?.let(::file)?.exists() == true) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
     compileOptions {
