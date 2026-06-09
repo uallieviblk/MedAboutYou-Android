@@ -3,6 +3,7 @@ package com.uallsi.medaboutyou
 import com.uallsi.medaboutyou.domain.Insights
 import com.uallsi.medaboutyou.domain.Now
 import com.uallsi.medaboutyou.domain.ScheduleQuery
+import com.uallsi.medaboutyou.model.DoseTime
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.Occurrence
 import com.uallsi.medaboutyou.model.PeriodUnit
@@ -27,8 +28,7 @@ class InsightsTest {
         endMode = EndMode.NEVER,
         periodUnit = PeriodUnit.DAYS,
         periodN = 1,
-        hour = 8,
-        minute = 0,
+        times = listOf(DoseTime(hour = 8, minute = 0)),
     )
 
     /** In-memory query backed by precomputed occurrences for a date map. */
@@ -52,10 +52,59 @@ class InsightsTest {
 
     @Test
     fun hours_schedule_yields_multiple_doses_per_day() {
-        val sch = dailySchedule().copy(periodUnit = PeriodUnit.HOURS, periodN = 6)
-        // 08:00, 14:00, 20:00 -> on day 1 from base; day 2 also 02:00 etc.
+        // HOURS steps every N hours from the start date's midnight, at the
+        // entry's minute (hour is ignored for HOURS).
+        val sch = dailySchedule().copy(
+            periodUnit = PeriodUnit.HOURS, periodN = 6,
+            times = listOf(DoseTime(minute = 0)),
+        )
         val day1 = ScheduleEngine.occurrencesOn(sch, 2026, 6, 1)
-        assertEquals(listOf(8, 14, 20), day1.map { it.hour })
+        assertEquals(listOf(0, 6, 12, 18), day1.map { it.hour })
+    }
+
+    @Test
+    fun days_schedule_with_several_times_yields_one_per_entry() {
+        val sch = dailySchedule().copy(
+            times = listOf(DoseTime(hour = 8, minute = 0), DoseTime(hour = 20, minute = 30)),
+        )
+        val day = ScheduleEngine.occurrencesOn(sch, 2026, 6, 1)
+        assertEquals(listOf(8 to 0, 20 to 30), day.map { it.hour to it.minute })
+    }
+
+    @Test
+    fun months_schedule_clamps_day_to_last_existing_day() {
+        // Day 31 every month -> 30 Sep, 28 Feb (no Feb 29 here: 2026 is not a leap year).
+        val sch = dailySchedule().copy(
+            startDate = "2026-01-31",
+            periodUnit = PeriodUnit.MONTHS, periodN = 1,
+            times = listOf(DoseTime(dayOfMonth = 31, hour = 8)),
+        )
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 1, 31).size)
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 9, 30).size)   // clamped from 31
+        assertTrue(ScheduleEngine.occurrencesOn(sch, 2026, 9, 29).isEmpty())
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 2, 28).size)   // clamped from 31
+    }
+
+    @Test
+    fun years_schedule_lands_on_the_anniversary() {
+        val sch = dailySchedule().copy(
+            startDate = "2026-03-10",
+            periodUnit = PeriodUnit.YEARS, periodN = 1,
+            times = listOf(DoseTime(month = 3, dayOfMonth = 10, hour = 9)),
+        )
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 3, 10).size)
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2027, 3, 10).size)
+        assertTrue(ScheduleEngine.occurrencesOn(sch, 2027, 3, 11).isEmpty())
+    }
+
+    @Test
+    fun once_schedule_fires_only_on_its_exact_date() {
+        val sch = dailySchedule().copy(
+            periodUnit = PeriodUnit.ONCE,
+            times = listOf(DoseTime(year = 2026, month = 12, dayOfMonth = 25, hour = 9)),
+        )
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 12, 25).size)
+        assertTrue(ScheduleEngine.occurrencesOn(sch, 2026, 12, 26).isEmpty())
     }
 
     @Test

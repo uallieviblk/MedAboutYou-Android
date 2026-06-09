@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.uallsi.medaboutyou.model.DoseTime
 import com.uallsi.medaboutyou.model.EndMode
 import com.uallsi.medaboutyou.model.PeriodUnit
 import com.uallsi.medaboutyou.model.Schedule
@@ -54,8 +55,7 @@ class FullUsageTest {
                     endMode = EndMode.NEVER,
                     periodUnit = PeriodUnit.DAYS,
                     periodN = 1,
-                    hour = 0,
-                    minute = 0,
+                    times = listOf(DoseTime(hour = 0, minute = 0)),
                     windowMinutes = 30,
                 ),
             )

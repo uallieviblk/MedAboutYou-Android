@@ -103,8 +103,9 @@ class ScheduleRepository(db: MedDatabase) {
             original.copy(
                 id = 0,
                 startDate = thisDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                hour = hour,
-                minute = minute,
+                // Retime every dose-time entry to the new (hour, minute).
+                times = original.times.map { it.copy(hour = hour, minute = minute) }
+                    .ifEmpty { listOf(com.uallsi.medaboutyou.model.DoseTime(hour = hour, minute = minute)) },
                 windowMinutes = windowMinutes,
                 doseCount = carriedCount,
                 active = true,

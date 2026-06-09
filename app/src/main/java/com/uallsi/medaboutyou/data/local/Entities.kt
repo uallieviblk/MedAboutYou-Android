@@ -81,8 +81,11 @@ data class ScheduleEntity(
     @ColumnInfo(name = "dose_count") val doseCount: Int,
     @ColumnInfo(name = "period_unit") val periodUnit: String,
     @ColumnInfo(name = "period_n") val periodN: Int,
+    // Legacy single-dose time (kept for back-compat / fallback). The full set of
+    // dose times lives in [times], serialised; see Mappers.
     val hour: Int,
     val minute: Int,
+    @ColumnInfo(name = "times") val times: String = "",
     @ColumnInfo(name = "window_minutes") val windowMinutes: Int,
     val notes: String,
     val active: Boolean,
