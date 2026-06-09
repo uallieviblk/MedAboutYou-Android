@@ -2,7 +2,6 @@
     <string name="app_name">MedAboutYou</string>
 
     <string name="nav_today">Aujourd\'hui</string>
-    <string name="nav_search">Rechercher</string>
     <string name="nav_calendar">Calendrier</string>
     <string name="nav_insights">Statistiques</string>
     <string name="nav_schedules">Traitements</string>
@@ -201,4 +200,6 @@
     <string name="widget_empty">Aucune prise aujourd\'hui.</string>
     <string name="add_medicine">Ajouter un médicament</string>
     <string name="add_package">Ajouter une boîte</string>
+    <string name="menu_more">Plus d\'options</string>
+    <string name="use_as_custom">Ajouter « %1$s » comme médicament personnalisé</string>
 </resources>

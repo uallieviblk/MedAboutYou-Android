@@ -50,15 +50,6 @@ class SchedulesViewModel(private val container: AppContainer) : ViewModel() {
         return end == null || !end.isBefore(today)
     }
 
-    /** Create a (custom) schedule typed by the user, not from a found medicine. */
-    fun create(schedule: Schedule) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) { container.schedules.create(schedule) }
-            refresh()
-            DoseAlarms.kickNow(container.appContext)
-        }
-    }
-
     fun cancel(id: Long) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { container.schedules.cancel(id) }

@@ -21,6 +21,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -47,6 +48,7 @@ import com.uallsi.medaboutyou.ui.common.statusBadgeColors
 fun SearchScreen(
     onOpenMedicine: (Medicine) -> Unit,
     modifier: Modifier = Modifier,
+    onCustomMedicine: (String) -> Unit = {},
 ) {
     val vm: SearchViewModel = viewModel(factory = AppViewModelFactory)
     val state by vm.state.collectAsStateWithLifecycle()
@@ -96,6 +98,15 @@ fun SearchScreen(
                     }
                 }
             }
+        }
+
+        // Create a "user medicine" therapy from the typed text (for products not
+        // in EMA/AIFA, e.g. supplements). The name stays editable in the dialog.
+        if (state.query.isNotBlank()) {
+            OutlinedButton(
+                onClick = { onCustomMedicine(state.query.trim()) },
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            ) { Text(stringResource(R.string.use_as_custom, state.query.trim())) }
         }
 
         if (state.needsDownload && state.results.isEmpty()) {

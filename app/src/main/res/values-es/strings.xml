@@ -2,7 +2,6 @@
     <string name="app_name">MedAboutYou</string>
 
     <string name="nav_today">Hoy</string>
-    <string name="nav_search">Buscar</string>
     <string name="nav_calendar">Calendario</string>
     <string name="nav_insights">Estadísticas</string>
     <string name="nav_schedules">Pautas</string>
@@ -201,4 +200,6 @@
     <string name="widget_empty">No hay dosis hoy.</string>
     <string name="add_medicine">Añadir medicamento</string>
     <string name="add_package">Añadir un envase</string>
+    <string name="menu_more">Más opciones</string>
+    <string name="use_as_custom">Añadir «%1$s» como medicamento personalizado</string>
 </resources>

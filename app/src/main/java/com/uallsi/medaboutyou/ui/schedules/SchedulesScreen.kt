@@ -37,7 +37,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.PeriodUnit
 import com.uallsi.medaboutyou.model.Schedule
-import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.calendar.ScheduleEditorDialog
 import com.uallsi.medaboutyou.ui.calendar.periodUnitLabel
@@ -51,12 +50,11 @@ import java.util.Locale
 
 /** Dedicated page listing the active prescriptions (moved out of the calendar). */
 @Composable
-fun SchedulesScreen(modifier: Modifier = Modifier) {
+fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
     val vm: SchedulesViewModel = viewModel(factory = AppViewModelFactory)
     val schedules by vm.schedules.collectAsStateWithLifecycle()
     var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var editing by remember { mutableStateOf<Schedule?>(null) }
-    var showNew by remember { mutableStateOf(false) }
 
     Box(modifier.fillMaxSize()) {
         if (schedules.isEmpty()) {
@@ -83,20 +81,10 @@ fun SchedulesScreen(modifier: Modifier = Modifier) {
         }
 
         ExtendedFloatingActionButton(
-            onClick = { showNew = true },
+            onClick = onAddMedicine,
             icon = { Icon(Icons.Default.Add, contentDescription = null) },
             text = { Text(stringResource(R.string.add_medicine)) },
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-        )
-    }
-
-    if (showNew) {
-        ScheduleEditorDialog(
-            prefillName = "",
-            prefillSource = Source.EMA,
-            prefillExtId = "",
-            onCreate = { vm.create(it); showNew = false },
-            onDismiss = { showNew = false },
         )
     }
 

@@ -3,7 +3,6 @@
 
     <!-- Navigation / titles -->
     <string name="nav_today">Today</string>
-    <string name="nav_search">Search</string>
     <string name="nav_calendar">Calendar</string>
     <string name="nav_insights">Insights</string>
     <string name="nav_schedules">Schedules</string>
@@ -212,4 +211,6 @@
     <string name="widget_empty">No doses today.</string>
     <string name="add_medicine">Add medicine</string>
     <string name="add_package">Add a package</string>
+    <string name="menu_more">More options</string>
+    <string name="use_as_custom">Add “%1$s” as a custom medicine</string>
 </resources>
