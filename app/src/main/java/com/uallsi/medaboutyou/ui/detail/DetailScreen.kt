@@ -3,6 +3,8 @@ package com.uallsi.medaboutyou.ui.detail
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,7 +44,7 @@ import com.uallsi.medaboutyou.model.Medicine
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
 import com.uallsi.medaboutyou.ui.common.MedicineBadges
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DetailScreen(
     medicine: Medicine,
@@ -107,18 +109,34 @@ fun DetailScreen(
 
             // Stock card
             Card(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                ) {
-                    Column {
-                        Text(stringResource(R.string.stock), style = MaterialTheme.typography.labelMedium)
-                        Text(pluralStringResource(R.plurals.doses_count, state.stock, state.stock), style = MaterialTheme.typography.titleMedium)
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = { vm.supplyStock(30) }) { Text(stringResource(R.string.supply_30)) }
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    ) {
+                        Column {
+                            Text(stringResource(R.string.stock), style = MaterialTheme.typography.labelMedium)
+                            Text(pluralStringResource(R.plurals.doses_count, state.stock, state.stock), style = MaterialTheme.typography.titleMedium)
+                        }
                         Button(onClick = { stockDialog = true }) { Text(stringResource(R.string.set_stock)) }
+                    }
+                    // Top up by a real marketed pack (AIFA) — else a generic +30.
+                    if (medicine.packs.isNotEmpty()) {
+                        Text(
+                            stringResource(R.string.add_package),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            medicine.packs.forEach { pack ->
+                                OutlinedButton(onClick = { vm.supplyStock(pack.units) }) {
+                                    Text("+ ${pack.label}")
+                                }
+                            }
+                        }
+                    } else {
+                        OutlinedButton(onClick = { vm.supplyStock(30) }) { Text(stringResource(R.string.supply_30)) }
                     }
                 }
             }

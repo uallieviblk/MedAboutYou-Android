@@ -1,6 +1,7 @@
 package com.uallsi.medaboutyou.data.remote
 
 import com.uallsi.medaboutyou.model.Medicine
+import com.uallsi.medaboutyou.model.Pack
 import com.uallsi.medaboutyou.model.Source
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -85,12 +86,32 @@ class AifaSource(private val http: Http = Http()) {
                     rcpUrl = rcpUrl,
                     hasRcp = hasRcp,
                     productNumber = productNumber,
+                    packs = parsePacks(obj["confezioni"]),
                 )
             }
         } catch (e: Exception) {
             lastError = "Could not parse AIFA response: ${e.message}"
             emptyList()
         }
+    }
+
+    /**
+     * Parse the marketed pack sizes from AIFA `confezioni`. Each
+     * `denominazionePackage` ends with "<n> <unit>" (e.g. `… " 12 COMPRESSE`);
+     * we take the last such number as the units in the pack. Deduplicated.
+     */
+    private fun parsePacks(element: kotlinx.serialization.json.JsonElement?): List<Pack> {
+        val arr = element as? JsonArray ?: return emptyList()
+        val byLabel = LinkedHashMap<String, Pack>()
+        for (item in arr) {
+            val den = (item as? JsonObject)?.str("denominazionePackage").orEmpty()
+            if (den.isBlank()) continue
+            val m = PACK_REGEX.findAll(den).lastOrNull() ?: continue
+            val units = m.groupValues[1].toIntOrNull()?.takeIf { it > 0 } ?: continue
+            val label = "$units ${tidyCaps(m.groupValues[2])}"
+            byLabel.putIfAbsent(label, Pack(label, units))
+        }
+        return byLabel.values.sortedBy { it.units }
     }
 
     private fun JsonObject.str(key: String): String {
@@ -143,5 +164,9 @@ class AifaSource(private val http: Http = Http()) {
         const val API_BASE = "https://api.aifa.gov.it/aifa-bdf-eif-be/1.0.0"
         const val PORTAL_BASE = "https://medicinali.aifa.gov.it/#"
         private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+
+        // "<number> <word>" — the pack quantity is the last such pair in the
+        // package description ("…1000 MG COMPRESSE … 12 COMPRESSE" -> 12).
+        private val PACK_REGEX = Regex("""(\d+)\s+(\p{L}+)""")
     }
 }

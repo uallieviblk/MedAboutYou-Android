@@ -200,4 +200,5 @@
     <string name="sms_caregiver_text_named">%1$s : la prise de %2$s prévue à %3$s n\'a pas été effectuée.</string>
     <string name="widget_empty">Aucune prise aujourd\'hui.</string>
     <string name="add_medicine">Ajouter un médicament</string>
+    <string name="add_package">Ajouter une boîte</string>
 </resources>

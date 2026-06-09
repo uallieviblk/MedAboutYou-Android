@@ -200,4 +200,5 @@
     <string name="sms_caregiver_text_named">%1$s: Die für %3$s geplante Dosis %2$s wurde nicht eingenommen.</string>
     <string name="widget_empty">Heute keine Dosen.</string>
     <string name="add_medicine">Medikament hinzufügen</string>
+    <string name="add_package">Packung hinzufügen</string>
 </resources>

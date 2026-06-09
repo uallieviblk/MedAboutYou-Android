@@ -21,6 +21,12 @@ enum class Source(val key: String) {
 }
 
 /**
+ * A marketed package of a medicine, e.g. "12 compresse" → [units] = 12.
+ * Parsed from the AIFA `confezioni` list; EMA records carry none.
+ */
+data class Pack(val label: String, val units: Int)
+
+/**
  * A single medicine record from one of the supported sources.
  *
  * Faithful port of the C++ `Medicine` struct. Every EMA source field is a
@@ -66,6 +72,9 @@ data class Medicine(
     val firstPublished: String = "",
     val lastUpdated: String = "",
     val url: String = "",
+    // Marketed pack sizes (AIFA only). Transient: used to offer "add a pack"
+    // for stock; not persisted to Room.
+    val packs: List<Pack> = emptyList(),
 ) {
     /** True when this record describes a human medicine. */
     val isHuman: Boolean get() = category == "Human"

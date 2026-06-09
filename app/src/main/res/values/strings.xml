@@ -211,4 +211,5 @@
     <string name="sms_caregiver_text_named">%1$s: the %2$s dose scheduled at %3$s has not been taken.</string>
     <string name="widget_empty">No doses today.</string>
     <string name="add_medicine">Add medicine</string>
+    <string name="add_package">Add a package</string>
 </resources>
