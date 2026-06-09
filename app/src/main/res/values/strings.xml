@@ -205,6 +205,8 @@
     <string name="caregiver_add">Add caregiver</string>
     <string name="caregiver_grant_sms">Grant SMS permission</string>
     <string name="caregiver_alert_after">Alert caregiver after (min, 0 = off)</string>
-    <string name="caregiver_refresh_every">Re-alert every (min, 0 = once)</string>
+    <string name="reminder_repeat_every">Remind me every (min, 0 = once)</string>
     <string name="sms_caregiver_text">MedAboutYou: the %1$s dose scheduled at %2$s has not been taken.</string>
+    <string name="user_name">Your name (sent to caregivers)</string>
+    <string name="sms_caregiver_text_named">%1$s: the %2$s dose scheduled at %3$s has not been taken.</string>
 </resources>

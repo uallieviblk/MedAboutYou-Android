@@ -194,6 +194,8 @@
     <string name="caregiver_add">Añadir cuidador</string>
     <string name="caregiver_grant_sms">Conceder permiso de SMS</string>
     <string name="caregiver_alert_after">Avisar al cuidador tras (min, 0 = no)</string>
-    <string name="caregiver_refresh_every">Reavisar cada (min, 0 = una vez)</string>
+    <string name="reminder_repeat_every">Recordar cada (min, 0 = una vez)</string>
     <string name="sms_caregiver_text">MedAboutYou: la dosis de %1$s prevista a las %2$s no se ha tomado.</string>
+    <string name="user_name">Tu nombre (se envía a los cuidadores)</string>
+    <string name="sms_caregiver_text_named">%1$s: la dosis de %2$s prevista a las %3$s no se ha tomado.</string>
 </resources>

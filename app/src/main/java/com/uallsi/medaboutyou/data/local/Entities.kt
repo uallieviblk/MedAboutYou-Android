@@ -124,15 +124,20 @@ data class OccOverrideEntity(
     @ColumnInfo(name = "updated_at") val updatedAt: String,
 )
 
-/** Records that a caregiver SMS was already sent for an occurrence (dedupe). */
+/**
+ * Tracks the last time an alert of a given [kind] fired for an occurrence, so
+ * the worker can pace the repeating local reminder and fire the caregiver SMS
+ * once. [kind] is "local" or "caregiver".
+ */
 @Entity(
-    tableName = "caregiver_alert",
-    indices = [Index(value = ["schedule_id", "scheduled_at"], unique = true)],
+    tableName = "dose_alert",
+    indices = [Index(value = ["schedule_id", "scheduled_at", "kind"], unique = true)],
 )
-data class CaregiverAlertEntity(
+data class DoseAlertEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "schedule_id") val scheduleId: Long,
     @ColumnInfo(name = "scheduled_at") val scheduledAt: String,  // key_iso
+    val kind: String,
     @ColumnInfo(name = "sent_at") val sentAt: String,
 )
 

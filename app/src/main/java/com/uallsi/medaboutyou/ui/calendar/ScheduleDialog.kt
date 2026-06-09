@@ -250,12 +250,13 @@ fun ScheduleEditorDialog(
                     if (caregiverAlert >= it) caregiverAlert = cap
                     if (alertRefresh >= it) alertRefresh = cap
                 }
-                // Caregiver alert + refresh must both fire before the window closes.
+                // Repeat the local reminder, and escalate to caregivers — both
+                // timeouts stay below the intake window.
+                Stepper(stringResource(R.string.reminder_repeat_every), alertRefresh, 0, (window - 5).coerceAtLeast(0), step = 5) {
+                    alertRefresh = it
+                }
                 Stepper(stringResource(R.string.caregiver_alert_after), caregiverAlert, 0, (window - 5).coerceAtLeast(0), step = 5) {
                     caregiverAlert = it
-                }
-                Stepper(stringResource(R.string.caregiver_refresh_every), alertRefresh, 0, (window - 5).coerceAtLeast(0), step = 5) {
-                    alertRefresh = it
                 }
 
                 if (unit != PeriodUnit.ONCE) {

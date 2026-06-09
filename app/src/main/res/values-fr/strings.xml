@@ -194,6 +194,8 @@
     <string name="caregiver_add">Ajouter un aidant</string>
     <string name="caregiver_grant_sms">Autoriser l\'envoi de SMS</string>
     <string name="caregiver_alert_after">Alerter l\'aidant après (min, 0 = off)</string>
-    <string name="caregiver_refresh_every">Relancer l\'alerte toutes les (min, 0 = une fois)</string>
+    <string name="reminder_repeat_every">Me rappeler toutes les (min, 0 = une fois)</string>
     <string name="sms_caregiver_text">MedAboutYou : la prise de %1$s prévue à %2$s n\'a pas été effectuée.</string>
+    <string name="user_name">Votre nom (envoyé aux aidants)</string>
+    <string name="sms_caregiver_text_named">%1$s : la prise de %2$s prévue à %3$s n\'a pas été effectuée.</string>
 </resources>

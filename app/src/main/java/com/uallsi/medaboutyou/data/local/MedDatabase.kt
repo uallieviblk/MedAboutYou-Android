@@ -20,7 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ScheduleEntity::class,
         DoseLogEntity::class,
         OccOverrideEntity::class,
-        CaregiverAlertEntity::class,
+        DoseAlertEntity::class,
         ImageCacheEntity::class,
     ],
     version = 3,
@@ -33,7 +33,7 @@ abstract class MedDatabase : RoomDatabase() {
     abstract fun scheduleDao(): ScheduleDao
     abstract fun doseLogDao(): DoseLogDao
     abstract fun occOverrideDao(): OccOverrideDao
-    abstract fun caregiverAlertDao(): CaregiverAlertDao
+    abstract fun doseAlertDao(): DoseAlertDao
     abstract fun imageCacheDao(): ImageCacheDao
 
     companion object {
@@ -52,21 +52,23 @@ abstract class MedDatabase : RoomDatabase() {
         }
 
         /**
-         * v2 → v3: add the per-schedule caregiver-alert timeout and a dedupe
-         * table so each overdue dose only triggers one caregiver SMS.
+         * v2 → v3: add the per-schedule reminder-repeat and caregiver-alert
+         * timeouts, plus a dose_alert table that paces the repeating local
+         * reminder and fires the caregiver SMS once (keyed by alert kind).
          */
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE schedules ADD COLUMN caregiver_alert_min INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE schedules ADD COLUMN alert_refresh_min INTEGER NOT NULL DEFAULT 0")
                 db.execSQL(
-                    "CREATE TABLE IF NOT EXISTS caregiver_alert (" +
+                    "CREATE TABLE IF NOT EXISTS dose_alert (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                        "schedule_id INTEGER NOT NULL, scheduled_at TEXT NOT NULL, sent_at TEXT NOT NULL)",
+                        "schedule_id INTEGER NOT NULL, scheduled_at TEXT NOT NULL, " +
+                        "kind TEXT NOT NULL, sent_at TEXT NOT NULL)",
                 )
                 db.execSQL(
-                    "CREATE UNIQUE INDEX IF NOT EXISTS index_caregiver_alert_schedule_id_scheduled_at " +
-                        "ON caregiver_alert (schedule_id, scheduled_at)",
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_dose_alert_schedule_id_scheduled_at_kind " +
+                        "ON dose_alert (schedule_id, scheduled_at, kind)",
                 )
             }
         }

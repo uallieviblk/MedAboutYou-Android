@@ -23,9 +23,13 @@ object CaregiverAlerts {
             PackageManager.PERMISSION_GRANTED
 
     /** True if the SMS was handed to the telephony stack. */
-    fun sendOverdueSms(context: Context, phone: String, medName: String, time: String): Boolean {
+    fun sendOverdueSms(context: Context, phone: String, userName: String, medName: String, time: String): Boolean {
         if (phone.isBlank() || !hasSmsPermission(context)) return false
-        val body = context.getString(R.string.sms_caregiver_text, medName, time)
+        val body = if (userName.isBlank()) {
+            context.getString(R.string.sms_caregiver_text, medName, time)
+        } else {
+            context.getString(R.string.sms_caregiver_text_named, userName, medName, time)
+        }
         return try {
             smsManager(context).sendTextMessage(phone, null, body, null, null)
             true

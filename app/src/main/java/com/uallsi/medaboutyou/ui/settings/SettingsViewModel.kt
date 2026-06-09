@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 data class SettingsState(
     val remindersEnabled: Boolean = true,
     val startAtBoot: Boolean = false,
+    val userName: String = "",
     val caregivers: List<Caregiver> = emptyList(),
 )
 
@@ -28,9 +29,11 @@ class SettingsViewModel(
         combine(
             container.settings.remindersEnabledFlow,
             container.settings.startAtBootFlow,
+            container.settings.userNameFlow,
             container.settings.caregiversFlow,
-        ) { reminders, boot, caregivers -> SettingsState(reminders, boot, caregivers) }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsState())
+        ) { reminders, boot, userName, caregivers ->
+            SettingsState(reminders, boot, userName, caregivers)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsState())
 
     fun setRemindersEnabled(enabled: Boolean) {
         viewModelScope.launch {
@@ -41,6 +44,10 @@ class SettingsViewModel(
 
     fun setStartAtBoot(enabled: Boolean) {
         viewModelScope.launch { container.settings.setStartAtBoot(enabled) }
+    }
+
+    fun setUserName(name: String) {
+        viewModelScope.launch { container.settings.setUserName(name) }
     }
 
     fun setCaregivers(list: List<Caregiver>) {

@@ -86,6 +86,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         )
         HorizontalDivider()
         CaregiverSection(
+            userName = state.userName,
+            onUserName = vm::setUserName,
             caregivers = state.caregivers,
             onChange = vm::setCaregivers,
         )
@@ -108,6 +110,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 /** Global list of caregivers + the SMS-permission grant needed to alert them. */
 @Composable
 private fun CaregiverSection(
+    userName: String,
+    onUserName: (String) -> Unit,
     caregivers: List<Caregiver>,
     onChange: (List<Caregiver>) -> Unit,
 ) {
@@ -133,6 +137,11 @@ private fun CaregiverSection(
             stringResource(R.string.caregiver_desc),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedTextField(
+            value = userName, onValueChange = onUserName, singleLine = true,
+            label = { Text(stringResource(R.string.user_name)) },
+            modifier = Modifier.fillMaxWidth(),
         )
         local.forEachIndexed { i, cg ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

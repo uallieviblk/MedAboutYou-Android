@@ -50,6 +50,9 @@ class Settings(private val context: Context) {
     val vetIncludedFlow: Flow<Boolean> = context.dataStore.data.map {
         it[VET_INCLUDED] ?: false
     }
+    val userNameFlow: Flow<String> = context.dataStore.data.map {
+        it[USER_NAME] ?: ""
+    }
     val caregiversFlow: Flow<List<Caregiver>> = context.dataStore.data.map {
         decodeCaregivers(it[CAREGIVERS] ?: "")
     }
@@ -69,6 +72,9 @@ class Settings(private val context: Context) {
     suspend fun setVetIncluded(included: Boolean) =
         context.dataStore.edit { it[VET_INCLUDED] = included }.let {}
 
+    suspend fun setUserName(name: String) =
+        context.dataStore.edit { it[USER_NAME] = name }.let {}
+
     suspend fun setCaregivers(list: List<Caregiver>) =
         context.dataStore.edit { it[CAREGIVERS] = encodeCaregivers(list) }.let {}
 
@@ -78,6 +84,7 @@ class Settings(private val context: Context) {
         val START_AT_BOOT = booleanPreferencesKey("start_at_boot")
         val IMAGE_API_KEY = stringPreferencesKey("image_api_key")
         val VET_INCLUDED = booleanPreferencesKey("vet_included")
+        val USER_NAME = stringPreferencesKey("user_name")
         val CAREGIVERS = stringPreferencesKey("caregivers")
     }
 }

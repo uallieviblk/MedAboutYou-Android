@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.uallsi.medaboutyou.AppContainer
-import com.uallsi.medaboutyou.domain.Insights
 import com.uallsi.medaboutyou.domain.Now
 import kotlinx.coroutines.flow.first
 import java.time.LocalDateTime
@@ -28,67 +27,52 @@ class ReminderWorker(
         val now = Now.local()
         val snapshot = container.schedules.snapshot()
         val todays = snapshot.occurrencesOn(now.year, now.month, now.day)
-        val due = todays.filter { it.status.isEmpty() && Insights.doseIsDue(it, now) }
+        val byId = container.schedules.list(false).associateBy { it.id }
 
-        for (occ in due) {
-            Notifications.show(
-                applicationContext,
-                occ.scheduleId,
-                occ.keyIso,
-                occ.medName,
-                occ.timeLabel(),
-            )
+        val userName = container.settings.userNameFlow.first()
+        val caregivers = container.settings.caregiversFlow.first()
+        val canSms = caregivers.isNotEmpty() && CaregiverAlerts.hasSmsPermission(applicationContext)
+
+        val nowDt = LocalDateTime.now()
+        val stampFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        fun parse(ts: String?) = ts?.let { runCatching { LocalDateTime.parse(it, stampFmt) }.getOrNull() }
+
+        for (occ in todays) {
+            if (occ.status.isNotEmpty()) continue                 // already taken or skipped
+            val sch = byId[occ.scheduleId] ?: continue
+            val scheduled = LocalDateTime.of(occ.year, occ.month, occ.day, occ.hour, occ.minute)
+            val elapsed = ChronoUnit.MINUTES.between(scheduled, nowDt)
+            if (elapsed < 0) continue                              // dose time not yet reached
+
+            // Local reminder: first at the dose time, then repeated every
+            // alertRefreshMin until the dose is taken (0 = remind once).
+            val lastLocal = parse(container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_LOCAL))
+            val localDue = lastLocal == null ||
+                (sch.alertRefreshMin > 0 && ChronoUnit.MINUTES.between(lastLocal, nowDt) >= sch.alertRefreshMin)
+            if (localDue) {
+                Notifications.show(applicationContext, occ.scheduleId, occ.keyIso, occ.medName, occ.timeLabel())
+                container.schedules.recordAlert(occ.scheduleId, occ.keyIso, KIND_LOCAL)
+            }
+
+            // Caregiver escalation: once the dose is still untaken past
+            // caregiverAlertMin, SMS every caregiver (once per dose).
+            if (canSms && sch.caregiverAlertMin > 0 && elapsed >= sch.caregiverAlertMin) {
+                if (container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_CAREGIVER) == null) {
+                    var anySent = false
+                    for (cg in caregivers) {
+                        if (CaregiverAlerts.sendOverdueSms(applicationContext, cg.phone, userName, occ.medName, occ.timeLabel())) {
+                            anySent = true
+                        }
+                    }
+                    if (anySent) container.schedules.recordAlert(occ.scheduleId, occ.keyIso, KIND_CAREGIVER)
+                }
+            }
         }
-
-        escalateToCaregiver(container, todays)
         return Result.success()
     }
 
-    /**
-     * SMS every configured caregiver about still-untaken doses whose caregiver
-     * timeout has elapsed. The first alert fires at [Schedule.caregiverAlertMin];
-     * if [Schedule.alertRefreshMin] > 0 it re-sends every that-many minutes while
-     * the dose stays untaken, stopping once the intake window closes. Sends are
-     * timestamped in the caregiver_alert table to drive the refresh cadence.
-     */
-    private suspend fun escalateToCaregiver(
-        container: AppContainer,
-        todays: List<com.uallsi.medaboutyou.model.Occurrence>,
-    ) {
-        val caregivers = container.settings.caregiversFlow.first()
-        if (caregivers.isEmpty() || !CaregiverAlerts.hasSmsPermission(applicationContext)) return
-
-        val byId = container.schedules.list(false).associateBy { it.id }
-        val nowDt = LocalDateTime.now()
-        val stampFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-
-        for (occ in todays) {
-            if (occ.status.isNotEmpty()) continue                 // taken or skipped
-            val sch = byId[occ.scheduleId] ?: continue
-            val alertMin = sch.caregiverAlertMin
-            if (alertMin <= 0) continue
-
-            val scheduled = LocalDateTime.of(occ.year, occ.month, occ.day, occ.hour, occ.minute)
-            val elapsed = ChronoUnit.MINUTES.between(scheduled, nowDt)
-            // Alert only within [alertMin, window): before the intake deadline.
-            if (elapsed < alertMin || elapsed >= sch.windowMinutes) continue
-
-            val lastSent = container.schedules.caregiverAlertLastSent(occ.scheduleId, occ.keyIso)
-                ?.let { runCatching { LocalDateTime.parse(it, stampFmt) }.getOrNull() }
-            val due = when {
-                lastSent == null -> true                                   // first alert
-                sch.alertRefreshMin <= 0 -> false                          // single alert only
-                else -> ChronoUnit.MINUTES.between(lastSent, nowDt) >= sch.alertRefreshMin
-            }
-            if (!due) continue
-
-            var anySent = false
-            for (cg in caregivers) {
-                if (CaregiverAlerts.sendOverdueSms(applicationContext, cg.phone, occ.medName, occ.timeLabel())) {
-                    anySent = true
-                }
-            }
-            if (anySent) container.schedules.recordCaregiverAlert(occ.scheduleId, occ.keyIso)
-        }
+    private companion object {
+        const val KIND_LOCAL = "local"
+        const val KIND_CAREGIVER = "caregiver"
     }
 }
