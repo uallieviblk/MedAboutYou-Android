@@ -90,34 +90,58 @@ private fun fmtTime(hour: Int, minute: Int, is24: Boolean, locale: Locale): Stri
     if (is24) "%02d:%02d".format(hour, minute)
     else LocalTime.of(hour.coerceIn(0, 23), minute.coerceIn(0, 59)).format(DateTimeFormatter.ofPattern("h:mm a", locale))
 
-/** New-schedule form (Android port of the calendar's "New schedule" dialog). */
+/**
+ * Schedule create/edit form. With [existing] non-null the dialog opens
+ * pre-filled and saves changes to that schedule; otherwise it creates a new one.
+ * (Android port of the calendar's "New schedule" dialog, extended for editing.)
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun NewScheduleDialog(
+fun ScheduleEditorDialog(
     prefillName: String,
     prefillSource: Source,
     prefillExtId: String,
     onCreate: (Schedule) -> Unit,
     onDismiss: () -> Unit,
+    existing: Schedule? = null,
 ) {
     val today = LocalDate.now()
     val todayIso = today.toString()
     val locale = Locale.getDefault()
     val is24 = DateFormat.is24HourFormat(LocalContext.current)
+    val editing = existing != null
+    val initUnit = existing?.periodUnit ?: PeriodUnit.DAYS
 
-    var name by remember { mutableStateOf(prefillName) }
-    var startDate by remember { mutableStateOf(todayIso) }
-    var unit by remember { mutableStateOf(PeriodUnit.DAYS) }
-    var intervalN by remember { mutableIntStateOf(1) }
-    var times by remember { mutableStateOf(listOf(defaultTime(PeriodUnit.DAYS, today))) }
+    var name by remember { mutableStateOf(existing?.medName ?: prefillName) }
+    var startDate by remember { mutableStateOf(existing?.startDate?.ifBlank { todayIso } ?: todayIso) }
+    var unit by remember { mutableStateOf(initUnit) }
+    var intervalN by remember { mutableIntStateOf(existing?.periodN?.coerceAtLeast(1) ?: 1) }
+    var times by remember {
+        mutableStateOf(
+            if (existing != null && initUnit != PeriodUnit.WEEKS && existing.times.isNotEmpty()) existing.times
+            else listOf(defaultTime(initUnit, today)),
+        )
+    }
     // WEEKS uses a day-toggle row + shared dose times (Google/Apple pattern).
-    var weekDays by remember { mutableStateOf(setOf(today.dayOfWeek.value)) }
-    var weekTimes by remember { mutableStateOf(listOf(8 to 0)) }
-    var window by remember { mutableIntStateOf(30) }
-    var endMode by remember { mutableStateOf(EndMode.NEVER) }
-    var endDate by remember { mutableStateOf(todayIso) }
-    var doseCount by remember { mutableIntStateOf(10) }
-    var notes by remember { mutableStateOf("") }
+    var weekDays by remember {
+        mutableStateOf(
+            if (initUnit == PeriodUnit.WEEKS && existing != null)
+                existing.times.map { it.weekday }.toSet().ifEmpty { setOf(today.dayOfWeek.value) }
+            else setOf(today.dayOfWeek.value),
+        )
+    }
+    var weekTimes by remember {
+        mutableStateOf(
+            if (initUnit == PeriodUnit.WEEKS && existing != null)
+                existing.times.map { it.hour to it.minute }.distinct().ifEmpty { listOf(8 to 0) }
+            else listOf(8 to 0),
+        )
+    }
+    var window by remember { mutableIntStateOf(existing?.windowMinutes ?: 30) }
+    var endMode by remember { mutableStateOf(existing?.endMode ?: EndMode.NEVER) }
+    var endDate by remember { mutableStateOf(existing?.endDate?.ifBlank { todayIso } ?: todayIso) }
+    var doseCount by remember { mutableIntStateOf(existing?.doseCount?.takeIf { it > 0 } ?: 10) }
+    var notes by remember { mutableStateOf(existing?.notes ?: "") }
 
     fun setUnit(u: PeriodUnit) {
         if (u == unit) return
@@ -141,7 +165,7 @@ fun NewScheduleDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.new_schedule)) },
+        title = { Text(stringResource(if (editing) R.string.title_edit else R.string.new_schedule)) },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -153,8 +177,16 @@ fun NewScheduleDialog(
                     isError = name.isBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                if (unit != PeriodUnit.ONCE) {
+                // Edits take effect from today, so the start date isn't editable.
+                if (unit != PeriodUnit.ONCE && !editing) {
                     DateField(stringResource(R.string.start_date), startDate) { startDate = it }
+                }
+                if (editing && unit != PeriodUnit.ONCE) {
+                    Text(
+                        stringResource(R.string.edit_from_today),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
 
                 Text(stringResource(R.string.repeat_every), style = MaterialTheme.typography.labelMedium)
@@ -240,8 +272,9 @@ fun NewScheduleDialog(
                     val built = buildTimes()
                     onCreate(
                         Schedule(
-                            medSource = prefillSource,
-                            medExtId = prefillExtId,
+                            id = existing?.id ?: 0,
+                            medSource = existing?.medSource ?: prefillSource,
+                            medExtId = existing?.medExtId ?: prefillExtId,
                             medName = name.trim(),
                             startDate = if (once) (built.minByOrNull { "%04d%02d%02d".format(it.year, it.month, it.dayOfMonth) }
                                 ?.let { "%04d-%02d-%02d".format(it.year, it.month, it.dayOfMonth) } ?: startDate) else startDate,
@@ -253,11 +286,11 @@ fun NewScheduleDialog(
                             times = built,
                             windowMinutes = window,
                             notes = notes.trim(),
-                            active = true,
+                            active = existing?.active ?: true,
                         )
                     )
                 },
-            ) { Text(stringResource(R.string.add_to_calendar)) }
+            ) { Text(stringResource(if (editing) R.string.action_save else R.string.add_to_calendar)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )

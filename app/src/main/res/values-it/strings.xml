@@ -110,6 +110,8 @@
     </plurals>
 
     <string name="new_schedule">Nuova terapia</string>
+    <string name="title_edit">Modifica terapia</string>
+    <string name="edit_from_today">Le modifiche valgono da oggi; le dosi passate restano invariate.</string>
     <string name="doses_on">Dosi del %1$s</string>
     <string name="calendar_empty">Nessuna dose programmata. Tocca + per aggiungerne una o scegli un altro giorno.</string>
     <string name="title_schedules">Terapie attive</string>

@@ -29,6 +29,42 @@ class ScheduleRepository(db: MedDatabase) {
 
     suspend fun cancel(scheduleId: Long) = scheduleDao.cancel(scheduleId, nowIso())
 
+    /**
+     * Apply an edit to a schedule **from now on**, leaving the past untouched:
+     * the original is ended yesterday (so its history and adherence stay intact)
+     * and a new schedule with the [edited] parameters starts today. If the
+     * original hasn't started yet (or is a one-shot) it is simply retired.
+     */
+    suspend fun editFromNow(edited: Schedule) {
+        val original = scheduleDao.get(edited.id)?.toModel() ?: return
+        val today = LocalDate.now()
+        val start = runCatching {
+            val p = original.startDate.split("-")
+            LocalDate.of(p[0].toInt(), p[1].toInt(), p[2].toInt())
+        }.getOrNull()
+
+        if (original.periodUnit == com.uallsi.medaboutyou.model.PeriodUnit.ONCE ||
+            start == null || !start.isBefore(today)
+        ) {
+            // No past recurring days to preserve → retire the whole original.
+            cancel(original.id)
+        } else {
+            // Keep every day up to yesterday; stop the original from today on.
+            updateEnd(
+                original.id,
+                EndMode.DATE,
+                today.minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE),
+                original.doseCount,
+            )
+        }
+
+        // The edited schedule takes effect today (one-shots keep their own date).
+        val effectiveStart =
+            if (edited.periodUnit == com.uallsi.medaboutyou.model.PeriodUnit.ONCE) edited.startDate
+            else today.format(DateTimeFormatter.ISO_LOCAL_DATE)
+        create(edited.copy(id = 0, startDate = effectiveStart, active = true))
+    }
+
     suspend fun updateEnd(scheduleId: Long, endMode: EndMode, endDate: String, doseCount: Int) =
         scheduleDao.updateEnd(scheduleId, endMode.name.lowercase(), endDate, doseCount, nowIso())
 

@@ -110,6 +110,8 @@
     </plurals>
 
     <string name="new_schedule">Nouveau traitement</string>
+    <string name="title_edit">Modifier le traitement</string>
+    <string name="edit_from_today">Les modifications s\'appliquent dès aujourd\'hui ; les prises passées sont conservées.</string>
     <string name="doses_on">Doses du %1$s</string>
     <string name="calendar_empty">Aucune dose prévue. Ajoutez un médicament depuis la recherche pour le programmer.</string>
     <string name="title_schedules">Traitements actifs</string>

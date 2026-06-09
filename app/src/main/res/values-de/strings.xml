@@ -110,6 +110,8 @@
     </plurals>
 
     <string name="new_schedule">Neuer Therapieplan</string>
+    <string name="title_edit">Plan bearbeiten</string>
+    <string name="edit_from_today">Änderungen gelten ab heute; vergangene Dosen bleiben unverändert.</string>
     <string name="doses_on">Dosen am %1$s</string>
     <string name="calendar_empty">Keine Dosen geplant. Füge über die Suche ein Arzneimittel hinzu, um es einzuplanen.</string>
     <string name="title_schedules">Aktive Therapiepläne</string>

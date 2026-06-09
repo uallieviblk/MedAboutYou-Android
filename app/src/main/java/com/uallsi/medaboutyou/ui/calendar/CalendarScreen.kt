@@ -104,7 +104,7 @@ fun CalendarScreen(
     }
 
     if (showNew) {
-        NewScheduleDialog(
+        ScheduleEditorDialog(
             prefillName = prefill ?: "",
             prefillSource = prefillMedSource,
             prefillExtId = prefillMedExt,

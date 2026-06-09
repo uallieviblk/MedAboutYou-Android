@@ -36,6 +36,7 @@ import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.PeriodUnit
 import com.uallsi.medaboutyou.model.Schedule
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
+import com.uallsi.medaboutyou.ui.calendar.ScheduleEditorDialog
 import com.uallsi.medaboutyou.ui.calendar.periodUnitLabel
 import com.uallsi.medaboutyou.ui.theme.MedColors
 import java.time.DayOfWeek
@@ -51,6 +52,7 @@ fun SchedulesScreen(modifier: Modifier = Modifier) {
     val vm: SchedulesViewModel = viewModel(factory = AppViewModelFactory)
     val schedules by vm.schedules.collectAsStateWithLifecycle()
     var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
+    var editing by remember { mutableStateOf<Schedule?>(null) }
 
     if (schedules.isEmpty()) {
         Box(modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
@@ -66,9 +68,24 @@ fun SchedulesScreen(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(schedules, key = { it.id }) { sch ->
-                ScheduleCard(sch, onCancel = { pendingCancel = sch.id to sch.medName })
+                ScheduleCard(
+                    sch,
+                    onEdit = { editing = sch },
+                    onCancel = { pendingCancel = sch.id to sch.medName },
+                )
             }
         }
+    }
+
+    editing?.let { sch ->
+        ScheduleEditorDialog(
+            prefillName = sch.medName,
+            prefillSource = sch.medSource,
+            prefillExtId = sch.medExtId,
+            existing = sch,
+            onCreate = { vm.applyEdit(it); editing = null },
+            onDismiss = { editing = null },
+        )
     }
 
     pendingCancel?.let { (id, name) ->
@@ -91,8 +108,8 @@ fun SchedulesScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ScheduleCard(schedule: Schedule, onCancel: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun ScheduleCard(schedule: Schedule, onEdit: () -> Unit, onCancel: () -> Unit) {
+    Card(onClick = onEdit, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,

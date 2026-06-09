@@ -117,6 +117,8 @@
 
     <!-- Calendar -->
     <string name="new_schedule">New schedule</string>
+    <string name="title_edit">Edit schedule</string>
+    <string name="edit_from_today">Changes apply from today; past doses stay unchanged.</string>
     <string name="doses_on">Doses on %1$s</string>
     <string name="calendar_empty">No doses scheduled. Tap + to add one, or pick another day.</string>
     <string name="title_schedules">Active schedules</string>
