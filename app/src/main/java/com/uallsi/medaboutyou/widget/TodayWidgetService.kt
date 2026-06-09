@@ -20,7 +20,7 @@ private class TodayRemoteViewsFactory(
     private val context: Context,
 ) : RemoteViewsService.RemoteViewsFactory {
 
-    private data class Row(val time: String, val name: String, val status: String)
+    private data class Row(val time: String, val name: String, val status: String, val statusColor: Int)
 
     private var rows: List<Row> = emptyList()
 
@@ -41,14 +41,12 @@ private class TodayRemoteViewsFactory(
                 .occurrencesOn(now.year, now.month, now.day)
                 .map { occ ->
                     val past = ScheduleEngine.isPastDateTime(occ.year, occ.month, occ.day, occ.hour, occ.minute)
-                    val status = context.getString(
-                        when {
-                            occ.status == "taken" -> R.string.agenda_status_taken
-                            past -> R.string.agenda_status_missed
-                            else -> R.string.agenda_status_upcoming
-                        },
-                    )
-                    Row(occ.timeLabel(), occ.medName, status)
+                    val (resId, color) = when {
+                        occ.status == "taken" -> R.string.agenda_status_taken to context.getColor(R.color.widget_accent)
+                        past -> R.string.agenda_status_missed to MISSED_COLOR
+                        else -> R.string.agenda_status_upcoming to context.getColor(R.color.widget_text_dim)
+                    }
+                    Row(occ.timeLabel(), occ.medName, context.getString(resId), color)
                 }
         }
     }
@@ -59,7 +57,12 @@ private class TodayRemoteViewsFactory(
             setTextViewText(R.id.item_time, row.time)
             setTextViewText(R.id.item_name, row.name)
             setTextViewText(R.id.item_status, row.status)
+            setTextColor(R.id.item_status, row.statusColor)
             setOnClickFillInIntent(R.id.item_root, Intent())  // taps bubble to the template
         }
+    }
+
+    private companion object {
+        const val MISSED_COLOR = 0xFFC5221F.toInt()   // red, readable in light + dark
     }
 }

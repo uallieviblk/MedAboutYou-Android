@@ -10,6 +10,10 @@ import android.net.Uri
 import android.widget.RemoteViews
 import com.uallsi.medaboutyou.MainActivity
 import com.uallsi.medaboutyou.R
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 
 /** Home-screen widget listing today's dose schedule. */
 class TodayWidgetProvider : AppWidgetProvider() {
@@ -30,6 +34,12 @@ class TodayWidgetProvider : AppWidgetProvider() {
 
         private fun bind(context: Context, manager: AppWidgetManager, id: Int) {
             val views = RemoteViews(context.packageName, R.layout.widget_today)
+
+            // Localized date subtitle (no DB access — safe on the main thread).
+            val date = LocalDate.now().format(
+                DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.getDefault()),
+            )
+            views.setTextViewText(R.id.widget_date, date)
 
             val service = Intent(context, TodayWidgetService::class.java).apply {
                 // Make the intent unique per widget id so the adapter isn't reused stale.

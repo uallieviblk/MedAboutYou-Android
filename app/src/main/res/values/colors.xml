@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#1A6F5B</color>
-    <!-- Widget surface (light); see values-night for the dark variant. -->
-    <color name="widget_bg">#F4F3F8</color>
+    <!-- Widget palette (light, static fallback). values-night and *-v31
+         (dynamic Material You) override these. -->
+    <color name="widget_bg">#FBF8FD</color>
+    <color name="widget_card">#FFFFFF</color>
     <color name="widget_text">#1B1B1F</color>
     <color name="widget_text_dim">#5A5A66</color>
+    <color name="widget_accent">#1A6F5B</color>
+    <color name="widget_on_accent">#FFFFFF</color>
 </resources>
