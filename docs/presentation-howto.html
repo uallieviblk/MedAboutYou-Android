@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAboutYou — How to use it</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/white.css">
+<style>
+  :root { --brand:#1A6F5B; --accent:#7A5BA8; }
+  .reveal { font-family:-apple-system,"Segoe UI",Roboto,sans-serif; color:#1b1b1f; }
+  .reveal h1,.reveal h2,.reveal h3 { color:var(--brand); text-transform:none; letter-spacing:-0.01em; }
+  .reveal img.shot { height:62vh; border-radius:18px; box-shadow:0 8px 30px rgba(0,0,0,.18); border:1px solid #e6e6ea; }
+  .reveal a { color:var(--accent); }
+  .grid { display:flex; gap:2rem; align-items:center; justify-content:center; }
+  .step { display:inline-block; background:var(--brand); color:#fff; border-radius:999px; width:1.6em; height:1.6em; line-height:1.6em; text-align:center; font-weight:700; margin-right:.4em; }
+  .muted { color:#5a5a66; }
+  .tip { background:#eef5f2; border-left:4px solid var(--brand); padding:.5em 1em; border-radius:8px; font-size:.8em; }
+  footer { position:fixed; bottom:8px; right:16px; font-size:13px; color:#9a9aa6; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <section data-background-gradient="linear-gradient(135deg,#1A6F5B,#4C9A86)">
+    <h1 style="color:#fff">Using MedAboutYou</h1>
+    <h3 style="color:#eafff6">From install to a tracked daily routine — in 8 steps</h3>
+  </section>
+
+  <section>
+    <h2>Getting around</h2>
+    <div class="grid">
+      <img class="shot" src="images/today.png" alt="Today">
+      <ul>
+        <li>Three tabs: <b>Today · Calendar · Schedules</b>.</li>
+        <li><b>⋮</b> (top-right) → <b>Insights</b> and <b>Settings</b>.</li>
+        <li><b>Search</b> opens from <b>Schedules → Add medicine</b>.</li>
+        <li>First launch: allow <b>notifications</b> for reminders.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">1</span>Add a medicine</h2>
+    <ul>
+      <li>Go to <b>Schedules → Add medicine</b>.</li>
+      <li>Choose <b>EMA</b> (tap <em>Download dataset</em> the first time) or <b>AIFA</b>.</li>
+      <li>Type a name / ingredient; tap a result to open its record.</li>
+      <li>On the record, tap <b>Add to my medication schedule</b>.</li>
+    </ul>
+    <p class="tip">💡 Not in the database? Type its name and tap <b>"Add '…' as a custom medicine"</b> (great for supplements).</p>
+  </section>
+
+  <section>
+    <h2><span class="step">2</span>Create the schedule</h2>
+    <ul>
+      <li>Pick <b>Repeat every</b>: Once / Hours / Days / Weeks / Months / Years.</li>
+      <li>Add one or more <b>dose times</b> (e.g. 08:00, 20:00).</li>
+      <li>Set the <b>allowed window</b>, reminder cadence and optional <b>notes</b>.</li>
+      <li>Choose how it <b>Ends</b>: ongoing, on a date, or after N doses.</li>
+      <li>Check the live summary → <b>Add to calendar</b>.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="step">3</span>Track Today</h2>
+    <div class="grid">
+      <img class="shot" src="images/today.png" alt="Today">
+      <ul>
+        <li>The ring shows <b>taken / total</b> and your <b>streak</b>.</li>
+        <li><b>Tick</b> a dose to mark it taken (stock drops by one).</li>
+        <li>Use <b>Take all</b> for a whole time block.</li>
+        <li>You can tick from the <b>start of the window</b> (e.g. 07:30 for an 08:00 dose).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">4</span>Use the Calendar</h2>
+    <div class="grid">
+      <img class="shot" src="images/calendar.png" alt="Calendar">
+      <ul>
+        <li>Days are colour-coded: <b>green</b> taken, <b>blue</b> upcoming, <b>purple</b> shortage, <b>red</b> missed.</li>
+        <li>Tap a day to see its <b>agenda</b>; tick doses there too.</li>
+        <li>Tap the <b>✎</b> on a row to edit a single dose.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">5</span>Edit or skip one dose</h2>
+    <div class="grid">
+      <img class="shot" src="images/edit-dose.png" alt="Edit dose">
+      <ul>
+        <li>Change the <b>time</b> or <b>window</b> of just this dose.</li>
+        <li>Tick <b>Skip this dose</b> to drop a single occurrence.</li>
+        <li>Choose <b>This dose only</b> or <b>This and following</b>.</li>
+        <li>Tap <b>Save</b>. Past doses stay unchanged.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">6</span>Manage therapies</h2>
+    <div class="grid">
+      <img class="shot" src="images/schedules.png" alt="Schedules">
+      <ul>
+        <li>Each card shows the recurrence, start date and <b>notes</b>.</li>
+        <li><b>⏸</b> pause (timed or indefinite) — <b>▶</b> resume.</li>
+        <li><b>Tap</b> a card to edit it (changes apply from today).</li>
+        <li><b>🗑</b> cancel — kept in history, never deleted.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="step">7</span>Watch stock &amp; refills</h2>
+    <ul>
+      <li>Set stock on a medicine record, or top up by <b>whole packs</b>.</li>
+      <li>The app forecasts <b>run-out dates</b> automatically.</li>
+      <li>See them on the <b>Today</b> banner, the <b>Calendar</b> (purple days) and <b>Insights → Next refill</b>.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="step">8</span>Reminders &amp; caregivers</h2>
+    <ul>
+      <li><b>Settings → Enable dose reminders</b> (on by default).</li>
+      <li>Notifications offer <b>Mark taken</b> / <b>Skip</b>.</li>
+      <li>Optional: add caregiver numbers + grant SMS so an <b>overdue dose alerts them</b> — off by default.</li>
+      <li>Enable <b>Start at boot</b> so reminders survive a restart.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Insights &amp; recap</h2>
+    <ul>
+      <li><b>⋮ → Insights</b>: adherence (7/30/90), streak, heatmap, refills.</li>
+      <li>Search → schedule → track → review. That's the loop.</li>
+      <li>Everything stays <b>on your device</b>.</li>
+    </ul>
+    <p class="muted">See the full <a href="USER_GUIDE.md">User Guide</a> for every detail.</p>
+  </section>
+
+  <section data-background-gradient="linear-gradient(135deg,#1A6F5B,#7A5BA8)">
+    <h2 style="color:#fff">You're set 💊</h2>
+    <p style="color:#eafff6">An information &amp; adherence aid — always follow your prescriber.</p>
+  </section>
+
+</div></div>
+<footer>MedAboutYou · How-to</footer>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>Reveal.initialize({ hash:true, slideNumber:'c/t', transition:'slide' });</script>
+</body>
+</html>

@@ -9,3 +9,8 @@
 .cxx
 local.properties
 /app/build/
+
+# Published APK binaries — regenerate with website/update-apk.sh (latest.json is kept)
+/website/downloads/*.apk
+# Scratch screenshots captured during testing
+/.claude/shots/

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAboutYou — private medication manager for Android</title>
+<meta name="description" content="Search EMA & AIFA medicine databases and run your whole medication schedule — privately, on your device. Download the latest Android APK.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231A6F5B'/%3E%3Crect x='28' y='44' width='44' height='16' rx='8' fill='white'/%3E%3Crect x='44' y='28' width='12' height='44' rx='6' fill='white'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="#top"><span class="logo"></span> MedAboutYou</a>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#screens">Screens</a>
+    <a href="#how">How it works</a>
+    <a href="#docs">Docs</a>
+    <a class="btn btn-sm" href="#download">Download</a>
+  </nav>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-text">
+    <span class="tag">Android 8.0+ · v<span data-version>0.2.0</span> · Free &amp; local</span>
+    <h1>Know your medicines.<br>Run your therapy.<br><span class="accent">Keep your data.</span></h1>
+    <p>Search the European (EMA) and Italian (AIFA) medicine databases and manage your
+       full medication schedule — reminders, a dose log, adherence stats and refill
+       forecasting — all stored <strong>only on your phone</strong>.</p>
+    <div class="cta">
+      <a class="btn btn-lg" id="download-top" href="downloads/MedAboutYou-latest.apk" download>⬇ Download latest APK</a>
+      <a class="btn btn-lg btn-ghost" href="#how">See how it works</a>
+    </div>
+    <p class="fineprint">Debug build · <span data-apksize>~20 MB</span> · installs on Android 8.0+.
+       For phones, enable “install from unknown sources”.</p>
+  </div>
+  <div class="hero-shot">
+    <img src="images/today.png" alt="MedAboutYou Today screen">
+  </div>
+</section>
+
+<section class="privacy">
+  <p>🔒 <strong>Privacy first.</strong> Your schedules, dose log and stock never leave the device.
+  No account, no analytics, no cloud sync. The only network use is looking up medicine
+  information; the only optional off-device action is a caregiver SMS you set up yourself.</p>
+</section>
+
+<section id="features" class="features">
+  <h2>Everything your routine needs</h2>
+  <div class="cards">
+    <div class="card"><div class="ic">🔎</div><h3>Find a medicine</h3><p>Search EMA (cached, offline) or AIFA (live). Rich records, type badges, official EPAR/RCP links — or add a custom medicine.</p></div>
+    <div class="card"><div class="ic">🗓️</div><h3>Schedule anything</h3><p>Hourly to yearly, multi-time, weekly patterns. End on a date, after N doses, or ongoing.</p></div>
+    <div class="card"><div class="ic">🏠</div><h3>Today at a glance</h3><p>Adherence ring, a time-of-day timeline, refill banner and one-tap “take all”.</p></div>
+    <div class="card"><div class="ic">📅</div><h3>Calendar &amp; single-dose edits</h3><p>Colour-coded month grid; retime or skip one dose, or change this and all following.</p></div>
+    <div class="card"><div class="ic">💊</div><h3>Manage therapies</h3><p>Pause/resume (timed or indefinite), edit from today, cancel without losing history; per-schedule notes.</p></div>
+    <div class="card"><div class="ic">📈</div><h3>Insights</h3><p>7/30/90-day adherence, streaks, a 30-day heatmap, per-medicine bars and upcoming refills.</p></div>
+    <div class="card"><div class="ic">⏰</div><h3>Reminders</h3><p>Exact-alarm notifications with Take/Skip, plus optional caregiver SMS for overdue doses.</p></div>
+    <div class="card"><div class="ic">📦</div><h3>Stock &amp; refills</h3><p>Top up by real pack sizes; the app forecasts when each medicine runs out.</p></div>
+  </div>
+</section>
+
+<section id="screens" class="screens">
+  <h2>See it</h2>
+  <div class="gallery">
+    <figure><img src="images/today.png" alt="Today"><figcaption>Today</figcaption></figure>
+    <figure><img src="images/calendar.png" alt="Calendar"><figcaption>Calendar</figcaption></figure>
+    <figure><img src="images/edit-dose.png" alt="Edit a single dose"><figcaption>Edit a single dose</figcaption></figure>
+    <figure><img src="images/schedules.png" alt="Schedules"><figcaption>Schedules</figcaption></figure>
+  </div>
+</section>
+
+<section id="how" class="how">
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li><span>1</span><p><strong>Add a medicine</strong> from Schedules → Add medicine, then “Add to my medication schedule”.</p></li>
+    <li><span>2</span><p><strong>Build the schedule</strong> — times, recurrence, window and notes.</p></li>
+    <li><span>3</span><p><strong>Track &amp; review</strong> from Today and Insights — reminders keep you on time.</p></li>
+  </ol>
+</section>
+
+<section id="download" class="download">
+  <h2>Get MedAboutYou</h2>
+  <a class="btn btn-lg" href="downloads/MedAboutYou-latest.apk" download>⬇ Download latest APK (v<span data-version>0.2.0</span>)</a>
+  <p class="fineprint">Or build from source:
+    <code>./gradlew :app:assembleDebug</code></p>
+  <p class="fineprint">App ID <code>com.uallsi.medaboutyou</code> · min Android 8.0 · target SDK 35</p>
+</section>
+
+<section id="docs" class="docs">
+  <h2>Learn more</h2>
+  <div class="cards">
+    <a class="card link" href="../docs/USER_GUIDE.md"><h3>📖 User Guide</h3><p>Every screen and flow, step by step.</p></a>
+    <a class="card link" href="../docs/TECHNICAL.md"><h3>🛠️ Technical docs</h3><p>Architecture, data model, schema, testing.</p></a>
+    <a class="card link" href="../docs/presentation-overview.html"><h3>🖥️ Overview deck</h3><p>What the app is and how it's built.</p></a>
+    <a class="card link" href="../docs/presentation-howto.html"><h3>🎬 How-to deck</h3><p>A guided tour of using the app.</p></a>
+  </div>
+</section>
+
+<footer class="foot">
+  <p><strong>MedAboutYou</strong> — an information &amp; adherence aid, <em>not medical advice</em>.
+     Always follow your prescriber and the official product information.</p>
+  <p><a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0-or-later</a> © 2026 Umberto Allievi · v<span data-version>0.2.0</span></p>
+</footer>
+
+<script>
+  // Light progressive enhancement: reflect the published build's real size/date if
+  // available (downloads/latest.json is written by update-apk.sh). Falls back to the
+  // static values when opened from file:// where fetch may be blocked.
+  fetch('downloads/latest.json').then(r => r.ok ? r.json() : Promise.reject())
+    .then(info => {
+      if (info.version) document.querySelectorAll('[data-version]').forEach(e => e.textContent = info.version);
+      if (info.sizeMB)  document.querySelectorAll('[data-apksize]').forEach(e => e.textContent = '~' + info.sizeMB + ' MB');
+      if (info.file) document.querySelectorAll('a[download]').forEach(a => a.setAttribute('href', 'downloads/' + info.file));
+    })
+    .catch(() => { /* keep static defaults */ });
+</script>
+</body>
+</html>

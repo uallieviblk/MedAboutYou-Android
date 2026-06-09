@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedAboutYou — Overview</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/white.css">
+<style>
+  :root { --brand:#1A6F5B; --brand2:#4C9A86; --accent:#7A5BA8; }
+  .reveal { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color:#1b1b1f; }
+  .reveal h1,.reveal h2,.reveal h3 { color: var(--brand); text-transform:none; letter-spacing:-0.01em; }
+  .reveal section img.shot { height: 60vh; border-radius:18px; box-shadow:0 8px 30px rgba(0,0,0,.18); border:1px solid #e6e6ea; }
+  .reveal a { color: var(--accent); }
+  .pill { display:inline-block; background:var(--brand); color:#fff; border-radius:999px; padding:.15em .7em; font-size:.5em; vertical-align:middle; }
+  .reveal ul { width:100%; }
+  .grid { display:flex; gap:2rem; align-items:center; justify-content:center; }
+  .muted { color:#5a5a66; }
+  .reveal .title h1 { font-size:2.6em; }
+  .badges span { display:inline-block; background:#eef5f2; color:var(--brand); border:1px solid #cfe4dc; border-radius:999px; padding:.12em .6em; margin:.15em; font-size:.5em; }
+  .kpi { font-size:1.4em; color:var(--brand); font-weight:700; }
+  footer { position:fixed; bottom:8px; right:16px; font-size:13px; color:#9a9aa6; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <section class="title" data-background-gradient="linear-gradient(135deg,#1A6F5B,#4C9A86)">
+    <h1 style="color:#fff">MedAboutYou</h1>
+    <h3 style="color:#eafff6">Know your medicines. Stay on your therapy. Keep your data.</h3>
+    <p style="color:#d7f3ea">A private, on-device medication manager for Android <span class="pill">v0.2.0</span></p>
+  </section>
+
+  <section>
+    <h2>The problem</h2>
+    <ul>
+      <li>Medicine information is scattered across official databases that are hard to search on a phone.</li>
+      <li>Adherence apps often <em>upload</em> sensitive health data to the cloud.</li>
+      <li>Real therapies are messy: multiple times a day, weekly patterns, pauses, one-off changes.</li>
+    </ul>
+    <p class="muted">MedAboutYou answers all three — locally.</p>
+  </section>
+
+  <section>
+    <h2>What it does</h2>
+    <div class="grid">
+      <ul>
+        <li>🔎 Search <b>EMA</b> (Europe) &amp; <b>AIFA</b> (Italy) medicine records</li>
+        <li>🗓️ Build <b>any schedule</b> — hourly → yearly, multi-time</li>
+        <li>🏠 Track <b>Today</b> with an adherence ring &amp; "take all"</li>
+        <li>📅 A colour-coded <b>Calendar</b> + per-dose editing</li>
+        <li>📈 <b>Insights</b>: adherence, streak, heatmap, refills</li>
+        <li>⏰ <b>Reminders</b> + optional caregiver SMS</li>
+      </ul>
+      <img class="shot" src="images/today.png" alt="Today">
+    </div>
+  </section>
+
+  <section data-background="#0f2f27">
+    <h2 style="color:#6FD8BC">Privacy is the feature</h2>
+    <ul style="color:#eafff6">
+      <li>Schedules, dose log &amp; stock are stored in <b>one local SQLite database</b>.</li>
+      <li><b>Nothing is uploaded.</b> No account, no analytics, no cloud sync.</li>
+      <li>Network is used only to <em>look up medicine info</em> (EMA/AIFA/image).</li>
+      <li>The one off-device action — a <b>caregiver SMS</b> — is opt-in and off by default.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Find a medicine</h2>
+    <div class="grid">
+      <ul>
+        <li>EMA cached on-device → <b>offline search</b>; AIFA searched live.</li>
+        <li>Rich record: indication, classification, authorisation.</li>
+        <li>Type badges (Generic, Orphan, Biosimilar, PRIME…).</li>
+        <li>Link to the official <b>EPAR/RCP</b> for dosing.</li>
+        <li>Not listed? Add it as a <b>custom medicine</b>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Schedule any therapy</h2>
+    <div class="grid">
+      <ul>
+        <li><b>Once · Hours · Days · Weeks · Months · Years</b></li>
+        <li>Several <b>times per day</b>; weekly multi-day patterns</li>
+        <li>End <b>on a date</b>, <b>after N doses</b>, or <b>ongoing</b></li>
+        <li>An <b>allowed window</b>, reminder cadence &amp; notes</li>
+        <li>Smart edge-cases: day-31 clamps to month end; no Feb 29</li>
+      </ul>
+      <img class="shot" src="images/schedules.png" alt="Schedules">
+    </div>
+  </section>
+
+  <section>
+    <h2>Today &amp; Calendar</h2>
+    <div class="grid">
+      <img class="shot" src="images/calendar.png" alt="Calendar">
+      <ul>
+        <li>Adherence ring, time-of-day timeline, refill banner.</li>
+        <li>Tick a dose from the <b>start of its window</b> (early-take).</li>
+        <li>Month grid colour-coded: taken / upcoming / shortage / missed.</li>
+        <li>Edit, retime or <b>skip a single dose</b> — or "this &amp; following".</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Edit a single dose</h2>
+    <div class="grid">
+      <img class="shot" src="images/edit-dose.png" alt="Edit dose dialog">
+      <ul>
+        <li>Retime or re-window one occurrence.</li>
+        <li><b>Skip this dose</b> for a one-off.</li>
+        <li><b>This dose only</b> vs <b>This and following</b> (splits the series).</li>
+        <li>The past is never rewritten — history stays intact.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Insights &amp; refills</h2>
+    <ul>
+      <li><b>7 / 30 / 90-day</b> adherence, current streak, missed count.</li>
+      <li><b>30-day heatmap</b> and per-medicine bars.</li>
+      <li><b>Refill forecast</b>: when each medicine runs out — banner, calendar shortage days, and a sorted list.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Architecture</h2>
+    <pre><code>UI (Compose + ViewModels)
+        ↓
+Domain (pure, JVM-tested)   ← ScheduleEngine · Insights
+        ↓
+Data — local (Room) + remote (OkHttp)
+Reminders (exact AlarmManager + WorkManager fallback)</code></pre>
+    <ul>
+      <li>The domain layer has <b>no Android dependency</b> and is unit-tested.</li>
+      <li>Analytics run on an immutable in-memory <b>snapshot</b> of the DB.</li>
+      <li><b>Append-only</b>: cancel = soft; edits start a new row from today.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Built with</h2>
+    <p class="badges">
+      <span>Kotlin 2.1</span><span>Jetpack Compose</span><span>Material 3</span>
+      <span>Room</span><span>DataStore</span><span>Coroutines / StateFlow</span>
+      <span>WorkManager</span><span>AlarmManager</span><span>OkHttp</span>
+      <span>kotlinx.serialization</span><span>Coil</span><span>Material You</span>
+    </p>
+    <p class="muted">Adaptive bottom-bar / nav-rail · light &amp; dark · 5 languages.</p>
+  </section>
+
+  <section>
+    <h2>Quality</h2>
+    <div class="grid">
+      <div><div class="kpi">✓ JVM</div><p class="muted">domain unit tests</p></div>
+      <div><div class="kpi">✓ UI</div><p class="muted">Compose + Room instrumented</p></div>
+      <div><div class="kpi">0</div><p class="muted">Lint errors</p></div>
+      <div><div class="kpi">v5→v6</div><p class="muted">upgrade migration verified</p></div>
+    </div>
+  </section>
+
+  <section data-background-gradient="linear-gradient(135deg,#1A6F5B,#7A5BA8)">
+    <h2 style="color:#fff">Try it</h2>
+    <p style="color:#eafff6">Download the latest APK from the project website, or build with
+    <code style="color:#fff">./gradlew :app:assembleDebug</code>.</p>
+    <p style="color:#d7f3ea">An information &amp; adherence aid — not medical advice.</p>
+  </section>
+
+</div></div>
+<footer>MedAboutYou · Overview</footer>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>Reveal.initialize({ hash:true, slideNumber:'c/t', transition:'slide' });</script>
+</body>
+</html>
