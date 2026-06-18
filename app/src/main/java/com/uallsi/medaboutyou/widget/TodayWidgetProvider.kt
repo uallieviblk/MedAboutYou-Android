@@ -50,7 +50,8 @@ class TodayWidgetProvider : AppWidgetProvider() {
             views.setRemoteAdapter(R.id.widget_list, service)
             views.setEmptyView(R.id.widget_list, R.id.widget_empty)
 
-            // Tapping the widget (title or any row) opens the app on Today.
+            // Tapping the widget (the whole header, the empty state, or any row)
+            // opens the app on Today.
             val open = Intent(context, MainActivity::class.java).apply {
                 putExtra("open", "today")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -61,7 +62,10 @@ class TodayWidgetProvider : AppWidgetProvider() {
                 open,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
-            views.setOnClickPendingIntent(R.id.widget_title, pi)
+            // The whole header is the tap target (icon + title + date), not just the
+            // bold title text, so taps anywhere along the top reliably open the app.
+            views.setOnClickPendingIntent(R.id.widget_header, pi)
+            views.setOnClickPendingIntent(R.id.widget_empty, pi)
             views.setPendingIntentTemplate(R.id.widget_list, pi)
 
             manager.updateAppWidget(id, views)

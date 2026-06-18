@@ -208,6 +208,11 @@
     <string name="mqtt_client_key">Clé client</string>
     <string name="mqtt_import">Importer…</string>
     <string name="mqtt_cert_set">Défini</string>
+    <string name="mqtt_test">Tester la connexion</string>
+    <string name="mqtt_testing">Connexion en cours…</string>
+    <string name="mqtt_test_ok">Connecté au broker</string>
+    <string name="mqtt_test_fail">Échec : %1$s</string>
+    <string name="mqtt_test_no_host">Saisissez d\'abord l\'hôte du broker</string>
     <string name="caregiver_name">Nom de l\'aidant</string>    <string name="caregiver_add">Ajouter un aidant</string>    <string name="caregiver_alert_after">Alerter l\'aidant après (min, 0 = off)</string>
     <string name="reminder_repeat_every">Me rappeler toutes les (min, 0 = une fois)</string>
     <string name="sms_caregiver_text">MedAboutYou : la prise de %1$s prévue à %2$s n\'a pas été effectuée.</string>
