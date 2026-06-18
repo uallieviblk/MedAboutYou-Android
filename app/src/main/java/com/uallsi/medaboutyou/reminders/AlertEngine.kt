@@ -3,6 +3,7 @@ package com.uallsi.medaboutyou.reminders
 
 import android.content.Context
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.domain.DosesAvailable
 import com.uallsi.medaboutyou.domain.Insights
 import com.uallsi.medaboutyou.domain.Now
@@ -44,36 +45,46 @@ object AlertEngine {
 
         val now = LocalDateTime.now()
         val snapshot = container.schedules.snapshot()
-        val todays = snapshot.occurrencesOn(now.year, now.monthValue, now.dayOfMonth)
-        val byId = container.schedules.list(false).associateBy { it.id }
+        val today = now.toLocalDate()
+        val yesterday = today.minusDays(1)
+        // Include yesterday's doses so an intake window (or caregiver
+        // escalation) that crosses midnight keeps working until it truly closes.
+        val occurrences =
+            snapshot.occurrencesOn(yesterday.year, yesterday.monthValue, yesterday.dayOfMonth) +
+                snapshot.occurrencesOn(now.year, now.monthValue, now.dayOfMonth)
+        val byId = snapshot.list(false).associateBy { it.id }
         val userName = container.settings.userNameFlow.first()
         val caregivers = container.settings.caregiversFlow.first()
-        val canSms = caregivers.isNotEmpty() && CaregiverAlerts.hasSmsPermission(ctx)
+        val mqtt = container.settings.mqttConfigFlow.first()
+        val canAlertCaregivers = mqtt.enabled && caregivers.any { it.username.isNotBlank() }
 
         fun parse(ts: String?) = ts?.let { runCatching { LocalDateTime.parse(it, STAMP) }.getOrNull() }
 
         // Always re-scan at the start of tomorrow to pick up the next day's doses.
-        val candidates = mutableListOf(now.toLocalDate().plusDays(1).atStartOfDay().plusMinutes(1))
+        val candidates = mutableListOf(today.plusDays(1).atStartOfDay().plusMinutes(1))
+        // (scheduleId, keyIso) of every reminder allowed to stay posted; anything
+        // else found in the shade is withdrawn at the end of the pass.
+        val live = mutableSetOf<Pair<Long, String>>()
 
-        for (occ in todays) {
-            if (occ.status.isNotEmpty()) continue                 // taken or skipped
+        for (occ in occurrences) {
+            if (occ.status.isNotEmpty()) continue // taken or skipped
             val sch = byId[occ.scheduleId] ?: continue
             val scheduled = LocalDateTime.of(occ.year, occ.month, occ.day, occ.hour, occ.minute)
+            // A single-dose edit can override the window — honour it here too.
+            val windowEnd = scheduled.plusMinutes(maxOf(occ.windowMinutes.toLong(), MIN_REMINDER_MIN))
 
             if (scheduled.isAfter(now)) {
-                candidates += scheduled                            // first reminder, exactly at dose time
+                candidates += scheduled // first reminder, exactly at dose time
                 continue
             }
 
             // Past dose, still unlogged. Keep a live reminder only while it's
-            // within its intake window; once the window closes it's "missed", so
-            // withdraw any stale reminder instead of leaving it. This stops
-            // high-frequency schedules (e.g. hourly) from posting a separate
-            // notification for every past dose since midnight.
-            val windowEnd = scheduled.plusMinutes(maxOf(sch.windowMinutes.toLong(), MIN_REMINDER_MIN))
-            if (now.isAfter(windowEnd)) {
-                Notifications.withdraw(ctx, occ.scheduleId, occ.keyIso)
-            } else {
+            // within its intake window; once the window closes it's "missed" and
+            // the end-of-pass sweep withdraws it. This stops high-frequency
+            // schedules (e.g. hourly) from posting a separate notification for
+            // every past dose since midnight.
+            if (!now.isAfter(windowEnd)) {
+                live += occ.scheduleId to occ.keyIso
                 // Local reminder: when due, then every alertRefreshMin (within the window) until taken.
                 val lastLocal = parse(container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_LOCAL))
                 val localDue = lastLocal == null ||
@@ -86,33 +97,51 @@ object AlertEngine {
                     val next = (if (localDue) now else lastLocal!!).plusMinutes(sch.alertRefreshMin.toLong())
                     if (!next.isAfter(windowEnd)) candidates += next
                 }
+                // Come back just after the window closes to sweep the reminder.
+                candidates += windowEnd.plusMinutes(1)
             }
 
             // Caregiver escalation once the dose stays untaken past caregiverAlertMin
-            // — but only while it's still within the window (no late/duplicate SMS).
-            if (sch.caregiverAlertMin > 0) {
+            // — but only while it's still within the window (no late/duplicate SMS),
+            // and only when an SMS could actually be sent (caregivers configured
+            // and permission granted) so we don't arm pointless wakeups.
+            if (sch.caregiverAlertMin > 0 && canAlertCaregivers) {
                 val escalateAt = scheduled.plusMinutes(sch.caregiverAlertMin.toLong())
                 if (now.isBefore(escalateAt)) {
                     candidates += escalateAt
-                } else if (!now.isAfter(windowEnd) && canSms &&
+                } else if (!now.isAfter(windowEnd) &&
                     container.schedules.alertLastSent(occ.scheduleId, occ.keyIso, KIND_CAREGIVER) == null
                 ) {
-                    var anySent = false
+                    // Durably enqueue one MQTT alert per caregiver (guaranteed
+                    // delivery via the outbox); record once so it fires only once.
+                    val text = ctx.getString(R.string.sms_caregiver_text, occ.medName, occ.timeLabel())
+                    val ts = now.toString()
+                    var anyQueued = false
                     for (cg in caregivers) {
-                        if (CaregiverAlerts.sendOverdueSms(ctx, cg.phone, userName, occ.medName, occ.timeLabel())) {
-                            anySent = true
-                        }
+                        if (cg.username.isBlank()) continue
+                        MqttAlerts.enqueueOverdue(container, mqtt.baseTopic, cg.username, userName, ts, text)
+                        anyQueued = true
                     }
-                    if (anySent) container.schedules.recordAlert(occ.scheduleId, occ.keyIso, KIND_CAREGIVER)
+                    if (anyQueued) {
+                        container.schedules.recordAlert(occ.scheduleId, occ.keyIso, KIND_CAREGIVER)
+                        MqttOutboxWorker.kick(ctx)
+                    }
                 }
             }
+        }
+
+        // Sweep: withdraw every posted dose reminder that should no longer be
+        // live — logged (in-app or from the notification), past its window,
+        // paused, cancelled, or retimed away.
+        for ((schId, key) in Notifications.activeDoseKeys(ctx)) {
+            if (schId to key !in live) Notifications.withdraw(ctx, schId, key)
         }
 
         // Refill reminders: once a day, notify for medicines running out soon
         // (skipping any already on the shopping list). Deduped via a meta date.
         val todayIso = now.toLocalDate().toString()
         if (container.medicines.getMeta(META_REFILL_SCAN) != todayIso) {
-            val refills = Insights.refillForecast(snapshot, stockLookup(container), Now.local())
+            val refills = Insights.refillForecast(snapshot, stockLookup(container, snapshot), Now.local())
             val onList = container.shopping.all().map { it.medKey }.toSet()
             for (r in refills) {
                 val days = ChronoUnit.DAYS.between(now.toLocalDate(), LocalDate.of(r.year, r.month, r.day))
@@ -131,10 +160,12 @@ object AlertEngine {
         return maxOf(nextMillis, System.currentTimeMillis() + 5_000)
     }
 
-    private suspend fun stockLookup(container: AppContainer): DosesAvailable {
-        val schedules = container.schedules.list(true)
+    private suspend fun stockLookup(
+        container: AppContainer,
+        snapshot: com.uallsi.medaboutyou.data.local.ScheduleSnapshot,
+    ): DosesAvailable {
         val map = HashMap<String, Int>()
-        for (sch in schedules) {
+        for (sch in snapshot.list(true)) {
             val k = Insights.medKey(sch.medSource, sch.medExtId, sch.medName)
             if (k !in map) map[k] = container.medicines.availableDoses(sch.medSource, sch.medExtId, sch.medName)
         }

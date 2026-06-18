@@ -119,7 +119,7 @@
     <string name="edit_from_today">Changes apply from today; past doses stay unchanged.</string>
     <string name="first_dose_future">The first dose must be in the future. Choose a later start date or time.</string>
     <string name="doses_on">Doses on %1$s</string>
-    <string name="calendar_empty">No doses scheduled. Tap + to add one, or pick another day.</string>
+    <string name="calendar_empty">No doses scheduled. Add a medicine from Search to schedule one, or pick another day.</string>
     <string name="title_schedules">Active schedules</string>
     <string name="schedules_empty">No active schedules.\nAdd a medicine from Search to get started.</string>
     <string name="from_date">from %1$s</string>
@@ -203,17 +203,26 @@
     <string name="mark_taken">Mark taken</string>
     <string name="skip">Skip</string>
     <string name="caregiver_section">Caregiver alerts</string>
-    <string name="caregiver_desc">If a dose is overdue, send an SMS to these caregivers (uses your phone\'s SMS).</string>
-    <string name="caregiver_name">Caregiver name</string>
-    <string name="caregiver_phone">Caregiver phone</string>
-    <string name="caregiver_add">Add caregiver</string>
-    <string name="caregiver_grant_sms">Grant SMS permission</string>
-    <string name="caregiver_alert_after">Alert caregiver after (min, 0 = off)</string>
+    <string name="caregiver_desc">If a dose is overdue, alert these caregivers over your MQTT broker — each on their own topic.</string>
+    <string name="caregiver_username">Caregiver username (topic)</string>
+    <string name="mqtt_section">Alert broker (MQTT)</string>
+    <string name="mqtt_desc">Caregiver alerts are published to this MQTT broker as CBOR messages, with guaranteed delivery.</string>
+    <string name="mqtt_enabled">Send caregiver alerts</string>
+    <string name="mqtt_host">Broker host</string>
+    <string name="mqtt_port">Port</string>
+    <string name="mqtt_base_topic">Topic prefix</string>
+    <string name="mqtt_username">Broker username (optional)</string>
+    <string name="mqtt_password">Broker password (optional)</string>
+    <string name="mqtt_tls">Use TLS (secure MQTT)</string>
+    <string name="mqtt_ca_cert">CA certificate</string>
+    <string name="mqtt_client_cert">Client certificate</string>
+    <string name="mqtt_client_key">Client key</string>
+    <string name="mqtt_import">Import…</string>
+    <string name="mqtt_cert_set">Set</string>
+    <string name="caregiver_name">Caregiver name</string>    <string name="caregiver_add">Add caregiver</string>    <string name="caregiver_alert_after">Alert caregiver after (min, 0 = off)</string>
     <string name="reminder_repeat_every">Remind me every (min, 0 = once)</string>
     <string name="sms_caregiver_text">MedAboutYou: the %1$s dose scheduled at %2$s has not been taken.</string>
-    <string name="user_name">Your name (sent to caregivers)</string>
-    <string name="sms_caregiver_text_named">%1$s: the %2$s dose scheduled at %3$s has not been taken.</string>
-    <string name="widget_empty">No doses today.</string>
+    <string name="user_name">Your name (sent to caregivers)</string>    <string name="widget_empty">No doses today.</string>
     <string name="add_medicine">Add medicine</string>
     <string name="add_package">Add a package</string>
     <string name="menu_more">More options</string>
@@ -240,6 +249,13 @@
     <string name="backup_password_hint">You\'ll need this password to restore the backup — it can\'t be recovered.</string>
     <string name="backup_saved">Backup saved.</string>
     <string name="backup_restored">Restored %d schedules.</string>
+    <string name="backup_failed">Backup failed</string>
+    <string name="restore_failed">Restore failed</string>
+    <string name="backup_err_open_dest">Couldn\'t open the destination file.</string>
+    <string name="backup_err_open_file">Couldn\'t open the backup file.</string>
+    <string name="backup_err_not_backup">This file isn\'t a MedAboutYou backup.</string>
+    <string name="backup_err_wrong_password">Wrong password, or the backup is corrupted.</string>
+    <string name="backup_err_newer">This backup was made with a newer version of the app.</string>
 
     <!-- Refill reminders & shopping list -->
     <string name="channel_refill_name">Refill reminders</string>
@@ -259,4 +275,68 @@
     <string name="scan_hint">Point the camera at the barcode or data-matrix on the medicine box</string>
     <string name="scan_permission_needed">Camera permission is needed to scan a package.</string>
     <string name="scan_grant_camera">Allow camera</string>
+
+    <!-- Activity log -->
+    <string name="menu_activity_log">Activity log</string>
+    <string name="title_activity_log">Activity log</string>
+    <string name="activity_log_empty">No activity yet</string>
+    <string name="activity_log_meta">Category %1$d · %2$s   ·   ID %3$d · %4$s</string>
+    <!-- Activity-log category labels -->
+    <string name="action_cat_medication">Medication</string>
+    <string name="action_cat_schedule">Schedule</string>
+    <string name="action_cat_inventory">Inventory</string>
+    <string name="action_cat_data">Data</string>
+    <string name="action_cat_settings">Settings</string>
+    <!-- Activity-log action labels -->
+    <string name="action_act_dose_taken">Dose taken</string>
+    <string name="action_act_dose_untaken">Dose reverted</string>
+    <string name="action_act_doses_all">Doses taken</string>
+    <string name="action_act_schedule_created">Schedule created</string>
+    <string name="action_act_schedule_edited">Schedule edited</string>
+    <string name="action_act_dose_edited">Dose edited</string>
+    <string name="action_act_schedule_cancelled">Schedule cancelled</string>
+    <string name="action_act_schedule_paused">Schedule paused</string>
+    <string name="action_act_schedule_resumed">Schedule resumed</string>
+    <string name="action_act_stock_set">Stock set</string>
+    <string name="action_act_stock_added">Stock added</string>
+    <string name="action_act_shopping_removed">Removed from shopping list</string>
+    <string name="action_act_backup_exported">Backup exported</string>
+    <string name="action_act_backup_restored">Backup restored</string>
+    <string name="action_act_reminders">Reminders changed</string>
+    <string name="action_act_boot">Start-at-boot changed</string>
+    <string name="action_act_caregiver_added">Caregiver added</string>
+    <string name="action_act_caregiver_removed">Caregiver removed</string>
+    <string name="action_act_unknown">Action</string>
+    <!-- Activity-log clear-text templates -->
+    <string name="action_txt_dose_taken">Marked %1$s as taken</string>
+    <string name="action_txt_dose_untaken">Marked %1$s as not taken</string>
+    <string name="action_txt_doses_all">Marked %1$d doses as taken</string>
+    <string name="action_txt_schedule_created">Created a schedule for %1$s</string>
+    <string name="action_txt_schedule_edited">Edited the %1$s schedule</string>
+    <string name="action_txt_dose_edited">Edited a %1$s dose</string>
+    <string name="action_txt_schedule_cancelled">Cancelled the %1$s schedule</string>
+    <string name="action_txt_schedule_paused">Paused %1$s</string>
+    <string name="action_txt_schedule_paused_until">Paused %1$s until %2$s</string>
+    <string name="action_txt_schedule_resumed">Resumed %1$s</string>
+    <string name="action_txt_stock_set">Set %1$s stock to %2$d</string>
+    <string name="action_txt_stock_added">Added %1$d doses to %2$s</string>
+    <string name="action_txt_shopping_removed">Removed %1$s from the shopping list</string>
+    <string name="action_txt_backup_exported">Exported an encrypted backup</string>
+    <string name="action_txt_backup_restored">Restored a backup (%1$d schedules)</string>
+    <string name="action_txt_reminders_on">Enabled reminders</string>
+    <string name="action_txt_reminders_off">Disabled reminders</string>
+    <string name="action_txt_boot_on">Enabled start at boot</string>
+    <string name="action_txt_boot_off">Disabled start at boot</string>
+    <string name="action_txt_caregiver_added">Added a caregiver</string>
+    <string name="action_txt_caregiver_removed">Removed a caregiver</string>
+
+    <!-- Dose-toggle confirmation -->
+    <string name="confirm_take_title">Mark dose as taken?</string>
+    <string name="confirm_take_message">Mark %1$s (scheduled at %2$s) as taken? This records the dose and removes one unit from your stock.</string>
+    <string name="confirm_take_outside_window">⚠ This dose is being taken outside its scheduled time window.</string>
+    <string name="confirm_take_confirm">Mark taken</string>
+    <string name="untake_warn_title">Unmark this dose?</string>
+    <string name="untake_warn_message">%1$s (scheduled at %2$s) is currently marked as taken. Unmarking it records the dose as not taken and returns one unit to your stock — only do this if you marked it by mistake.</string>
+    <string name="untake_warn_confirm">Unmark</string>
+    <string name="activity_log_limit">Activity-log entries to keep</string>
 </resources>

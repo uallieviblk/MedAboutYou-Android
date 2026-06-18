@@ -6,9 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- Optional: only used when the user configures a caregiver phone to alert. -->
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+    <!-- Caregiver alerts publish to a user-configured MQTT broker over the
+         network (INTERNET, above); no SMS/telephony is used. -->
     <!-- On-the-minute dose reminders need exact alarms. USE_EXACT_ALARM is the
          policy-allowed permission for alarm/medication apps (no runtime prompt);
          SCHEDULE_EXACT_ALARM covers API 31–32. -->
@@ -31,16 +30,6 @@
         android:enableOnBackInvokedCallback="true"
         android:localeConfig="@xml/locales_config"
         tools:targetApi="33">
-
-        <!-- Backport of per-app language selection (AppCompatDelegate). -->
-        <service
-            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
-            android:enabled="false"
-            android:exported="false">
-            <meta-data
-                android:name="autoStoreLocales"
-                android:value="true" />
-        </service>
 
         <activity
             android:name=".MainActivity"

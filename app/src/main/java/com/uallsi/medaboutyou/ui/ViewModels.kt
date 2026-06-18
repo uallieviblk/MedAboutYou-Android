@@ -10,6 +10,7 @@ import com.uallsi.medaboutyou.MedApp
 import com.uallsi.medaboutyou.ui.calendar.CalendarViewModel
 import com.uallsi.medaboutyou.ui.dashboard.InsightsViewModel
 import com.uallsi.medaboutyou.ui.detail.DetailViewModel
+import com.uallsi.medaboutyou.ui.log.ActionLogViewModel
 import com.uallsi.medaboutyou.ui.schedules.SchedulesViewModel
 import com.uallsi.medaboutyou.ui.search.SearchViewModel
 import com.uallsi.medaboutyou.ui.settings.SettingsViewModel
@@ -26,6 +27,7 @@ val AppViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
     initializer { CalendarViewModel(app().container) }
     initializer { SchedulesViewModel(app().container) }
     initializer { InsightsViewModel(app().container) }
+    initializer { ActionLogViewModel(app().container) }
     initializer { SettingsViewModel(app().container, app()) }
 }
 

@@ -112,7 +112,7 @@
     <string name="edit_from_today">Le modifiche valgono da oggi; le dosi passate restano invariate.</string>
     <string name="first_dose_future">La prima dose deve essere nel futuro. Scegli una data o un\'ora di inizio successiva.</string>
     <string name="doses_on">Dosi del %1$s</string>
-    <string name="calendar_empty">Nessuna dose programmata. Tocca + per aggiungerne una o scegli un altro giorno.</string>
+    <string name="calendar_empty">Nessuna dose programmata. Aggiungi un medicinale dalla ricerca per programmarne una, o scegli un altro giorno.</string>
     <string name="title_schedules">Terapie attive</string>
     <string name="schedules_empty">Nessuna terapia attiva.\nAggiungi un medicinale dalla Ricerca per iniziare.</string>
     <string name="from_date">dal %1$s</string>
@@ -192,17 +192,26 @@
     <string name="mark_taken">Segna assunta</string>
     <string name="skip">Salta</string>
     <string name="caregiver_section">Avvisi al caregiver</string>
-    <string name="caregiver_desc">Se una dose è in ritardo, invia un SMS a questi caregiver (usa gli SMS del telefono).</string>
-    <string name="caregiver_name">Nome del caregiver</string>
-    <string name="caregiver_phone">Telefono del caregiver</string>
-    <string name="caregiver_add">Aggiungi caregiver</string>
-    <string name="caregiver_grant_sms">Concedi il permesso SMS</string>
-    <string name="caregiver_alert_after">Avvisa il caregiver dopo (min, 0 = off)</string>
+    <string name="caregiver_desc">Se una dose è in ritardo, avvisa questi caregiver tramite il tuo broker MQTT, ognuno sul proprio topic.</string>
+    <string name="caregiver_username">Nome utente del caregiver (topic)</string>
+    <string name="mqtt_section">Broker di avviso (MQTT)</string>
+    <string name="mqtt_desc">Gli avvisi ai caregiver vengono pubblicati su questo broker MQTT come messaggi CBOR, con consegna garantita.</string>
+    <string name="mqtt_enabled">Invia avvisi ai caregiver</string>
+    <string name="mqtt_host">Host del broker</string>
+    <string name="mqtt_port">Porta</string>
+    <string name="mqtt_base_topic">Prefisso del topic</string>
+    <string name="mqtt_username">Nome utente del broker (facoltativo)</string>
+    <string name="mqtt_password">Password del broker (facoltativa)</string>
+    <string name="mqtt_tls">Usa TLS (MQTT sicuro)</string>
+    <string name="mqtt_ca_cert">Certificato CA</string>
+    <string name="mqtt_client_cert">Certificato client</string>
+    <string name="mqtt_client_key">Chiave client</string>
+    <string name="mqtt_import">Importa…</string>
+    <string name="mqtt_cert_set">Impostato</string>
+    <string name="caregiver_name">Nome del caregiver</string>    <string name="caregiver_add">Aggiungi caregiver</string>    <string name="caregiver_alert_after">Avvisa il caregiver dopo (min, 0 = off)</string>
     <string name="reminder_repeat_every">Ricordami ogni (min, 0 = una volta)</string>
     <string name="sms_caregiver_text">MedAboutYou: la dose di %1$s prevista alle %2$s non è stata assunta.</string>
-    <string name="user_name">Il tuo nome (inviato ai caregiver)</string>
-    <string name="sms_caregiver_text_named">%1$s: la dose di %2$s prevista alle %3$s non è stata assunta.</string>
-    <string name="widget_empty">Nessuna dose oggi.</string>
+    <string name="user_name">Il tuo nome (inviato ai caregiver)</string>    <string name="widget_empty">Nessuna dose oggi.</string>
     <string name="add_medicine">Aggiungi medicinale</string>
     <string name="add_package">Aggiungi una confezione</string>
     <string name="menu_more">Altre opzioni</string>
@@ -229,6 +238,13 @@
     <string name="backup_password_hint">Ti servirà questa password per ripristinare il backup: non può essere recuperata.</string>
     <string name="backup_saved">Backup salvato.</string>
     <string name="backup_restored">Ripristinate %d terapie.</string>
+    <string name="backup_failed">Backup non riuscito</string>
+    <string name="restore_failed">Ripristino non riuscito</string>
+    <string name="backup_err_open_dest">Impossibile aprire il file di destinazione.</string>
+    <string name="backup_err_open_file">Impossibile aprire il file di backup.</string>
+    <string name="backup_err_not_backup">Questo file non è un backup di MedAboutYou.</string>
+    <string name="backup_err_wrong_password">Password errata, oppure il backup è danneggiato.</string>
+    <string name="backup_err_newer">Questo backup è stato creato con una versione più recente dell\'app.</string>
 
     <!-- Promemoria scorte e lista della spesa -->
     <string name="channel_refill_name">Promemoria scorte</string>
@@ -248,4 +264,65 @@
     <string name="scan_hint">Inquadra il codice a barre o datamatrix sulla scatola del medicinale</string>
     <string name="scan_permission_needed">Serve il permesso fotocamera per scansionare una confezione.</string>
     <string name="scan_grant_camera">Consenti fotocamera</string>
+
+    <!-- Activity log -->
+    <string name="menu_activity_log">Registro attività</string>
+    <string name="title_activity_log">Registro attività</string>
+    <string name="activity_log_empty">Nessuna attività</string>
+    <string name="activity_log_meta">Categoria %1$d · %2$s   ·   ID %3$d · %4$s</string>
+    <string name="action_cat_medication">Medicinale</string>
+    <string name="action_cat_schedule">Terapia</string>
+    <string name="action_cat_inventory">Scorte</string>
+    <string name="action_cat_data">Dati</string>
+    <string name="action_cat_settings">Impostazioni</string>
+    <string name="action_act_dose_taken">Dose assunta</string>
+    <string name="action_act_dose_untaken">Dose annullata</string>
+    <string name="action_act_doses_all">Dosi assunte</string>
+    <string name="action_act_schedule_created">Terapia creata</string>
+    <string name="action_act_schedule_edited">Terapia modificata</string>
+    <string name="action_act_dose_edited">Dose modificata</string>
+    <string name="action_act_schedule_cancelled">Terapia annullata</string>
+    <string name="action_act_schedule_paused">Terapia messa in pausa</string>
+    <string name="action_act_schedule_resumed">Terapia ripresa</string>
+    <string name="action_act_stock_set">Scorta impostata</string>
+    <string name="action_act_stock_added">Scorta aggiunta</string>
+    <string name="action_act_shopping_removed">Rimossa dalla lista della spesa</string>
+    <string name="action_act_backup_exported">Backup esportato</string>
+    <string name="action_act_backup_restored">Backup ripristinato</string>
+    <string name="action_act_reminders">Promemoria modificati</string>
+    <string name="action_act_boot">Avvio all\'accensione modificato</string>
+    <string name="action_act_caregiver_added">Caregiver aggiunto</string>
+    <string name="action_act_caregiver_removed">Caregiver rimosso</string>
+    <string name="action_act_unknown">Azione</string>
+    <string name="action_txt_dose_taken">%1$s segnata come assunta</string>
+    <string name="action_txt_dose_untaken">%1$s segnata come non assunta</string>
+    <string name="action_txt_doses_all">Segnate %1$d dosi come assunte</string>
+    <string name="action_txt_schedule_created">Creata una terapia per %1$s</string>
+    <string name="action_txt_schedule_edited">Modificata la terapia di %1$s</string>
+    <string name="action_txt_dose_edited">Modificata una dose di %1$s</string>
+    <string name="action_txt_schedule_cancelled">Annullata la terapia di %1$s</string>
+    <string name="action_txt_schedule_paused">%1$s messa in pausa</string>
+    <string name="action_txt_schedule_paused_until">%1$s messa in pausa fino al %2$s</string>
+    <string name="action_txt_schedule_resumed">%1$s ripresa</string>
+    <string name="action_txt_stock_set">Scorta di %1$s impostata a %2$d</string>
+    <string name="action_txt_stock_added">Aggiunte %1$d dosi a %2$s</string>
+    <string name="action_txt_shopping_removed">Rimosso %1$s dalla lista della spesa</string>
+    <string name="action_txt_backup_exported">Esportato un backup cifrato</string>
+    <string name="action_txt_backup_restored">Ripristinato un backup (%1$d terapie)</string>
+    <string name="action_txt_reminders_on">Promemoria attivati</string>
+    <string name="action_txt_reminders_off">Promemoria disattivati</string>
+    <string name="action_txt_boot_on">Avvio all\'accensione attivato</string>
+    <string name="action_txt_boot_off">Avvio all\'accensione disattivato</string>
+    <string name="action_txt_caregiver_added">Aggiunto un caregiver</string>
+    <string name="action_txt_caregiver_removed">Rimosso un caregiver</string>
+
+    <!-- Dose-toggle confirmation -->
+    <string name="confirm_take_title">Segnare la dose come assunta?</string>
+    <string name="confirm_take_message">Segnare %1$s (prevista alle %2$s) come assunta? La dose viene registrata e viene rimossa un\'unità dalla scorta.</string>
+    <string name="confirm_take_outside_window">⚠ Questa dose viene assunta fuori dalla finestra oraria prevista.</string>
+    <string name="confirm_take_confirm">Segna assunta</string>
+    <string name="untake_warn_title">Annullare l\'assunzione?</string>
+    <string name="untake_warn_message">%1$s (prevista alle %2$s) è attualmente segnata come assunta. Annullando, la dose viene registrata come non assunta e viene restituita un\'unità alla scorta — fallo solo se l\'hai segnata per errore.</string>
+    <string name="untake_warn_confirm">Annulla assunzione</string>
+    <string name="activity_log_limit">Voci del registro da conservare</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.MoreVert
@@ -37,16 +38,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import com.uallsi.medaboutyou.R
-import com.uallsi.medaboutyou.data.remote.BarcodeLookup
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.data.remote.BarcodeLookup
 import com.uallsi.medaboutyou.ui.calendar.CalendarScreen
 import com.uallsi.medaboutyou.ui.dashboard.InsightsScreen
 import com.uallsi.medaboutyou.ui.detail.DetailScreen
+import com.uallsi.medaboutyou.ui.log.ActionLogScreen
 import com.uallsi.medaboutyou.ui.schedules.SchedulesScreen
 import com.uallsi.medaboutyou.ui.search.ScanScreen
 import com.uallsi.medaboutyou.ui.search.SearchScreen
@@ -66,7 +68,7 @@ private enum class Tab(
 }
 
 /** Full-screen routes reached from the Schedules FAB or the overflow menu. */
-private val SUB_PAGES = setOf("search", "insights", "settings")
+private val SUB_PAGES = setOf("search", "insights", "settings", "activitylog")
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -89,13 +91,17 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
             Tab.SCHEDULES.route -> R.string.title_schedules
             "insights" -> R.string.title_insights
             "settings" -> R.string.title_settings
+            "activitylog" -> R.string.title_activity_log
             else -> R.string.title_today
         }
     )
 
     val layoutType =
-        if (immersive) NavigationSuiteType.None
-        else NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+        if (immersive) {
+            NavigationSuiteType.None
+        } else {
+            NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+        }
 
     val tabLabels = Tab.entries.associateWith { stringResource(it.labelRes) }
 
@@ -133,7 +139,10 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                         navigationIcon = {
                             if (subPage) {
                                 IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = stringResource(R.string.action_back)
+                                    )
                                 }
                             }
                         },
@@ -148,12 +157,26 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.nav_insights)) },
                                         leadingIcon = { Icon(Icons.Filled.BarChart, contentDescription = null) },
-                                        onClick = { menuOpen = false; navController.navigate("insights") },
+                                        onClick = {
+                                            menuOpen = false;
+                                            navController.navigate("insights")
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.menu_activity_log)) },
+                                        leadingIcon = { Icon(Icons.Filled.History, contentDescription = null) },
+                                        onClick = {
+                                            menuOpen = false;
+                                            navController.navigate("activitylog")
+                                        },
                                     )
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.action_settings)) },
                                         leadingIcon = { Icon(Icons.Filled.Settings, contentDescription = null) },
-                                        onClick = { menuOpen = false; navController.navigate("settings") },
+                                        onClick = {
+                                            menuOpen = false;
+                                            navController.navigate("settings")
+                                        },
                                     )
                                 }
                             }
@@ -203,7 +226,9 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                 composable("detail") {
                     val med = Selection.medicine
                     if (med == null) {
-                        navController.popBackStack()
+                        // Navigation is a side effect — never call it straight
+                        // from the composition body (it would re-fire every pass).
+                        androidx.compose.runtime.LaunchedEffect(Unit) { navController.popBackStack() }
                     } else {
                         DetailScreen(
                             medicine = med,
@@ -234,6 +259,7 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
                     SchedulesScreen(onAddMedicine = { navController.navigate("search") })
                 }
                 composable("insights") { InsightsScreen() }
+                composable("activitylog") { ActionLogScreen() }
                 composable("settings") { SettingsScreen() }
             }
         }

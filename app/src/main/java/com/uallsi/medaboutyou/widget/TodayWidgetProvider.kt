@@ -29,8 +29,8 @@ class TodayWidgetProvider : AppWidgetProvider() {
             val manager = AppWidgetManager.getInstance(context) ?: return
             val ids = manager.getAppWidgetIds(ComponentName(context, TodayWidgetProvider::class.java))
             if (ids.isEmpty()) return
+            // bind() already notifies the list adapter — no second pass needed.
             ids.forEach { bind(context, manager, it) }
-            manager.notifyAppWidgetViewDataChanged(ids, R.id.widget_list)
         }
 
         private fun bind(context: Context, manager: AppWidgetManager, id: Int) {
@@ -43,6 +43,7 @@ class TodayWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_date, date)
 
             val service = Intent(context, TodayWidgetService::class.java).apply {
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
                 // Make the intent unique per widget id so the adapter isn't reused stale.
                 data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
             }
@@ -55,7 +56,9 @@ class TodayWidgetProvider : AppWidgetProvider() {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val pi = PendingIntent.getActivity(
-                context, 0, open,
+                context,
+                0,
+                open,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
             views.setOnClickPendingIntent(R.id.widget_title, pi)

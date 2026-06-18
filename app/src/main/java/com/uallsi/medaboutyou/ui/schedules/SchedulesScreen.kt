@@ -32,8 +32,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,7 +66,7 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
     androidx.compose.runtime.LaunchedEffect(Unit) { vm.refresh() }
     var pendingCancel by remember { mutableStateOf<Pair<Long, String>?>(null) }
     var editing by remember { mutableStateOf<Schedule?>(null) }
-    var pausing by remember { mutableStateOf<Long?>(null) }   // schedule id to pause
+    var pausing by remember { mutableStateOf<Long?>(null) } // schedule id to pause
 
     Box(modifier.fillMaxSize()) {
         if (schedules.isEmpty()) {
@@ -108,7 +108,10 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
             prefillSource = sch.medSource,
             prefillExtId = sch.medExtId,
             existing = sch,
-            onCreate = { vm.applyEdit(it); editing = null },
+            onCreate = {
+                vm.applyEdit(it);
+                editing = null
+            },
             onDismiss = { editing = null },
         )
     }
@@ -121,7 +124,10 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
             text = { Text("$name\n\n" + stringResource(R.string.confirm_cancel_message)) },
             confirmButton = {
                 TextButton(
-                    onClick = { vm.cancel(id); pendingCancel = null },
+                    onClick = {
+                        vm.cancel(id);
+                        pendingCancel = null
+                    },
                     colors = ButtonDefaults.textButtonColors(contentColor = MedColors.error),
                 ) { Text(stringResource(R.string.cancel_prescription)) }
             },
@@ -138,8 +144,14 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
             title = { Text(stringResource(R.string.pause_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    fun pauseUntil(d: LocalDate) { vm.setPause(id, false, d.toString()); pausing = null }
-                    PauseOption(stringResource(R.string.pause_indefinite)) { vm.setPause(id, true, ""); pausing = null }
+                    fun pauseUntil(d: LocalDate) {
+                        vm.setPause(id, false, d.toString());
+                        pausing = null
+                    }
+                    PauseOption(stringResource(R.string.pause_indefinite)) {
+                        vm.setPause(id, true, "");
+                        pausing = null
+                    }
                     PauseOption(stringResource(R.string.pause_1week)) { pauseUntil(today.plusWeeks(1)) }
                     PauseOption(stringResource(R.string.pause_2weeks)) { pauseUntil(today.plusWeeks(2)) }
                     PauseOption(stringResource(R.string.pause_1month)) { pauseUntil(today.plusMonths(1)) }
@@ -147,7 +159,10 @@ fun SchedulesScreen(onAddMedicine: () -> Unit, modifier: Modifier = Modifier) {
                         label = stringResource(R.string.pause_until_date),
                         value = today.plusDays(1).toString(),
                         minIso = today.plusDays(1).toString(),
-                    ) { picked -> vm.setPause(id, false, picked); pausing = null }
+                    ) { picked ->
+                        vm.setPause(id, false, picked);
+                        pausing = null
+                    }
                 }
             },
             confirmButton = {},
@@ -186,12 +201,18 @@ private fun ScheduleCard(
                     schedule.suspended -> stringResource(R.string.suspended_label)
                     paused && until != null -> stringResource(
                         R.string.paused_until,
-                        until.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())),
+                        until.format(
+                            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.getDefault())
+                        ),
                     )
                     else -> null
                 }
                 if (pausedLabel != null) {
-                    Text(pausedLabel, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        pausedLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
                 Text(
                     recurrenceSummary(schedule),
@@ -220,7 +241,11 @@ private fun ScheduleCard(
                 }
             }
             IconButton(onClick = onCancel) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cancel_prescription), tint = MedColors.error)
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.cancel_prescription),
+                    tint = MedColors.error
+                )
             }
         }
     }
@@ -237,19 +262,31 @@ private fun recurrenceSummary(schedule: Schedule): String {
     fun dow(d: Int) = DayOfWeek.of(d.coerceIn(1, 7)).getDisplayName(TextStyle.SHORT, locale)
     fun mon(m: Int) = Month.of(m.coerceIn(1, 12)).getDisplayName(TextStyle.SHORT, locale)
     fun t(h: Int, m: Int) =
-        if (is24) "%02d:%02d".format(h, m)
-        else LocalTime.of(h.coerceIn(0, 23), m.coerceIn(0, 59)).format(DateTimeFormatter.ofPattern("h:mm a", locale))
+        if (is24) {
+            "%02d:%02d".format(h, m)
+        } else {
+            LocalTime.of(h.coerceIn(0, 23), m.coerceIn(0, 59)).format(DateTimeFormatter.ofPattern("h:mm a", locale))
+        }
 
     val lastDayLabel = stringResource(R.string.last_day_of_month)
-    val head = if (schedule.periodUnit == PeriodUnit.ONCE) periodUnitLabel(schedule.periodUnit)
-    else "${stringResource(R.string.repeat_every)} ${schedule.periodN} ${periodUnitLabel(schedule.periodUnit).lowercase(locale)}"
+    val head = if (schedule.periodUnit == PeriodUnit.ONCE) {
+        periodUnitLabel(schedule.periodUnit)
+    } else {
+        "${stringResource(
+            R.string.repeat_every
+        )} ${schedule.periodN} ${periodUnitLabel(schedule.periodUnit).lowercase(locale)}"
+    }
 
     val detail = when (schedule.periodUnit) {
-        PeriodUnit.ONCE -> times.sortedBy { "%04d%02d%02d%02d%02d".format(it.year, it.month, it.dayOfMonth, it.hour, it.minute) }
+        PeriodUnit.ONCE -> times.sortedBy {
+            "%04d%02d%02d%02d%02d".format(it.year, it.month, it.dayOfMonth, it.hour, it.minute)
+        }
             .joinToString(", ") { "${it.dayOfMonth} ${mon(it.month)} ${it.year} ${t(it.hour, it.minute)}" }
         PeriodUnit.HOURS -> times.map { it.hour to it.minute }.distinct()
             .sortedWith(compareBy({ it.first }, { it.second })).joinToString(", ") { t(it.first, it.second) }
-        PeriodUnit.DAYS -> times.sortedWith(compareBy({ it.hour }, { it.minute })).joinToString(", ") { t(it.hour, it.minute) }
+        PeriodUnit.DAYS -> times.sortedWith(
+            compareBy({ it.hour }, { it.minute })
+        ).joinToString(", ") { t(it.hour, it.minute) }
         PeriodUnit.WEEKS -> {
             val days = times.map { it.weekday }.distinct().sorted().joinToString(", ") { dow(it) }
             val ts = times.map { it.hour to it.minute }.distinct().sortedWith(compareBy({ it.first }, { it.second }))

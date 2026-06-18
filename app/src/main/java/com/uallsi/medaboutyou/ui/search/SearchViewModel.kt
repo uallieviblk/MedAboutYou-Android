@@ -56,9 +56,17 @@ class SearchViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun setSource(source: Source) {
-        viewModelScope.launch { container.settings.setSource(source) }
-        _state.value = _state.value.copy(source = source)
-        runSearch()
+        viewModelScope.launch {
+            container.settings.setSource(source)
+            // Recompute the download prompt: switching to EMA with an empty
+            // cache must offer the dataset download, not show "0 medicines".
+            val count = container.medicines.count(Source.EMA)
+            _state.value = _state.value.copy(
+                source = source,
+                needsDownload = source == Source.EMA && count == 0,
+            )
+            runSearch()
+        }
     }
 
     fun setVetIncluded(included: Boolean) {
@@ -100,35 +108,50 @@ class SearchViewModel(private val container: AppContainer) : ViewModel() {
                 _state.value = _state.value.copy(
                     results = results,
                     loading = false,
-                    statusLine = if (results.isEmpty() && container.aifa.lastError.isNotEmpty())
-                        container.aifa.lastError else countLine(results.size, ""),
+                    statusLine = if (results.isEmpty() && container.aifa.lastError.isNotEmpty()) {
+                        container.aifa.lastError
+                    } else {
+                        countLine(results.size, "")
+                    },
                 )
             }
         }
     }
 
+    private var emaRefreshing = false
+
     /** Re-download the EMA dataset and cache it locally. */
     fun refreshEma(onDone: (Boolean) -> Unit = {}) {
+        if (emaRefreshing) return // a double-tap must not start two downloads
+        emaRefreshing = true
         viewModelScope.launch {
-            _state.value = _state.value.copy(loading = true, statusLine = ctx.getString(R.string.downloading_ema))
-            val result = withContext(Dispatchers.IO) { container.ema.refresh() }
-            if (result == null) {
-                _state.value = _state.value.copy(loading = false, statusLine = container.ema.lastError)
-                onDone(false)
-                return@launch
+            try {
+                doRefreshEma(onDone)
+            } finally {
+                emaRefreshing = false
             }
-            withContext(Dispatchers.IO) {
-                container.medicines.upsertAll(result.medicines)
-                container.medicines.setMeta("ema_timestamp", result.timestamp)
-            }
-            _state.value = _state.value.copy(
-                datasetTimestamp = result.timestamp,
-                needsDownload = false,
-                loading = false,
-            )
-            runSearch()
-            onDone(true)
         }
+    }
+
+    private suspend fun doRefreshEma(onDone: (Boolean) -> Unit) {
+        _state.value = _state.value.copy(loading = true, statusLine = ctx.getString(R.string.downloading_ema))
+        val result = withContext(Dispatchers.IO) { container.ema.refresh() }
+        if (result == null) {
+            _state.value = _state.value.copy(loading = false, statusLine = container.ema.lastError)
+            onDone(false)
+            return
+        }
+        withContext(Dispatchers.IO) {
+            container.medicines.upsertAll(result.medicines)
+            container.medicines.setMeta("ema_timestamp", result.timestamp)
+        }
+        _state.value = _state.value.copy(
+            datasetTimestamp = result.timestamp,
+            needsDownload = false,
+            loading = false,
+        )
+        runSearch()
+        onDone(true)
     }
 
     private val ctx get() = container.appContext

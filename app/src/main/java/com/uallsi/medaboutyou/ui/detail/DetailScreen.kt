@@ -71,7 +71,10 @@ fun DetailScreen(
                 title = { Text(medicine.name, maxLines = 1) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.action_back)
+                        )
                     }
                 },
             )
@@ -121,7 +124,10 @@ fun DetailScreen(
                     ) {
                         Column {
                             Text(stringResource(R.string.stock), style = MaterialTheme.typography.labelMedium)
-                            Text(pluralStringResource(R.plurals.doses_count, state.stock, state.stock), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                pluralStringResource(R.plurals.doses_count, state.stock, state.stock),
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                         Button(onClick = { stockDialog = true }) { Text(stringResource(R.string.set_stock)) }
                     }
@@ -166,7 +172,9 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Icon(Icons.Default.OpenInNew, contentDescription = null)
-                    Text("  " + stringResource(if (medicine.source == com.uallsi.medaboutyou.model.Source.AIFA) R.string.open_aifa else R.string.open_epar))
+                    Text(
+                        "  " + stringResource(if (medicine.source == com.uallsi.medaboutyou.model.Source.AIFA) R.string.open_aifa else R.string.open_epar)
+                    )
                 }
             }
         }
@@ -175,7 +183,10 @@ fun DetailScreen(
     if (stockDialog) {
         SetStockDialog(
             initial = state.stock,
-            onConfirm = { vm.setStock(it); stockDialog = false },
+            onConfirm = {
+                vm.setStock(it)
+                stockDialog = false
+            },
             onDismiss = { stockDialog = false },
         )
     }
@@ -193,11 +204,27 @@ private fun InfoSection(title: String, body: String) {
 @Composable
 private fun ClassificationSection(med: Medicine) {
     val rows = buildList {
-        if (med.activeSubstance.isNotEmpty()) add(stringResource(R.string.label_active_substance) to med.activeSubstance)
+        if (med.activeSubstance.isNotEmpty()) {
+            add(
+                stringResource(R.string.label_active_substance) to med.activeSubstance
+            )
+        }
         if (med.atcCode.isNotEmpty()) add(stringResource(R.string.label_atc) to med.atcCode)
-        if (med.pharmacotherapeuticGroup.isNotEmpty()) add(stringResource(R.string.label_pharmacotherapeutic) to med.pharmacotherapeuticGroup)
-        if (med.therapeuticArea.isNotEmpty()) add(stringResource(R.string.label_therapeutic_area) to med.therapeuticArea)
-        if (med.pharmaceuticalForm.isNotEmpty()) add(stringResource(R.string.label_pharmaceutical_form) to med.pharmaceuticalForm)
+        if (med.pharmacotherapeuticGroup.isNotEmpty()) {
+            add(
+                stringResource(R.string.label_pharmacotherapeutic) to med.pharmacotherapeuticGroup
+            )
+        }
+        if (med.therapeuticArea.isNotEmpty()) {
+            add(
+                stringResource(R.string.label_therapeutic_area) to med.therapeuticArea
+            )
+        }
+        if (med.pharmaceuticalForm.isNotEmpty()) {
+            add(
+                stringResource(R.string.label_pharmaceutical_form) to med.pharmaceuticalForm
+            )
+        }
         if (med.route.isNotEmpty()) add(stringResource(R.string.label_route) to med.route)
     }
     LabeledGroup(stringResource(R.string.section_classification), rows)
@@ -206,9 +233,17 @@ private fun ClassificationSection(med: Medicine) {
 @Composable
 private fun AuthorisationSection(med: Medicine) {
     val rows = buildList {
-        if (med.marketingAuthorisationHolder.isNotEmpty()) add(stringResource(R.string.label_ma_holder) to med.marketingAuthorisationHolder)
+        if (med.marketingAuthorisationHolder.isNotEmpty()) {
+            add(
+                stringResource(R.string.label_ma_holder) to med.marketingAuthorisationHolder
+            )
+        }
         if (med.productNumber.isNotEmpty()) add(stringResource(R.string.label_product_number) to med.productNumber)
-        if (med.marketingAuthorisationDate.isNotEmpty()) add(stringResource(R.string.label_ma_date) to med.marketingAuthorisationDate)
+        if (med.marketingAuthorisationDate.isNotEmpty()) {
+            add(
+                stringResource(R.string.label_ma_date) to med.marketingAuthorisationDate
+            )
+        }
         if (med.lastUpdated.isNotEmpty()) add(stringResource(R.string.label_last_updated) to med.lastUpdated)
         if (med.prescription.isNotEmpty()) add(stringResource(R.string.label_supply) to med.prescription)
     }
@@ -309,7 +344,11 @@ private fun SetStockDialog(initial: Int, onConfirm: (Int) -> Unit, onDismiss: ()
                 singleLine = true,
             )
         },
-        confirmButton = { TextButton(onClick = { onConfirm(text.toIntOrNull() ?: 0) }) { Text(stringResource(R.string.action_save)) } },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(text.toIntOrNull() ?: 0) }
+            ) { Text(stringResource(R.string.action_save)) }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

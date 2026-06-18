@@ -19,7 +19,9 @@ object DoseAlarms {
     private fun pendingIntent(context: Context): PendingIntent {
         val intent = Intent(context, DoseAlarmReceiver::class.java).setAction(ACTION_FIRE)
         return PendingIntent.getBroadcast(
-            context, REQUEST, intent,
+            context,
+            REQUEST,
+            intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }

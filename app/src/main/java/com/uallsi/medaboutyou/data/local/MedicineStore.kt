@@ -13,8 +13,11 @@ class MedicineStore(db: MedDatabase) {
     suspend fun upsertAll(meds: List<Medicine>) =
         medicineDao.upsertAll(meds.map { it.toEntity() })
 
-    suspend fun search(source: Source, query: String, humanOnly: Boolean, limit: Int): List<Medicine> =
-        medicineDao.search(source.key, query, if (humanOnly) 1 else 0, limit).map { it.toModel() }
+    suspend fun search(source: Source, query: String, humanOnly: Boolean, limit: Int): List<Medicine> {
+        // Escape LIKE metacharacters so "100%" matches literally, not everything.
+        val escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        return medicineDao.search(source.key, escaped, if (humanOnly) 1 else 0, limit).map { it.toModel() }
+    }
 
     suspend fun count(source: Source): Int = medicineDao.count(source.key)
 
@@ -32,9 +35,6 @@ class MedicineStore(db: MedDatabase) {
     suspend fun setDoses(source: Source, ext: String, name: String, count: Int) =
         inventoryDao.set(InventoryEntity(stockKey(source, ext, name), maxOf(0, count)))
 
-    suspend fun adjustDoses(source: Source, ext: String, name: String, delta: Int) {
-        val key = stockKey(source, ext, name)
-        val current = inventoryDao.doses(key) ?: 0
-        inventoryDao.set(InventoryEntity(key, maxOf(0, current + delta)))
-    }
+    suspend fun adjustDoses(source: Source, ext: String, name: String, delta: Int) =
+        inventoryDao.adjust(stockKey(source, ext, name), delta)
 }

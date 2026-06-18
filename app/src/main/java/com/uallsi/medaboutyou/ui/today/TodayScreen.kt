@@ -26,6 +26,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -38,11 +41,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.model.ScheduleEngine
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
+import com.uallsi.medaboutyou.ui.common.DoseToggleConfirmDialog
 import com.uallsi.medaboutyou.ui.theme.MedColors
 
 private val blockLabels = listOf(
-    R.string.block_morning, R.string.block_afternoon, R.string.block_evening, R.string.block_night,
+    R.string.block_morning,
+    R.string.block_afternoon,
+    R.string.block_evening,
+    R.string.block_night,
 )
 
 private fun blockOf(hour: Int): Int = when (hour) {
@@ -60,6 +68,26 @@ fun TodayScreen(modifier: Modifier = Modifier) {
     val haptics = LocalHapticFeedback.current
 
     androidx.compose.runtime.LaunchedEffect(Unit) { vm.refresh() }
+
+    // Toggling a dose is confirmed first: marking taken defaults to confirm,
+    // un-marking a taken dose defaults to cancel (see DoseToggleConfirmDialog).
+    var pendingToggle by remember { mutableStateOf<Pair<TodayDose, Boolean>?>(null) }
+    pendingToggle?.let { (dose, taken) ->
+        DoseToggleConfirmDialog(
+            medName = dose.occ.medName,
+            time = dose.occ.timeLabel(),
+            taken = taken,
+            outsideWindow = taken && !ScheduleEngine.isWithinScheduledWindow(
+                dose.occ.year, dose.occ.month, dose.occ.day, dose.occ.hour, dose.occ.minute, dose.occ.windowMinutes,
+            ),
+            onConfirm = {
+                if (taken) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                vm.toggle(dose, taken)
+                pendingToggle = null
+            },
+            onDismiss = { pendingToggle = null },
+        )
+    }
 
     Box(modifier.fillMaxSize()) {
         if (state.loading) {
@@ -103,10 +131,7 @@ fun TodayScreen(modifier: Modifier = Modifier) {
                         }
                     }
                     items(items, key = { it.occ.scheduleId.toString() + it.occ.keyIso }) { dose ->
-                        DoseRow(dose, onToggle = { taken ->
-                            if (taken) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            vm.toggle(dose, taken)
-                        })
+                        DoseRow(dose, onToggle = { taken -> pendingToggle = dose to taken })
                     }
                 }
 

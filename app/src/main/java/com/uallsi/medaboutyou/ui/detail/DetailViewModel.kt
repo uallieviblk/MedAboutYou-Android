@@ -4,6 +4,8 @@ package com.uallsi.medaboutyou.ui.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.data.local.ActionCatalog
 import com.uallsi.medaboutyou.data.remote.PosologyService
 import com.uallsi.medaboutyou.model.Medicine
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +55,10 @@ class DetailViewModel(private val container: AppContainer) : ViewModel() {
             withContext(Dispatchers.IO) {
                 container.medicines.setDoses(med.source, med.extId, med.name, count)
             }
+            container.actionLog.log(
+                ActionCatalog.STOCK_SET,
+                container.appContext.getString(R.string.action_txt_stock_set, med.name, count),
+            )
             refreshStock()
         }
     }
@@ -63,6 +69,10 @@ class DetailViewModel(private val container: AppContainer) : ViewModel() {
             withContext(Dispatchers.IO) {
                 container.medicines.adjustDoses(med.source, med.extId, med.name, amount)
             }
+            container.actionLog.log(
+                ActionCatalog.STOCK_ADDED,
+                container.appContext.getString(R.string.action_txt_stock_added, amount, med.name),
+            )
             refreshStock()
         }
     }

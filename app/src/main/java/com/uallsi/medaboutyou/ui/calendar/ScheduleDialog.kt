@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.calendar
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -36,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import android.text.format.DateFormat
 import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.DoseTime
 import com.uallsi.medaboutyou.model.EndMode
@@ -84,17 +84,29 @@ private fun defaultTime(unit: PeriodUnit, today: LocalDate): DoseTime = when (un
     PeriodUnit.ONCE -> DoseTime(year = today.year, month = today.monthValue, dayOfMonth = today.dayOfMonth, hour = 8)
     // HOURS anchors at a start date-time, so default to the next whole hour
     // (in the near future) rather than midnight.
-    PeriodUnit.HOURS -> LocalTime.now().truncatedTo(ChronoUnit.HOURS).plusHours(1).let { DoseTime(hour = it.hour, minute = it.minute) }
+    PeriodUnit.HOURS -> LocalTime.now().truncatedTo(
+        ChronoUnit.HOURS
+    ).plusHours(1).let { DoseTime(hour = it.hour, minute = it.minute) }
     PeriodUnit.DAYS -> DoseTime(hour = 8)
     PeriodUnit.WEEKS -> DoseTime(weekday = today.dayOfWeek.value, hour = 8)
     PeriodUnit.MONTHS -> DoseTime(dayOfMonth = today.dayOfMonth, hour = 8)
-    PeriodUnit.YEARS -> DoseTime(month = today.monthValue, dayOfMonth = today.dayOfMonth.coerceAtMost(Month.of(today.monthValue).length(false)), hour = 8)
+    PeriodUnit.YEARS -> DoseTime(
+        month = today.monthValue,
+        dayOfMonth = today.dayOfMonth.coerceAtMost(Month.of(today.monthValue).length(false)),
+        hour = 8
+    )
 }
 
 /** "HH:mm" or "h:mm a" per the device's hour-format setting. */
 private fun fmtTime(hour: Int, minute: Int, is24: Boolean, locale: Locale): String =
-    if (is24) "%02d:%02d".format(hour, minute)
-    else LocalTime.of(hour.coerceIn(0, 23), minute.coerceIn(0, 59)).format(DateTimeFormatter.ofPattern("h:mm a", locale))
+    if (is24) {
+        "%02d:%02d".format(hour, minute)
+    } else {
+        LocalTime.of(
+            hour.coerceIn(0, 23),
+            minute.coerceIn(0, 59)
+        ).format(DateTimeFormatter.ofPattern("h:mm a", locale))
+    }
 
 /**
  * Schedule create/edit form. With [existing] non-null the dialog opens
@@ -124,23 +136,30 @@ fun ScheduleEditorDialog(
     var intervalN by remember { mutableIntStateOf(existing?.periodN?.coerceAtLeast(1) ?: 1) }
     var times by remember {
         mutableStateOf(
-            if (existing != null && initUnit != PeriodUnit.WEEKS && existing.times.isNotEmpty()) existing.times
-            else listOf(defaultTime(initUnit, today)),
+            if (existing != null && initUnit != PeriodUnit.WEEKS && existing.times.isNotEmpty()) {
+                existing.times
+            } else {
+                listOf(defaultTime(initUnit, today))
+            },
         )
     }
     // WEEKS uses a day-toggle row + shared dose times (Google/Apple pattern).
     var weekDays by remember {
         mutableStateOf(
-            if (initUnit == PeriodUnit.WEEKS && existing != null)
+            if (initUnit == PeriodUnit.WEEKS && existing != null) {
                 existing.times.map { it.weekday }.toSet().ifEmpty { setOf(today.dayOfWeek.value) }
-            else setOf(today.dayOfWeek.value),
+            } else {
+                setOf(today.dayOfWeek.value)
+            },
         )
     }
     var weekTimes by remember {
         mutableStateOf(
-            if (initUnit == PeriodUnit.WEEKS && existing != null)
+            if (initUnit == PeriodUnit.WEEKS && existing != null) {
                 existing.times.map { it.hour to it.minute }.distinct().ifEmpty { listOf(8 to 0) }
-            else listOf(8 to 0),
+            } else {
+                listOf(8 to 0)
+            },
         )
     }
     var window by remember { mutableIntStateOf(existing?.windowMinutes ?: 30) }
@@ -181,8 +200,14 @@ fun ScheduleEditorDialog(
             medSource = existing?.medSource ?: prefillSource,
             medExtId = existing?.medExtId ?: prefillExtId,
             medName = name.trim(),
-            startDate = if (once) (built.minByOrNull { "%04d%02d%02d".format(it.year, it.month, it.dayOfMonth) }
-                ?.let { "%04d-%02d-%02d".format(it.year, it.month, it.dayOfMonth) } ?: startDate) else startDate,
+            startDate = if (once) {
+                (
+                    built.minByOrNull { "%04d%02d%02d".format(it.year, it.month, it.dayOfMonth) }
+                        ?.let { "%04d-%02d-%02d".format(it.year, it.month, it.dayOfMonth) } ?: startDate
+                    )
+            } else {
+                startDate
+            },
             endMode = if (once) EndMode.NEVER else endMode,
             endDate = endDate,
             doseCount = doseCount,
@@ -199,8 +224,8 @@ fun ScheduleEditorDialog(
 
     // A new schedule's first dose must lie strictly after "now": don't let a
     // therapy be born already-missed. Skipped when editing (edits apply from
-    // today via the repository). For HOURS the series is anchored to the start
-    // date's midnight, so a same-day start is correctly rejected here.
+    // today via the repository). For HOURS the series anchors at the start
+    // date at the entry's time, so a same-day start later than now is fine.
     val candidate = buildSchedule()
     val firstOcc = if (timesValid) ScheduleEngine.firstOccurrence(candidate) else null
     val firstDoseInPast = firstOcc != null && !firstOcc.isAfter(LocalDateTime.now())
@@ -215,8 +240,10 @@ fun ScheduleEditorDialog(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 OutlinedTextField(
-                    value = name, onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.medicine_name)) }, singleLine = true,
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text(stringResource(R.string.medicine_name)) },
+                    singleLine = true,
                     isError = name.isBlank(),
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -239,7 +266,12 @@ fun ScheduleEditorDialog(
                     }
                 }
                 if (unit != PeriodUnit.ONCE) {
-                    Stepper(stringResource(R.string.interval_label, periodUnitLabel(unit).lowercase()), intervalN, 1, 99) { intervalN = it }
+                    Stepper(
+                        stringResource(R.string.interval_label, periodUnitLabel(unit).lowercase()),
+                        intervalN,
+                        1,
+                        99
+                    ) { intervalN = it }
                 }
 
                 // ---- Dose-time entries (shape depends on the unit) ----
@@ -249,17 +281,24 @@ fun ScheduleEditorDialog(
                     weekTimes.forEachIndexed { i, (h, m) ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             TimeField(
-                                stringResource(R.string.time_of_dose), h, m,
+                                stringResource(R.string.time_of_dose),
+                                h,
+                                m,
                                 modifier = Modifier.weight(1f),
                             ) { nh, nm -> weekTimes = weekTimes.toMutableList().also { it[i] = nh to nm } }
                             if (weekTimes.size > 1) {
                                 IconButton(onClick = { weekTimes = weekTimes.filterIndexed { j, _ -> j != i } }) {
-                                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.action_remove))
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = stringResource(R.string.action_remove)
+                                    )
                                 }
                             }
                         }
                     }
-                    TextButton(onClick = { weekTimes = weekTimes + (8 to 0) }) { Text(stringResource(R.string.add_time)) }
+                    TextButton(
+                        onClick = { weekTimes = weekTimes + (8 to 0) }
+                    ) { Text(stringResource(R.string.add_time)) }
                 } else {
                     times.forEachIndexed { i, t ->
                         DoseTimeRow(
@@ -300,10 +339,22 @@ fun ScheduleEditorDialog(
                 }
                 // Repeat the local reminder, and escalate to caregivers — both
                 // timeouts stay below the intake window.
-                Stepper(stringResource(R.string.reminder_repeat_every), alertRefresh, 0, (window - 5).coerceAtLeast(0), step = 5) {
+                Stepper(
+                    stringResource(R.string.reminder_repeat_every),
+                    alertRefresh,
+                    0,
+                    (window - 5).coerceAtLeast(0),
+                    step = 5
+                ) {
                     alertRefresh = it
                 }
-                Stepper(stringResource(R.string.caregiver_alert_after), caregiverAlert, 0, (window - 5).coerceAtLeast(0), step = 5) {
+                Stepper(
+                    stringResource(R.string.caregiver_alert_after),
+                    caregiverAlert,
+                    0,
+                    (window - 5).coerceAtLeast(0),
+                    step = 5
+                ) {
                     caregiverAlert = it
                 }
 
@@ -311,19 +362,34 @@ fun ScheduleEditorDialog(
                     Text(stringResource(R.string.ends), style = MaterialTheme.typography.labelMedium)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         EndMode.entries.forEach { mo ->
-                            FilterChip(selected = endMode == mo, onClick = { endMode = mo }, label = { Text(endModeLabel(mo)) })
+                            FilterChip(
+                                selected = endMode == mo,
+                                onClick = { endMode = mo },
+                                label = { Text(endModeLabel(mo)) }
+                            )
                         }
                     }
                     when (endMode) {
                         // End date can't precede the start date.
-                        EndMode.DATE -> DateField(stringResource(R.string.end_date), endDate, minIso = startDate) { endDate = it }
-                        EndMode.COUNT -> Stepper(stringResource(R.string.number_of_doses), doseCount, 1, 999) { doseCount = it }
+                        EndMode.DATE -> DateField(
+                            stringResource(R.string.end_date),
+                            endDate,
+                            minIso = startDate
+                        ) { endDate = it }
+                        EndMode.COUNT -> Stepper(
+                            stringResource(R.string.number_of_doses),
+                            doseCount,
+                            1,
+                            999
+                        ) { doseCount = it }
                         EndMode.NEVER -> {}
                     }
                 }
                 OutlinedTextField(
-                    value = notes, onValueChange = { notes = it },
-                    label = { Text(stringResource(R.string.notes_optional)) }, modifier = Modifier.fillMaxWidth(),
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text(stringResource(R.string.notes_optional)) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
@@ -352,16 +418,29 @@ private fun scheduleSummary(
     fun mon(m: Int) = Month.of(m.coerceIn(1, 12)).getDisplayName(TextStyle.SHORT, locale)
     fun t(h: Int, m: Int) = fmtTime(h, m, is24, locale)
 
-    val head = if (unit == PeriodUnit.ONCE) periodUnitLabel(unit)
-    else "${stringResource(R.string.repeat_every)} $intervalN ${periodUnitLabel(unit).lowercase(locale)}"
+    val head = if (unit == PeriodUnit.ONCE) {
+        periodUnitLabel(unit)
+    } else {
+        "${stringResource(R.string.repeat_every)} $intervalN ${periodUnitLabel(unit).lowercase(locale)}"
+    }
     val lastDayLabel = stringResource(R.string.last_day_of_month)
 
     val detail = when (unit) {
-        PeriodUnit.ONCE -> times.sortedBy { "%04d%02d%02d%02d%02d".format(it.year, it.month, it.dayOfMonth, it.hour, it.minute) }
+        PeriodUnit.ONCE -> times.sortedBy {
+            "%04d%02d%02d%02d%02d".format(
+                it.year,
+                it.month,
+                it.dayOfMonth,
+                it.hour,
+                it.minute
+            )
+        }
             .joinToString(", ") { "${it.dayOfMonth} ${mon(it.month)} ${it.year} ${t(it.hour, it.minute)}" }
         PeriodUnit.HOURS -> times.map { it.hour to it.minute }.distinct()
             .sortedWith(compareBy({ it.first }, { it.second })).joinToString(", ") { t(it.first, it.second) }
-        PeriodUnit.DAYS -> times.sortedWith(compareBy({ it.hour }, { it.minute })).joinToString(", ") { t(it.hour, it.minute) }
+        PeriodUnit.DAYS -> times.sortedWith(
+            compareBy({ it.hour }, { it.minute })
+        ).joinToString(", ") { t(it.hour, it.minute) }
         PeriodUnit.WEEKS -> {
             val days = weekDays.sorted().joinToString(", ") { dow(it) }
             val ts = times.map { it.hour to it.minute }.distinct().sortedWith(compareBy({ it.first }, { it.second }))
@@ -394,26 +473,53 @@ private fun DoseTimeRow(
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 when (unit) {
                     PeriodUnit.HOURS ->
-                        TimeField(stringResource(R.string.time_of_dose), time.hour, time.minute) { h, m -> onChange(time.copy(hour = h, minute = m)) }
+                        TimeField(
+                            stringResource(R.string.time_of_dose),
+                            time.hour,
+                            time.minute
+                        ) { h, m -> onChange(time.copy(hour = h, minute = m)) }
 
                     PeriodUnit.DAYS ->
-                        TimeField(stringResource(R.string.time_of_dose), time.hour, time.minute) { h, m -> onChange(time.copy(hour = h, minute = m)) }
+                        TimeField(
+                            stringResource(R.string.time_of_dose),
+                            time.hour,
+                            time.minute
+                        ) { h, m -> onChange(time.copy(hour = h, minute = m)) }
 
                     PeriodUnit.WEEKS -> {} // handled by the day-toggle editor
 
                     PeriodUnit.MONTHS -> {
                         val lastDay = time.dayOfMonth >= 31
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = lastDay, onCheckedChange = { onChange(time.copy(dayOfMonth = if (it) 31 else 28)) })
-                            Text(stringResource(R.string.last_day_of_month), style = MaterialTheme.typography.bodyMedium)
+                            Checkbox(
+                                checked = lastDay,
+                                onCheckedChange = { onChange(time.copy(dayOfMonth = if (it) 31 else 28)) }
+                            )
+                            Text(
+                                stringResource(R.string.last_day_of_month),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
                         }
                         if (!lastDay) {
-                            Stepper(stringResource(R.string.label_day_of_month), time.dayOfMonth, 1, 30) { onChange(time.copy(dayOfMonth = it)) }
+                            Stepper(
+                                stringResource(R.string.label_day_of_month),
+                                time.dayOfMonth,
+                                1,
+                                30
+                            ) { onChange(time.copy(dayOfMonth = it)) }
                             if (time.dayOfMonth >= 29) {
-                                Text(stringResource(R.string.clamp_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    stringResource(R.string.clamp_hint),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
-                        TimeField(stringResource(R.string.time_of_dose), time.hour, time.minute) { h, m -> onChange(time.copy(hour = h, minute = m)) }
+                        TimeField(
+                            stringResource(R.string.time_of_dose),
+                            time.hour,
+                            time.minute
+                        ) { h, m -> onChange(time.copy(hour = h, minute = m)) }
                     }
 
                     PeriodUnit.YEARS -> {
@@ -422,8 +528,17 @@ private fun DoseTimeRow(
                             val nm = Month.of(newMonth).length(false)
                             onChange(time.copy(month = newMonth, dayOfMonth = time.dayOfMonth.coerceAtMost(nm)))
                         }
-                        Stepper(stringResource(R.string.label_day_of_month), time.dayOfMonth.coerceAtMost(maxDay), 1, maxDay) { onChange(time.copy(dayOfMonth = it)) }
-                        TimeField(stringResource(R.string.time_of_dose), time.hour, time.minute) { h, m -> onChange(time.copy(hour = h, minute = m)) }
+                        Stepper(
+                            stringResource(R.string.label_day_of_month),
+                            time.dayOfMonth.coerceAtMost(maxDay),
+                            1,
+                            maxDay
+                        ) { onChange(time.copy(dayOfMonth = it)) }
+                        TimeField(
+                            stringResource(R.string.time_of_dose),
+                            time.hour,
+                            time.minute
+                        ) { h, m -> onChange(time.copy(hour = h, minute = m)) }
                     }
 
                     PeriodUnit.ONCE -> {
@@ -433,7 +548,11 @@ private fun DoseTimeRow(
                                 onChange(time.copy(year = it.year, month = it.monthValue, dayOfMonth = it.dayOfMonth))
                             }
                         }
-                        TimeField(stringResource(R.string.time_of_dose), time.hour, time.minute) { h, m -> onChange(time.copy(hour = h, minute = m)) }
+                        TimeField(
+                            stringResource(R.string.time_of_dose),
+                            time.hour,
+                            time.minute
+                        ) { h, m -> onChange(time.copy(hour = h, minute = m)) }
                     }
                 }
             }
@@ -476,14 +595,19 @@ private fun MonthDropdown(month: Int, onChange: (Int) -> Unit) {
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            value = label(month), onValueChange = {}, readOnly = true,
+            value = label(month),
+            onValueChange = {},
+            readOnly = true,
             label = { Text(stringResource(R.string.label_month)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             (1..12).forEach { m ->
-                DropdownMenuItem(text = { Text(label(m)) }, onClick = { onChange(m); expanded = false })
+                DropdownMenuItem(text = { Text(label(m)) }, onClick = {
+                    onChange(m)
+                    expanded = false
+                })
             }
         }
     }

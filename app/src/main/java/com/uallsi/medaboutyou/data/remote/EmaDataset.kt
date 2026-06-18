@@ -56,6 +56,9 @@ class EmaDataset(private val http: Http = Http()) {
             "https://www.ema.europa.eu/en/documents/report/" +
                 "medicines-output-medicines_json-report_en.json"
 
-        private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+        private val json = Json {
+            ignoreUnknownKeys = true;
+            isLenient = true
+        }
     }
 }

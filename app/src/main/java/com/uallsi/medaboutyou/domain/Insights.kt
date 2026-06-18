@@ -118,14 +118,14 @@ object Insights {
                 val key = medKey(occ.medSource, occ.medExtId, occ.medName)
                 val rem = remaining[key]
                 if (rem == null || resolved[key] == true) continue
-                if (occ.status == "taken") continue       // stock already reflects it
-                if (doseIsDue(occ, now)) continue          // a past dose won't consume future stock
+                if (occ.status == "taken") continue // stock already reflects it
+                if (doseIsDue(occ, now)) continue // a past dose won't consume future stock
                 if (rem <= 0) {
                     runout[key] = RunOut(occ.year, occ.month, occ.day, occ.keyIso)
                     resolved[key] = true
                     unresolved--
                 } else {
-                    remaining[key] = rem - 1                // this upcoming dose is covered by stock
+                    remaining[key] = rem - 1 // this upcoming dose is covered by stock
                 }
             }
             offset++
@@ -145,7 +145,13 @@ object Insights {
             val id = meds[key] ?: continue
             out.add(
                 RefillForecast(
-                    id.source, id.ext, id.name, ro.year, ro.month, ro.day, ro.keyIso,
+                    id.source,
+                    id.ext,
+                    id.name,
+                    ro.year,
+                    ro.month,
+                    ro.day,
+                    ro.keyIso,
                     dosesAvailable(id.source, id.ext, id.name),
                 )
             )
@@ -156,7 +162,9 @@ object Insights {
 
     private fun tallyDay(
         repo: ScheduleQuery,
-        year: Int, month: Int, day: Int,
+        year: Int,
+        month: Int,
+        day: Int,
         now: Now,
         onlyKey: String?,
     ): Pair<Int, Int> {
@@ -166,7 +174,9 @@ object Insights {
             if (!doseIsDue(occ, now)) continue
             if (onlyKey != null &&
                 medKey(occ.medSource, occ.medExtId, occ.medName) != onlyKey
-            ) continue
+            ) {
+                continue
+            }
             scheduled++
             if (occ.status == "taken") taken++
         }
@@ -234,7 +244,7 @@ object Insights {
         for (offset in 0 until maxLookback) {
             val (yy, mm, dd) = addDays(now.year, now.month, now.day, -offset)
             val (scheduled, taken) = tallyDay(repo, yy, mm, dd, now, null)
-            if (scheduled == 0) continue          // no doses that day: neutral
+            if (scheduled == 0) continue // no doses that day: neutral
             if (taken == scheduled) streak++ else break
         }
         return streak

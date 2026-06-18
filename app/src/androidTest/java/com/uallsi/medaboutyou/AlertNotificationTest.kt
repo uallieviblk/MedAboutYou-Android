@@ -189,12 +189,38 @@ class AlertNotificationTest {
         // (so it's inside its 30-min window) and huge stock (no refill noise).
         data class Case(val name: String, val unit: PeriodUnit, val times: List<DoseTime>)
         val cases = listOf(
-            Case("OnceT", PeriodUnit.ONCE, listOf(DoseTime(year = now.year, month = now.monthValue, dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),
+            Case(
+                "OnceT",
+                PeriodUnit.ONCE,
+                listOf(
+                    DoseTime(
+                        year = now.year,
+                        month = now.monthValue,
+                        dayOfMonth = now.dayOfMonth,
+                        hour = now.hour,
+                        minute = now.minute
+                    )
+                )
+            ),
             Case("HoursT", PeriodUnit.HOURS, listOf(DoseTime(hour = now.hour, minute = now.minute))),
             Case("DaysT", PeriodUnit.DAYS, listOf(DoseTime(hour = now.hour, minute = now.minute))),
-            Case("WeeksT", PeriodUnit.WEEKS, listOf(DoseTime(weekday = now.dayOfWeek.value, hour = now.hour, minute = now.minute))),
-            Case("MonthsT", PeriodUnit.MONTHS, listOf(DoseTime(dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),
-            Case("YearsT", PeriodUnit.YEARS, listOf(DoseTime(month = now.monthValue, dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))),
+            Case(
+                "WeeksT",
+                PeriodUnit.WEEKS,
+                listOf(DoseTime(weekday = now.dayOfWeek.value, hour = now.hour, minute = now.minute))
+            ),
+            Case(
+                "MonthsT",
+                PeriodUnit.MONTHS,
+                listOf(DoseTime(dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute))
+            ),
+            Case(
+                "YearsT",
+                PeriodUnit.YEARS,
+                listOf(
+                    DoseTime(month = now.monthValue, dayOfMonth = now.dayOfMonth, hour = now.hour, minute = now.minute)
+                )
+            ),
         )
         runBlocking {
             cases.forEach { c ->
@@ -221,5 +247,84 @@ class AlertNotificationTest {
         }
         // Exactly one dose reminder per schedule — no high-frequency flooding.
         assertEquals("one dose reminder per scheduling type", cases.size, titles.count { it.startsWith("Time for") })
+    }
+
+    // ---- Fix-regression tests ----
+
+    /** Helper: create a schedule due right now with stock, post its reminder. */
+    private fun postDueReminder(name: String): Pair<Long, String> {
+        val now = java.time.LocalDateTime.now()
+        val id = runBlocking {
+            val id = app.container.schedules.create(
+                Schedule(
+                    medSource = Source.EMA, medExtId = "", medName = name,
+                    startDate = now.toLocalDate().toString(), endMode = EndMode.NEVER,
+                    periodUnit = PeriodUnit.DAYS, periodN = 1,
+                    times = listOf(DoseTime(hour = now.hour, minute = now.minute)),
+                    windowMinutes = 30,
+                ),
+            )
+            app.container.medicines.setDoses(Source.EMA, "", name, 10)
+            id
+        }
+        runBlocking { AlertEngine.runOnce(app) }
+        assertTrue(
+            "expected a dose reminder for $name; active=${activeTitles()}",
+            waitForTitle { it.contains(name) },
+        )
+        val keyIso = runBlocking {
+            app.container.schedules.snapshot()
+                .occurrencesOn(LocalDate.now().year, LocalDate.now().monthValue, LocalDate.now().dayOfMonth)
+                .first { it.medName == name }.keyIso
+        }
+        return id to keyIso
+    }
+
+    private fun waitForGone(name: String, timeoutMs: Long = 8_000): Boolean {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            if (activeTitles().none { it.contains(name) }) return true
+            Thread.sleep(150)
+        }
+        return false
+    }
+
+    @Test
+    fun skip_action_does_not_change_stock() {
+        val (id, keyIso) = postDueReminder("Skiptest")
+        app.sendBroadcast(
+            Intent(app, DoseActionReceiver::class.java).apply {
+                action = Notifications.ACTION_SKIP
+                putExtra(Notifications.EXTRA_PAYLOAD, "$id\u001F$keyIso")
+            },
+        )
+        // Wait until the receiver has logged the skip…
+        val deadline = System.currentTimeMillis() + 8_000
+        var skipped = false
+        while (System.currentTimeMillis() < deadline && !skipped) {
+            skipped = runBlocking {
+                app.container.schedules.snapshot()
+                    .occurrencesOn(LocalDate.now().year, LocalDate.now().monthValue, LocalDate.now().dayOfMonth)
+                    .first { it.medName == "Skiptest" }.status == "untaken"
+            }
+            if (!skipped) Thread.sleep(150)
+        }
+        assertTrue("skip never logged", skipped)
+        // …then verify stock is untouched: a never-taken dose moves no units.
+        val stock = runBlocking { app.container.medicines.availableDoses(Source.EMA, "", "Skiptest") }
+        assertEquals(10, stock)
+    }
+
+    @Test
+    fun in_app_take_withdraws_the_posted_reminder_on_the_next_pass() {
+        val (id, keyIso) = postDueReminder("Withdrawtest")
+        // Take the dose in-app (repository path, as the Today screen does)…
+        runBlocking { app.container.schedules.logDose(id, keyIso, "taken") }
+        // …and the next engine pass must sweep the now-stale notification.
+        runBlocking { AlertEngine.runOnce(app) }
+        assertTrue(
+            "reminder still posted after in-app take; active=${activeTitles()}",
+            waitForGone("Withdrawtest"),
+        )
     }
 }

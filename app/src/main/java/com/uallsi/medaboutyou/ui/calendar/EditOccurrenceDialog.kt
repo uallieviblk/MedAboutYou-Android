@@ -38,6 +38,8 @@ import com.uallsi.medaboutyou.ui.common.TimeField
  * `ScheduleRepository.editSingle` / `splitFrom` logic.
  *
  * [onSave] receives `(hour, minute, window, cancelled, applyToFollowing)`.
+ * [allowFollowing] hides the scope selector for one-shot (ONCE) schedules,
+ * where "following" doses don't exist and a split would duplicate the series.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -45,6 +47,7 @@ fun EditOccurrenceDialog(
     occurrence: Occurrence,
     onSave: (Int, Int, Int, Boolean, Boolean) -> Unit,
     onDismiss: () -> Unit,
+    allowFollowing: Boolean = true,
 ) {
     var hour by remember { mutableIntStateOf(occurrence.hour) }
     var minute by remember { mutableIntStateOf(occurrence.minute) }
@@ -65,7 +68,10 @@ fun EditOccurrenceDialog(
                 )
 
                 if (!skip) {
-                    TimeField(stringResource(R.string.time_of_dose), hour, minute) { h, m -> hour = h; minute = m }
+                    TimeField(stringResource(R.string.time_of_dose), hour, minute) { h, m ->
+                        hour = h
+                        minute = m
+                    }
                     Stepper(stringResource(R.string.window_label), window, 0, 360, step = 5) { window = it }
                 }
 
@@ -79,18 +85,20 @@ fun EditOccurrenceDialog(
                     Text(stringResource(R.string.skip_this_dose), style = MaterialTheme.typography.bodyMedium)
                 }
 
-                Text(stringResource(R.string.edit_scope), style = MaterialTheme.typography.labelMedium)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilterChip(
-                        selected = !following,
-                        onClick = { following = false },
-                        label = { Text(stringResource(R.string.edit_scope_this)) },
-                    )
-                    FilterChip(
-                        selected = following,
-                        onClick = { following = true },
-                        label = { Text(stringResource(R.string.edit_scope_following)) },
-                    )
+                if (allowFollowing) {
+                    Text(stringResource(R.string.edit_scope), style = MaterialTheme.typography.labelMedium)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(
+                            selected = !following,
+                            onClick = { following = false },
+                            label = { Text(stringResource(R.string.edit_scope_this)) },
+                        )
+                        FilterChip(
+                            selected = following,
+                            onClick = { following = true },
+                            label = { Text(stringResource(R.string.edit_scope_following)) },
+                        )
+                    }
                 }
             }
         },

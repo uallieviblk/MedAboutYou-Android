@@ -36,7 +36,7 @@ enum class EndMode {
  *
  * | Unit   | Fields used                          |
  * |--------|--------------------------------------|
- * | HOURS  | [minute] (minute of each N-hour step)|
+ * | HOURS  | [hour], [minute] (anchor time on the start date) |
  * | DAYS   | [hour], [minute]                     |
  * | WEEKS  | [weekday] (1=Mon..7=Sun), [hour], [minute] |
  * | MONTHS | [dayOfMonth] (1..31, clamped), [hour], [minute] |
@@ -49,11 +49,11 @@ enum class EndMode {
  */
 data class DoseTime(
     val year: Int = LocalDate.now().year,
-    val month: Int = 1,        // 1..12
-    val dayOfMonth: Int = 1,   // 1..31
-    val weekday: Int = 1,      // 1=Mon .. 7=Sun
-    val hour: Int = 8,         // 0..23
-    val minute: Int = 0,       // 0..59
+    val month: Int = 1, // 1..12
+    val dayOfMonth: Int = 1, // 1..31
+    val weekday: Int = 1, // 1=Mon .. 7=Sun
+    val hour: Int = 8, // 0..23
+    val minute: Int = 0, // 0..59
 )
 
 /**
@@ -68,12 +68,12 @@ data class Schedule(
     val medSource: Source = Source.EMA,
     val medExtId: String = "",
     val medName: String = "",
-    val startDate: String = "",               // "YYYY-MM-DD"
+    val startDate: String = "", // "YYYY-MM-DD"
     val endMode: EndMode = EndMode.DATE,
-    val endDate: String = "",                  // "YYYY-MM-DD" (EndMode.DATE)
-    val doseCount: Int = 0,                    // total doses (EndMode.COUNT)
+    val endDate: String = "", // "YYYY-MM-DD" (EndMode.DATE)
+    val doseCount: Int = 0, // total doses (EndMode.COUNT)
     val periodUnit: PeriodUnit = PeriodUnit.DAYS,
-    val periodN: Int = 1,                      // repeat every n units (>= 1)
+    val periodN: Int = 1, // repeat every n units (>= 1)
     val times: List<DoseTime> = listOf(DoseTime(hour = 8, minute = 0)),
     val windowMinutes: Int = 30,
     // Temporarily paused: kept in the list but generates no doses/reminders
@@ -116,10 +116,10 @@ data class Occurrence(
     val hour: Int = 0,
     val minute: Int = 0,
     val windowMinutes: Int = 0,
-    val index: Int = 0,           // 0-based dose number within the schedule
-    val status: String = "",      // "" | "taken" | "untaken"
-    val takenAt: String = "",     // timestamp the dose was marked (logged_at)
-    val keyIso: String = "",      // stable identity (original time) for logs/overrides
+    val index: Int = 0, // 0-based dose number within the schedule
+    val status: String = "", // "" | "taken" | "untaken"
+    val takenAt: String = "", // timestamp the dose was marked (logged_at)
+    val keyIso: String = "", // stable identity (original time) for logs/overrides
 ) {
     /** Canonical "YYYY-MM-DDTHH:MM" key for this occurrence's current time. */
     fun iso(): String = "%04d-%02d-%02dT%02d:%02d".format(year, month, day, hour, minute)
@@ -134,18 +134,22 @@ data class Occurrence(
  *
  * Pure and free of any Android dependency, so it is unit-testable.
  *
- * Semantics by unit (see [DoseTime]): HOURS step every N hours from the start
- * date's midnight at each entry's minute; DAYS/WEEKS/MONTHS/YEARS fire on the
- * exact-interval dates at each entry's time; ONCE fires on each entry's own
- * full date. MONTHS/YEARS day-of-month is clamped to the month's last day.
+ * Semantics by unit (see [DoseTime]): HOURS anchors each entry at the **start
+ * date at the entry's hour:minute** and steps every N hours from there (nothing
+ * fires before its anchor); DAYS/WEEKS/MONTHS/YEARS fire on the exact-interval
+ * dates at each entry's time; ONCE fires on each entry's own full date.
+ * MONTHS/YEARS day-of-month is clamped to the month's last day.
  */
 object ScheduleEngine {
 
     private fun parseDate(text: String): LocalDate? = try {
         // Accept "YYYY-M-D" the way the C++ sscanf("%d-%d-%d") does.
         val parts = text.split("-")
-        if (parts.size != 3) null
-        else LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+        if (parts.size != 3) {
+            null
+        } else {
+            LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+        }
     } catch (_: NumberFormatException) {
         null
     } catch (_: DateTimeParseException) {
@@ -324,24 +328,48 @@ object ScheduleEngine {
         when (schedule.periodUnit) {
             PeriodUnit.ONCE -> {
                 schedule.times
-                    .map { LocalDate.of(it.year, it.month.coerceIn(1, 12), clampDay(it.year, it.month.coerceIn(1, 12), it.dayOfMonth))
-                        .atTime(LocalTime.of(it.hour.coerceIn(0, 23), it.minute.coerceIn(0, 59))) }
+                    .map {
+                        LocalDate.of(
+                            it.year,
+                            it.month.coerceIn(1, 12),
+                            clampDay(it.year, it.month.coerceIn(1, 12), it.dayOfMonth)
+                        )
+                            .atTime(LocalTime.of(it.hour.coerceIn(0, 23), it.minute.coerceIn(0, 59)))
+                    }
                     .sorted()
+                    .distinct() // duplicate entries are one dose, and consume one count
                     .take(limit)
                     .forEach { out.add(it) }
             }
 
             PeriodUnit.HOURS -> {
-                // Each entry anchors at the start date's time-of-day; step every n hours.
-                val anchors = schedule.times.map {
-                    start.atTime(LocalTime.of(it.hour.coerceIn(0, 23), it.minute.coerceIn(0, 59)))
+                // Each entry anchors at the start date's time-of-day; step every
+                // n hours. The per-anchor series are merged smallest-first (a
+                // k-way merge): with anchors further apart than the period, a
+                // plain "one of each per round, then sort" would let a late
+                // anchor's early doses displace the true chronological first
+                // [limit] doses.
+                val anchors = schedule.times
+                    .map { start.atTime(LocalTime.of(it.hour.coerceIn(0, 23), it.minute.coerceIn(0, 59))) }
+                    .distinct()
+                val ks = LongArray(anchors.size)
+                val guard = limit.toLong() * anchors.size + 1
+                var produced = 0L
+                while (out.size < limit && produced < guard) {
+                    var best = 0
+                    var bestDt = anchors[0].plusHours(ks[0] * n)
+                    for (i in 1 until anchors.size) {
+                        val dt = anchors[i].plusHours(ks[i] * n)
+                        if (dt.isBefore(bestDt)) {
+                            best = i;
+                            bestDt = dt
+                        }
+                    }
+                    // The merge emits in order, so cross-anchor duplicates are adjacent.
+                    if (out.isEmpty() || bestDt != out.last()) out.add(bestDt)
+                    ks[best]++
+                    produced++
                 }
-                var k = 0L
-                while (out.size < limit && k < maxPeriods.toLong() * 24) {
-                    anchors.forEach { out.add(it.plusHours(k * n)) }
-                    k++
-                }
-                out.sort()
             }
 
             PeriodUnit.DAYS -> {
@@ -351,6 +379,7 @@ object ScheduleEngine {
                     schedule.times
                         .map { date.atTime(LocalTime.of(it.hour.coerceIn(0, 23), it.minute.coerceIn(0, 59))) }
                         .sorted()
+                        .distinct() // duplicate entries are one dose, and consume one count
                         .forEach { if (out.size < limit) out.add(it) }
                     k++
                 }
@@ -365,7 +394,8 @@ object ScheduleEngine {
                         val date = start.plusDays(7L * n * k + offset)
                         period.add(date.atTime(LocalTime.of(t.hour.coerceIn(0, 23), t.minute.coerceIn(0, 59))))
                     }
-                    period.sorted().forEach { if (out.size < limit) out.add(it) }
+                    // distinct(): duplicate entries are one dose, and consume one count
+                    period.sorted().distinct().forEach { if (out.size < limit) out.add(it) }
                     k++
                 }
             }
@@ -382,7 +412,8 @@ object ScheduleEngine {
                             period.add(date.atTime(LocalTime.of(t.hour.coerceIn(0, 23), t.minute.coerceIn(0, 59))))
                         }
                     }
-                    period.sorted().forEach { if (out.size < limit) out.add(it) }
+                    // distinct(): duplicate entries are one dose, and consume one count
+                    period.sorted().distinct().forEach { if (out.size < limit) out.add(it) }
                     k++
                 }
             }
@@ -400,7 +431,8 @@ object ScheduleEngine {
                             period.add(date.atTime(LocalTime.of(t.hour.coerceIn(0, 23), t.minute.coerceIn(0, 59))))
                         }
                     }
-                    period.sorted().forEach { if (out.size < limit) out.add(it) }
+                    // distinct(): duplicate entries are one dose, and consume one count
+                    period.sorted().distinct().forEach { if (out.size < limit) out.add(it) }
                     k++
                 }
             }
@@ -428,6 +460,29 @@ object ScheduleEngine {
         return generateOrdered(schedule, start, 1).firstOrNull()
     }
 
+    /**
+     * Number of doses of a COUNT-ended [schedule] that fall strictly before
+     * [date] (capped at [Schedule.doseCount]). Used by edit-from-now to freeze
+     * the original schedule at exactly the doses that already happened.
+     */
+    fun countOccurrencesBefore(schedule: Schedule, date: LocalDate): Int {
+        if (schedule.times.isEmpty()) return 0
+        val start = parseDate(schedule.startDate) ?: return 0
+        val limit = schedule.doseCount.coerceAtLeast(0)
+        return generateOrdered(schedule, start, limit).count { it.toLocalDate().isBefore(date) }
+    }
+
+    /**
+     * The date-time of the last dose a COUNT-ended schedule will ever generate,
+     * or null when it isn't COUNT-ended or generates nothing. Lets the Schedules
+     * list hide finished courses.
+     */
+    fun lastCountOccurrence(schedule: Schedule): LocalDateTime? {
+        if (schedule.endMode != EndMode.COUNT || schedule.times.isEmpty()) return null
+        val start = parseDate(schedule.startDate) ?: return null
+        return generateOrdered(schedule, start, schedule.doseCount.coerceAtLeast(0)).lastOrNull()
+    }
+
     /** True if the given local date/time is at or before now. */
     fun isPastDateTime(year: Int, month: Int, day: Int, hour: Int, minute: Int): Boolean {
         val whenTime = LocalDateTime.of(year, month, day, hour, minute)
@@ -441,7 +496,27 @@ object ScheduleEngine {
      * opening of its window, not only once the exact scheduled minute is reached.
      */
     fun isWithinTakeWindow(year: Int, month: Int, day: Int, hour: Int, minute: Int, windowMinutes: Int): Boolean {
-        val opensAt = LocalDateTime.of(year, month, day, hour, minute).minusMinutes(windowMinutes.coerceAtLeast(0).toLong())
+        val opensAt = LocalDateTime.of(
+            year,
+            month,
+            day,
+            hour,
+            minute
+        ).minusMinutes(windowMinutes.coerceAtLeast(0).toLong())
         return !opensAt.isAfter(LocalDateTime.now())
+    }
+
+    /**
+     * True if **now** falls inside a dose's intake window — i.e. within
+     * `[scheduled − windowMinutes, scheduled + windowMinutes]`. Marking a dose
+     * taken while this is false means it's being taken outside its scheduled
+     * window (in practice late, since the checkbox is locked before the window
+     * opens), which the take-confirmation surfaces as a warning.
+     */
+    fun isWithinScheduledWindow(year: Int, month: Int, day: Int, hour: Int, minute: Int, windowMinutes: Int): Boolean {
+        val scheduled = LocalDateTime.of(year, month, day, hour, minute)
+        val w = windowMinutes.coerceAtLeast(0).toLong()
+        val now = LocalDateTime.now()
+        return !now.isBefore(scheduled.minusMinutes(w)) && !now.isAfter(scheduled.plusMinutes(w))
     }
 }

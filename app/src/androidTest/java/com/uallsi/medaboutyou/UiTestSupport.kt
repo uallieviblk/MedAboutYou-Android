@@ -37,7 +37,8 @@ fun grantNotificationPermission() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val inst = InstrumentationRegistry.getInstrumentation()
         inst.uiAutomation.grantRuntimePermission(
-            inst.targetContext.packageName, Manifest.permission.POST_NOTIFICATIONS,
+            inst.targetContext.packageName,
+            Manifest.permission.POST_NOTIFICATIONS,
         )
     }
 }

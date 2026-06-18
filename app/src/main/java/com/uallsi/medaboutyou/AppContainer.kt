@@ -2,6 +2,7 @@
 package com.uallsi.medaboutyou
 
 import android.content.Context
+import com.uallsi.medaboutyou.data.local.ActionLog
 import com.uallsi.medaboutyou.data.local.BackupManager
 import com.uallsi.medaboutyou.data.local.MedDatabase
 import com.uallsi.medaboutyou.data.local.MedicineStore
@@ -24,6 +25,7 @@ class AppContainer(context: Context) {
     val medicines: MedicineStore by lazy { MedicineStore(db) }
     val schedules: ScheduleRepository by lazy { ScheduleRepository(db) }
     val shopping: ShoppingStore by lazy { ShoppingStore(db) }
+    val actionLog: ActionLog by lazy { ActionLog(db, settings) }
     val backup: BackupManager by lazy { BackupManager(db, settings) }
     val settings: Settings by lazy { Settings(appContext) }
     val ema: EmaDataset by lazy { EmaDataset() }

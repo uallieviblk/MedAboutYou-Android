@@ -5,15 +5,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.uallsi.medaboutyou.AppContainer
-import com.uallsi.medaboutyou.model.Source
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
  * Handles the "Mark taken" / "Skip" notification buttons — the Android port of
- * `ReminderScheduler::log_from_action`. Logs the dose, adjusts stock (taken =
- * −1), and withdraws the notification.
+ * `ReminderScheduler::log_from_action`. Logs the dose, applies the stock delta
+ * of the status *transition* (−1 only when the dose becomes taken; skipping a
+ * never-taken dose moves no stock), and withdraws the notification.
  */
 class DoseActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -48,11 +48,13 @@ class DoseActionReceiver : BroadcastReceiver() {
             try {
                 val container = AppContainer(appContext)
                 val schedule = container.schedules.get(scheduleId)
-                container.schedules.logDose(scheduleId, keyIso, status)
-                if (schedule != null) {
-                    val delta = if (status == "taken") -1 else 1
+                val delta = container.schedules.logDose(scheduleId, keyIso, status)
+                if (schedule != null && delta != 0) {
                     container.medicines.adjustDoses(
-                        schedule.medSource, schedule.medExtId, schedule.medName, delta,
+                        schedule.medSource,
+                        schedule.medExtId,
+                        schedule.medName,
+                        delta,
                     )
                 }
                 Notifications.withdraw(appContext, scheduleId, keyIso)
