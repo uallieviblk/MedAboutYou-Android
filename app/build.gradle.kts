@@ -17,8 +17,8 @@ android {
         applicationId = "com.uallsi.medaboutyou"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.4.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -51,6 +51,15 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            manifestPlaceholders["appLabel"] = "@string/app_name"
+        }
+        debug {
+            // Distinct applicationId + launcher label so a debug build installs
+            // ALONGSIDE a release build on the same device — no signature clash and
+            // no data loss (each app keeps its own Room DB / DataStore).
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            manifestPlaceholders["appLabel"] = "MedAboutYou·debug"
         }
     }
     compileOptions {

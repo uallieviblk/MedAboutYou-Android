@@ -208,6 +208,11 @@
     <string name="mqtt_client_key">Chiave client</string>
     <string name="mqtt_import">Importa…</string>
     <string name="mqtt_cert_set">Impostato</string>
+    <string name="mqtt_test">Prova connessione</string>
+    <string name="mqtt_testing">Connessione in corso…</string>
+    <string name="mqtt_test_ok">Connesso al broker</string>
+    <string name="mqtt_test_fail">Non riuscita: %1$s</string>
+    <string name="mqtt_test_no_host">Inserisci prima l\'indirizzo del broker</string>
     <string name="caregiver_name">Nome del caregiver</string>    <string name="caregiver_add">Aggiungi caregiver</string>    <string name="caregiver_alert_after">Avvisa il caregiver dopo (min, 0 = off)</string>
     <string name="reminder_repeat_every">Ricordami ogni (min, 0 = una volta)</string>
     <string name="sms_caregiver_text">MedAboutYou: la dose di %1$s prevista alle %2$s non è stata assunta.</string>

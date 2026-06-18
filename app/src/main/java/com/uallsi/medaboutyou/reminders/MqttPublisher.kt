@@ -11,6 +11,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.encodeToByteArray
 import org.eclipse.paho.mqttv5.client.MqttClient
 import org.eclipse.paho.mqttv5.client.MqttConnectionOptions
+import org.eclipse.paho.mqttv5.client.persist.MemoryPersistence
 import org.eclipse.paho.mqttv5.client.persist.MqttDefaultFilePersistence
 import org.eclipse.paho.mqttv5.common.MqttMessage
 import java.io.File
@@ -28,6 +29,45 @@ object MqttPublisher {
     private const val NEVER_EXPIRE = 4_294_967_295L
     private const val KEEP_ALIVE_SEC = 30
     private const val CONNECT_TIMEOUT_SEC = 15
+    private const val TEST_TIMEOUT_SEC = 10
+
+    /**
+     * One-shot connectivity probe for the Settings "Test connection" action. Opens
+     * an **isolated** session — a unique client id, `cleanStart`, no session expiry,
+     * in-memory persistence and fail-fast (no auto-reconnect) — so it never disturbs
+     * the durable delivery session or its file-persisted in-flight QoS state, then
+     * disconnects. [Result.success] means the broker accepted the connection: the
+     * host/port is reachable and the TLS handshake + auth (if any) succeeded.
+     */
+    suspend fun testConnection(config: MqttConfig, clientId: String): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val scheme = if (config.tls) "ssl" else "tcp"
+                val serverUri = "$scheme://${config.host}:${config.port}"
+                val client = MqttClient(serverUri, "$clientId-probe", MemoryPersistence())
+                try {
+                    val options = MqttConnectionOptions().apply {
+                        isCleanStart = true
+                        sessionExpiryInterval = 0
+                        isAutomaticReconnect = false
+                        keepAliveInterval = KEEP_ALIVE_SEC
+                        connectionTimeout = TEST_TIMEOUT_SEC
+                        if (config.username.isNotBlank()) {
+                            userName = config.username
+                            password = config.password.toByteArray()
+                        }
+                        if (config.tls) {
+                            socketFactory =
+                                MqttTls.socketFactory(config.caCertPem, config.clientCertPem, config.clientKeyPem)
+                        }
+                    }
+                    client.connect(options)
+                } finally {
+                    runCatching { if (client.isConnected) client.disconnect() }
+                    runCatching { client.close() }
+                }
+            }
+        }
 
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun publish(

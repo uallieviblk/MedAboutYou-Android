@@ -23,11 +23,8 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,7 +70,6 @@ private val SUB_PAGES = setOf("search", "insights", "settings", "activitylog")
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3AdaptiveNavigationSuiteApi::class,
-    ExperimentalMaterial3AdaptiveApi::class,
 )
 @Composable
 fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
@@ -96,12 +92,11 @@ fun AppRoot(modifier: Modifier = Modifier, startTab: String = Tab.TODAY.route) {
         }
     )
 
-    val layoutType =
-        if (immersive) {
-            NavigationSuiteType.None
-        } else {
-            NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
-        }
+    // Always use the bottom navigation bar — even on tablets/foldables — per the
+    // user's preference. The adaptive default put a navigation *rail* on the left
+    // of wide screens (e.g. the Galaxy Tab A7 Lite at sw600dp); the bottom bar is
+    // wanted on every form factor instead.
+    val layoutType = if (immersive) NavigationSuiteType.None else NavigationSuiteType.NavigationBar
 
     val tabLabels = Tab.entries.associateWith { stringResource(it.labelRes) }
 

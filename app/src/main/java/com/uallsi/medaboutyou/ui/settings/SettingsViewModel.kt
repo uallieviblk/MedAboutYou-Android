@@ -14,10 +14,13 @@ import com.uallsi.medaboutyou.data.local.DEFAULT_ACTION_LOG_LIMIT
 import com.uallsi.medaboutyou.data.local.MqttConfig
 import com.uallsi.medaboutyou.reminders.DoseAlarms
 import com.uallsi.medaboutyou.reminders.MqttOutboxWorker
+import com.uallsi.medaboutyou.reminders.MqttPublisher
 import com.uallsi.medaboutyou.reminders.Reminders
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,6 +34,11 @@ data class SettingsState(
     val mqtt: MqttConfig = MqttConfig(),
     val actionLogLimit: Int = DEFAULT_ACTION_LOG_LIMIT,
 )
+
+/** Ephemeral result of the Settings "Test connection" probe (not persisted). */
+enum class MqttTestStatus { Idle, Testing, Success, Failure }
+
+data class MqttTestState(val status: MqttTestStatus = MqttTestStatus.Idle, val message: String = "")
 
 /** Preferences screen state — Android port of `AppSettings` + the Preferences dialog. */
 class SettingsViewModel(
@@ -50,6 +58,11 @@ class SettingsViewModel(
         }.combine(container.settings.actionLogLimitFlow) { s, limit ->
             s.copy(actionLogLimit = limit)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsState())
+
+    private val _mqttTest = MutableStateFlow(MqttTestState())
+
+    /** Result of the most recent broker "Test connection" probe. */
+    val mqttTest: StateFlow<MqttTestState> = _mqttTest.asStateFlow()
 
     fun setRemindersEnabled(enabled: Boolean) {
         viewModelScope.launch {
@@ -95,12 +108,40 @@ class SettingsViewModel(
     }
 
     fun setMqttConfig(config: MqttConfig) {
+        // Editing the broker config invalidates any earlier test result.
+        _mqttTest.value = MqttTestState()
         viewModelScope.launch {
             container.settings.setMqttConfig(config)
             // Flush any queued alerts promptly with the new broker settings.
             MqttOutboxWorker.kick(app)
         }
     }
+
+    /**
+     * Probe the broker described by [config] (the values currently typed, which need
+     * not be saved yet) and surface the outcome in [mqttTest]. Runs an isolated
+     * connection that never disturbs the durable delivery session.
+     */
+    fun testMqttConnection(config: MqttConfig) {
+        if (config.host.isBlank()) {
+            _mqttTest.value = MqttTestState(MqttTestStatus.Failure, app.getString(R.string.mqtt_test_no_host))
+            return
+        }
+        _mqttTest.value = MqttTestState(MqttTestStatus.Testing)
+        viewModelScope.launch {
+            val result = MqttPublisher.testConnection(config, container.settings.mqttClientId())
+            _mqttTest.value = result.fold(
+                onSuccess = { MqttTestState(MqttTestStatus.Success, app.getString(R.string.mqtt_test_ok)) },
+                onFailure = { e ->
+                    MqttTestState(MqttTestStatus.Failure, app.getString(R.string.mqtt_test_fail, mqttErrorReason(e)))
+                },
+            )
+        }
+    }
+
+    /** Boil a Paho exception chain down to a short, human-readable reason. */
+    private fun mqttErrorReason(e: Throwable): String =
+        (e.cause?.message ?: e.message ?: e.javaClass.simpleName).take(160)
 
     fun setActionLogLimit(limit: Int) {
         viewModelScope.launch { container.settings.setActionLogLimit(limit) }

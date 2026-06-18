@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -55,6 +57,7 @@ import com.uallsi.medaboutyou.ui.common.Stepper
 fun SettingsScreen(modifier: Modifier = Modifier) {
     val vm: SettingsViewModel = viewModel(factory = AppViewModelFactory)
     val state by vm.state.collectAsStateWithLifecycle()
+    val mqttTest by vm.mqttTest.collectAsStateWithLifecycle()
 
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         ListItem(
@@ -80,7 +83,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             onChange = vm::setCaregivers,
         )
         HorizontalDivider()
-        MqttSection(config = state.mqtt, onChange = vm::setMqttConfig)
+        MqttSection(
+            config = state.mqtt,
+            testState = mqttTest,
+            onChange = vm::setMqttConfig,
+            onTest = vm::testMqttConnection,
+        )
         HorizontalDivider()
         Stepper(
             label = stringResource(R.string.activity_log_limit),
@@ -177,7 +185,12 @@ private fun CaregiverSection(
 
 /** Persistent MQTT broker configuration for caregiver alerts (+ optional auth/TLS). */
 @Composable
-private fun MqttSection(config: MqttConfig, onChange: (MqttConfig) -> Unit) {
+private fun MqttSection(
+    config: MqttConfig,
+    testState: MqttTestState,
+    onChange: (MqttConfig) -> Unit,
+    onTest: (MqttConfig) -> Unit,
+) {
     val context = LocalContext.current
     var cfg by remember { mutableStateOf(config) }
     var portText by remember { mutableStateOf(config.port.toString()) }
@@ -276,6 +289,33 @@ private fun MqttSection(config: MqttConfig, onChange: (MqttConfig) -> Unit) {
                 onImport = { importKey.launch("*/*") },
                 onClear = { push(cfg.copy(clientKeyPem = "")) },
             )
+        }
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = { onTest(cfg) },
+                enabled = cfg.host.isNotBlank() && testState.status != MqttTestStatus.Testing,
+            ) { Text(stringResource(R.string.mqtt_test)) }
+            when (testState.status) {
+                MqttTestStatus.Testing -> {
+                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Text(stringResource(R.string.mqtt_testing), style = MaterialTheme.typography.bodyMedium)
+                }
+                MqttTestStatus.Success -> Text(
+                    testState.message,
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                MqttTestStatus.Failure -> Text(
+                    testState.message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                MqttTestStatus.Idle -> Unit
+            }
         }
     }
 }
