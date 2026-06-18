@@ -11,22 +11,27 @@ notifications, adherence analytics and refill/stock forecasting.
 
 | Field | Value |
 |-------|-------|
-| Version | 0.3.0 |
+| Version | 0.4.0 |
 | App ID | `com.uallsi.medaboutyou` |
-| Platform | Android 8.0+ (minSdk 26), target/compile SDK 35 |
-| Stack | Kotlin 2.1, Compose (Material 3), Room, WorkManager, OkHttp, kotlinx.serialization, Coroutines, Coil |
+| Platform | Android 8.0+ (minSdk 26), compileSdk 36, targetSdk 35 |
+| Stack | Kotlin 2.1, Compose (Material 3), Room, WorkManager, OkHttp, kotlinx.serialization (JSON + CBOR), Paho MQTT v5, Coroutines, Coil |
 
 > **Privacy first.** Your schedules, dose log and stock live in a local SQLite
 > (Room) database and **never leave the device**. The only network use is the EMA
 > dataset download, AIFA live search and a best-effort Wikipedia image lookup. The
-> one optional off-device action is an SMS to caregivers you add yourself — off by
-> default.
+> one optional off-device action is a caregiver alert published to **your own MQTT
+> broker** (you configure it; off by default).
 
 <p align="center">
   <img src="docs/images/today.png" width="22%" alt="Today"/>
   <img src="docs/images/calendar.png" width="22%" alt="Calendar"/>
-  <img src="docs/images/edit-dose.png" width="22%" alt="Edit a single dose"/>
   <img src="docs/images/schedules.png" width="22%" alt="Schedules"/>
+  <img src="docs/images/activity-log.png" width="22%" alt="Activity log"/>
+</p>
+<p align="center">
+  <img src="docs/images/confirm-take.png" width="22%" alt="Confirm a dose (with an out-of-window warning)"/>
+  <img src="docs/images/untake-warning.png" width="22%" alt="Un-mark a dose warning"/>
+  <img src="docs/images/settings-mqtt.png" width="22%" alt="Caregiver MQTT broker settings"/>
 </p>
 
 ## Features
@@ -45,8 +50,14 @@ notifications, adherence analytics and refill/stock forecasting.
   today on, or cancel it (history is kept, never deleted); per-schedule notes.
 - 📈 **Insights** — 7/30/90-day adherence, current streak, a 30-day heatmap,
   per-medicine bars and upcoming refills.
-- ⏰ **Reminders** — exact-alarm notifications with Take/Skip actions, plus an
-  optional **caregiver SMS** escalation for overdue doses.
+- ⏰ **Reminders** — exact-alarm notifications with Take/Skip actions, plus
+  optional **caregiver alerts over MQTT** for overdue doses: CBOR messages
+  published to **your own broker** (host/port, optional auth and TLS) with
+  guaranteed delivery.
+- ✅ **Safe dose logging** — marking a dose taken asks for confirmation (and warns
+  if it's outside the scheduled window); un-marking a taken dose warns first.
+- 🧾 **Activity log** — an on-device record of every action (timestamp, category,
+  id and clear text), with a configurable size limit.
 - 📦 **Stock & refills** — top up by real marketed pack sizes; the app forecasts
   when each medicine runs out.
 - 🌍 **5 languages** (en/it/fr/es/de), Material You dynamic colour, an adaptive
@@ -55,8 +66,8 @@ notifications, adherence analytics and refill/stock forecasting.
 ## Navigation at a glance
 
 Three bottom tabs — **Today · Calendar · Schedules** — with **Search** reached
-from the Schedules "Add medicine" button, and **Insights** / **Settings** in the
-top-bar overflow (⋮).
+from the Schedules "Add medicine" button, and **Insights** / **Activity log** /
+**Settings** in the top-bar overflow (⋮).
 
 ## Build & run
 

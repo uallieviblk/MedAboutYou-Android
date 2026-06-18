@@ -23,7 +23,7 @@
 
 <section class="hero" id="top">
   <div class="hero-text">
-    <span class="tag">Android 8.0+ · v<span data-version>0.3.0</span> · Free &amp; local</span>
+    <span class="tag">Android 8.0+ · v<span data-version>0.4.0</span> · Free &amp; local</span>
     <h1>Know your medicines.<br>Run your therapy.<br><span class="accent">Keep your data.</span></h1>
     <p>Search the European (EMA) and Italian (AIFA) medicine databases and manage your
        full medication schedule — reminders, a dose log, adherence stats and refill
@@ -43,7 +43,7 @@
 <section class="privacy">
   <p>🔒 <strong>Privacy first.</strong> Your schedules, dose log and stock never leave the device.
   No account, no analytics, no cloud sync. The only network use is looking up medicine
-  information; the only optional off-device action is a caregiver SMS you set up yourself.</p>
+  information; the only optional off-device action is a caregiver alert published to your own MQTT broker.</p>
 </section>
 
 <section id="features" class="features">
@@ -55,7 +55,9 @@
     <div class="card"><div class="ic">📅</div><h3>Calendar &amp; single-dose edits</h3><p>Colour-coded month grid; retime or skip one dose, or change this and all following.</p></div>
     <div class="card"><div class="ic">💊</div><h3>Manage therapies</h3><p>Pause/resume (timed or indefinite), edit from today, cancel without losing history; per-schedule notes.</p></div>
     <div class="card"><div class="ic">📈</div><h3>Insights</h3><p>7/30/90-day adherence, streaks, a 30-day heatmap, per-medicine bars and upcoming refills.</p></div>
-    <div class="card"><div class="ic">⏰</div><h3>Reminders</h3><p>Exact-alarm notifications with Take/Skip, plus optional caregiver SMS for overdue doses.</p></div>
+    <div class="card"><div class="ic">⏰</div><h3>Reminders</h3><p>Exact-alarm notifications with Take/Skip, plus optional caregiver alerts over MQTT (CBOR, your own broker) for overdue doses.</p></div>
+    <div class="card"><div class="ic">✅</div><h3>Safe dose logging</h3><p>Confirm before marking a dose taken (with an out-of-window warning); a warning guards un-marking.</p></div>
+    <div class="card"><div class="ic">🧾</div><h3>Activity log</h3><p>An on-device log of every action — timestamp, category, id and clear text — with a configurable size.</p></div>
     <div class="card"><div class="ic">📦</div><h3>Stock &amp; refills</h3><p>Top up by real pack sizes; the app forecasts when each medicine runs out.</p></div>
   </div>
 </section>
@@ -65,8 +67,11 @@
   <div class="gallery">
     <figure><img src="images/today.png" alt="Today"><figcaption>Today</figcaption></figure>
     <figure><img src="images/calendar.png" alt="Calendar"><figcaption>Calendar</figcaption></figure>
-    <figure><img src="images/edit-dose.png" alt="Edit a single dose"><figcaption>Edit a single dose</figcaption></figure>
     <figure><img src="images/schedules.png" alt="Schedules"><figcaption>Schedules</figcaption></figure>
+    <figure><img src="images/activity-log.png" alt="Activity log"><figcaption>Activity log</figcaption></figure>
+    <figure><img src="images/confirm-take.png" alt="Confirm a dose"><figcaption>Confirm a dose (out-of-window warning)</figcaption></figure>
+    <figure><img src="images/untake-warning.png" alt="Un-mark warning"><figcaption>Un-mark warning</figcaption></figure>
+    <figure><img src="images/settings-mqtt.png" alt="Caregiver MQTT broker"><figcaption>Caregiver MQTT broker</figcaption></figure>
   </div>
 </section>
 
@@ -81,7 +86,7 @@
 
 <section id="download" class="download">
   <h2>Get MedAboutYou</h2>
-  <a class="btn btn-lg" href="downloads/MedAboutYou-latest.apk" download>⬇ Download latest APK (v<span data-version>0.3.0</span>)</a>
+  <a class="btn btn-lg" href="downloads/MedAboutYou-latest.apk" download>⬇ Download latest APK (v<span data-version>0.4.0</span>)</a>
   <p class="fineprint">Or build from source:
     <code>./gradlew :app:assembleDebug</code></p>
   <p class="fineprint">App ID <code>com.uallsi.medaboutyou</code> · min Android 8.0 · target SDK 35</p>
@@ -100,7 +105,7 @@
 <footer class="foot">
   <p><strong>MedAboutYou</strong> — an information &amp; adherence aid, <em>not medical advice</em>.
      Always follow your prescriber and the official product information.</p>
-  <p><a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0-or-later</a> © 2026 Umberto Allievi · v<span data-version>0.3.0</span></p>
+  <p><a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0-or-later</a> © 2026 Umberto Allievi · v<span data-version>0.4.0</span></p>
 </footer>
 
 <script>
