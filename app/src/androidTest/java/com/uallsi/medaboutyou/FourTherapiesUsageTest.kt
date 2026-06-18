@@ -118,9 +118,12 @@ class FourTherapiesUsageTest {
         // ---------------------------------------------------------------------
         val metId = schedules.create(
             Schedule(
-                medSource = Source.EMA, medName = "Metformin",
-                startDate = "2026-05-10", endMode = EndMode.NEVER,
-                periodUnit = PeriodUnit.DAYS, periodN = 1,
+                medSource = Source.EMA,
+                medName = "Metformin",
+                startDate = "2026-05-10",
+                endMode = EndMode.NEVER,
+                periodUnit = PeriodUnit.DAYS,
+                periodN = 1,
                 times = listOf(DoseTime(hour = 8, minute = 0), DoseTime(hour = 20, minute = 0)),
                 windowMinutes = 30,
             ),
@@ -140,9 +143,12 @@ class FourTherapiesUsageTest {
 
         val mtxId = schedules.create(
             Schedule(
-                medSource = Source.EMA, medName = "Methotrexate",
-                startDate = "2026-05-11", endMode = EndMode.NEVER, // a Monday
-                periodUnit = PeriodUnit.WEEKS, periodN = 1,
+                medSource = Source.EMA,
+                medName = "Methotrexate",
+                startDate = "2026-05-11",
+                endMode = EndMode.NEVER, // a Monday
+                periodUnit = PeriodUnit.WEEKS,
+                periodN = 1,
                 times = listOf(DoseTime(weekday = 1, hour = 18, minute = 0)), // Mon 18:00
                 windowMinutes = 120,
             ),
@@ -194,9 +200,9 @@ class FourTherapiesUsageTest {
         // ---------------------------------------------------------------------
         // 4. Stock: starting amount minus net doses taken, clamped at ≥ 0.
         // ---------------------------------------------------------------------
-        assertEquals(40, medicines.availableDoses(Source.EMA, "", "Metformin"))      // 100 − 62 + 2
-        assertEquals(0, medicines.availableDoses(Source.EMA, "", "Amoxicillin"))     // 21 − 21 (course done)
-        assertEquals(7, medicines.availableDoses(Source.EMA, "", "Methotrexate"))    // 12 − 5
+        assertEquals(40, medicines.availableDoses(Source.EMA, "", "Metformin")) // 100 − 62 + 2
+        assertEquals(0, medicines.availableDoses(Source.EMA, "", "Amoxicillin")) // 21 − 21 (course done)
+        assertEquals(7, medicines.availableDoses(Source.EMA, "", "Methotrexate")) // 12 − 5
         assertEquals(7, medicines.availableDoses(Source.EMA, "", "Cholecalciferol")) // 9 − 2
 
         // ---------------------------------------------------------------------
@@ -261,9 +267,12 @@ class FourTherapiesUsageTest {
         val start = today.minusDays(10)
         val id = schedules.create(
             Schedule(
-                medSource = Source.EMA, medName = "Lisinopril",
-                startDate = start.toString(), endMode = EndMode.NEVER,
-                periodUnit = PeriodUnit.DAYS, periodN = 1,
+                medSource = Source.EMA,
+                medName = "Lisinopril",
+                startDate = start.toString(),
+                endMode = EndMode.NEVER,
+                periodUnit = PeriodUnit.DAYS,
+                periodN = 1,
                 times = listOf(DoseTime(hour = 8, minute = 0)),
                 windowMinutes = 30,
             ),
@@ -317,9 +326,12 @@ class FourTherapiesUsageTest {
         val today = LocalDate.now()
         val id = schedules.create(
             Schedule(
-                medSource = Source.EMA, medName = "Warfarin",
-                startDate = today.minusDays(5).toString(), endMode = EndMode.NEVER,
-                periodUnit = PeriodUnit.DAYS, periodN = 1,
+                medSource = Source.EMA,
+                medName = "Warfarin",
+                startDate = today.minusDays(5).toString(),
+                endMode = EndMode.NEVER,
+                periodUnit = PeriodUnit.DAYS,
+                periodN = 1,
                 times = listOf(DoseTime(hour = 18, minute = 0)),
                 windowMinutes = 30,
             ),
@@ -346,6 +358,6 @@ class FourTherapiesUsageTest {
         val until = today.plusDays(4)
         schedules.setPause(id, suspended = false, until = until.toString())
         assertEquals(0, occCount(tomorrow)) // before `until`
-        assertEquals(1, occCount(until))    // on `until`, doses are back
+        assertEquals(1, occCount(until)) // on `until`, doses are back
     }
 }

@@ -192,17 +192,26 @@
     <string name="mark_taken">Marquer comme prise</string>
     <string name="skip">Ignorer</string>
     <string name="caregiver_section">Alertes à l\'aidant</string>
-    <string name="caregiver_desc">Si une prise est en retard, envoie un SMS à ces aidants (utilise les SMS du téléphone).</string>
-    <string name="caregiver_name">Nom de l\'aidant</string>
-    <string name="caregiver_phone">Téléphone de l\'aidant</string>
-    <string name="caregiver_add">Ajouter un aidant</string>
-    <string name="caregiver_grant_sms">Autoriser l\'envoi de SMS</string>
-    <string name="caregiver_alert_after">Alerter l\'aidant après (min, 0 = off)</string>
+    <string name="caregiver_desc">Si une prise est en retard, alerter ces aidants via votre broker MQTT, chacun sur son propre topic.</string>
+    <string name="caregiver_username">Nom d\'utilisateur de l\'aidant (topic)</string>
+    <string name="mqtt_section">Broker d\'alerte (MQTT)</string>
+    <string name="mqtt_desc">Les alertes aux aidants sont publiées sur ce broker MQTT sous forme de messages CBOR, avec livraison garantie.</string>
+    <string name="mqtt_enabled">Envoyer les alertes aux aidants</string>
+    <string name="mqtt_host">Hôte du broker</string>
+    <string name="mqtt_port">Port</string>
+    <string name="mqtt_base_topic">Préfixe du topic</string>
+    <string name="mqtt_username">Nom d\'utilisateur du broker (facultatif)</string>
+    <string name="mqtt_password">Mot de passe du broker (facultatif)</string>
+    <string name="mqtt_tls">Utiliser TLS (MQTT sécurisé)</string>
+    <string name="mqtt_ca_cert">Certificat CA</string>
+    <string name="mqtt_client_cert">Certificat client</string>
+    <string name="mqtt_client_key">Clé client</string>
+    <string name="mqtt_import">Importer…</string>
+    <string name="mqtt_cert_set">Défini</string>
+    <string name="caregiver_name">Nom de l\'aidant</string>    <string name="caregiver_add">Ajouter un aidant</string>    <string name="caregiver_alert_after">Alerter l\'aidant après (min, 0 = off)</string>
     <string name="reminder_repeat_every">Me rappeler toutes les (min, 0 = une fois)</string>
     <string name="sms_caregiver_text">MedAboutYou : la prise de %1$s prévue à %2$s n\'a pas été effectuée.</string>
-    <string name="user_name">Votre nom (envoyé aux aidants)</string>
-    <string name="sms_caregiver_text_named">%1$s : la prise de %2$s prévue à %3$s n\'a pas été effectuée.</string>
-    <string name="widget_empty">Aucune prise aujourd\'hui.</string>
+    <string name="user_name">Votre nom (envoyé aux aidants)</string>    <string name="widget_empty">Aucune prise aujourd\'hui.</string>
     <string name="add_medicine">Ajouter un médicament</string>
     <string name="add_package">Ajouter une boîte</string>
     <string name="menu_more">Plus d\'options</string>
@@ -229,6 +238,13 @@
     <string name="backup_password_hint">Ce mot de passe sera nécessaire pour restaurer la sauvegarde ; il est irrécupérable.</string>
     <string name="backup_saved">Sauvegarde enregistrée.</string>
     <string name="backup_restored">%d traitements restaurés.</string>
+    <string name="backup_failed">Échec de la sauvegarde</string>
+    <string name="restore_failed">Échec de la restauration</string>
+    <string name="backup_err_open_dest">Impossible d\'ouvrir le fichier de destination.</string>
+    <string name="backup_err_open_file">Impossible d\'ouvrir le fichier de sauvegarde.</string>
+    <string name="backup_err_not_backup">Ce fichier n\'est pas une sauvegarde MedAboutYou.</string>
+    <string name="backup_err_wrong_password">Mot de passe incorrect, ou sauvegarde corrompue.</string>
+    <string name="backup_err_newer">Cette sauvegarde a été créée avec une version plus récente de l\'application.</string>
 
     <!-- Rappels de réapprovisionnement et liste de courses -->
     <string name="channel_refill_name">Rappels de réapprovisionnement</string>
@@ -248,4 +264,65 @@
     <string name="scan_hint">Visez le code-barres ou le datamatrix sur la boîte du médicament</string>
     <string name="scan_permission_needed">L\'autorisation caméra est nécessaire pour scanner une boîte.</string>
     <string name="scan_grant_camera">Autoriser la caméra</string>
+
+    <!-- Activity log -->
+    <string name="menu_activity_log">Journal d\'activité</string>
+    <string name="title_activity_log">Journal d\'activité</string>
+    <string name="activity_log_empty">Aucune activité pour le moment</string>
+    <string name="activity_log_meta">Catégorie %1$d · %2$s   ·   ID %3$d · %4$s</string>
+    <string name="action_cat_medication">Médicament</string>
+    <string name="action_cat_schedule">Traitement</string>
+    <string name="action_cat_inventory">Stock</string>
+    <string name="action_cat_data">Données</string>
+    <string name="action_cat_settings">Paramètres</string>
+    <string name="action_act_dose_taken">Prise effectuée</string>
+    <string name="action_act_dose_untaken">Prise annulée</string>
+    <string name="action_act_doses_all">Prises effectuées</string>
+    <string name="action_act_schedule_created">Traitement créé</string>
+    <string name="action_act_schedule_edited">Traitement modifié</string>
+    <string name="action_act_dose_edited">Prise modifiée</string>
+    <string name="action_act_schedule_cancelled">Traitement annulé</string>
+    <string name="action_act_schedule_paused">Traitement mis en pause</string>
+    <string name="action_act_schedule_resumed">Traitement repris</string>
+    <string name="action_act_stock_set">Stock défini</string>
+    <string name="action_act_stock_added">Stock ajouté</string>
+    <string name="action_act_shopping_removed">Retiré de la liste de courses</string>
+    <string name="action_act_backup_exported">Sauvegarde exportée</string>
+    <string name="action_act_backup_restored">Sauvegarde restaurée</string>
+    <string name="action_act_reminders">Rappels modifiés</string>
+    <string name="action_act_boot">Lancement au démarrage modifié</string>
+    <string name="action_act_caregiver_added">Aidant ajouté</string>
+    <string name="action_act_caregiver_removed">Aidant retiré</string>
+    <string name="action_act_unknown">Action</string>
+    <string name="action_txt_dose_taken">%1$s marqué comme pris</string>
+    <string name="action_txt_dose_untaken">%1$s marqué comme non pris</string>
+    <string name="action_txt_doses_all">%1$d prises marquées comme effectuées</string>
+    <string name="action_txt_schedule_created">Traitement créé pour %1$s</string>
+    <string name="action_txt_schedule_edited">Traitement de %1$s modifié</string>
+    <string name="action_txt_dose_edited">Prise de %1$s modifiée</string>
+    <string name="action_txt_schedule_cancelled">Traitement de %1$s annulé</string>
+    <string name="action_txt_schedule_paused">%1$s mis en pause</string>
+    <string name="action_txt_schedule_paused_until">%1$s mis en pause jusqu\'au %2$s</string>
+    <string name="action_txt_schedule_resumed">%1$s repris</string>
+    <string name="action_txt_stock_set">Stock de %1$s défini à %2$d</string>
+    <string name="action_txt_stock_added">%1$d doses ajoutées à %2$s</string>
+    <string name="action_txt_shopping_removed">%1$s retiré de la liste de courses</string>
+    <string name="action_txt_backup_exported">Sauvegarde chiffrée exportée</string>
+    <string name="action_txt_backup_restored">Sauvegarde restaurée (%1$d traitements)</string>
+    <string name="action_txt_reminders_on">Rappels activés</string>
+    <string name="action_txt_reminders_off">Rappels désactivés</string>
+    <string name="action_txt_boot_on">Lancement au démarrage activé</string>
+    <string name="action_txt_boot_off">Lancement au démarrage désactivé</string>
+    <string name="action_txt_caregiver_added">Aidant ajouté</string>
+    <string name="action_txt_caregiver_removed">Aidant retiré</string>
+
+    <!-- Dose-toggle confirmation -->
+    <string name="confirm_take_title">Marquer la prise comme effectuée ?</string>
+    <string name="confirm_take_message">Marquer %1$s (prévu à %2$s) comme pris ? La prise est enregistrée et une unité est retirée de votre stock.</string>
+    <string name="confirm_take_outside_window">⚠ Cette prise est effectuée en dehors de la fenêtre horaire prévue.</string>
+    <string name="confirm_take_confirm">Marquer comme pris</string>
+    <string name="untake_warn_title">Annuler cette prise ?</string>
+    <string name="untake_warn_message">%1$s (prévu à %2$s) est actuellement marqué comme pris. L\'annuler enregistre la prise comme non effectuée et remet une unité dans votre stock — ne le faites que si vous l\'avez marqué par erreur.</string>
+    <string name="untake_warn_confirm">Annuler la prise</string>
+    <string name="activity_log_limit">Entrées du journal à conserver</string>
 </resources>

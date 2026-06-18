@@ -18,19 +18,36 @@ object BarcodeLookup {
         if (s.startsWith("01") && digits.length >= 16) {
             aicFromGtin(digits.substring(2, 16))?.let { return it }
         }
-        // A bare GTIN/EAN-13 that encodes an Italian pharma AIC.
-        aicFromGtin(digits)?.let { return it }
+        // A bare GTIN/EAN-13 scan that encodes an Italian pharma AIC. Only a
+        // complete 13/14-digit code qualifies — running the heuristic over the
+        // concatenated digits of a full GS1 string (GTIN + expiry + lot +
+        // serial) could match "080" across field boundaries and produce a
+        // garbage AIC.
+        if (digits.length in 13..14 && digits == s) {
+            aicFromGtin(digits)?.let { return it }
+        }
         // Otherwise: a plain numeric code (likely the AIC itself) or free text.
         return if (digits.isNotEmpty() && digits == s) digits else s
     }
 
     /** Italian pharma GTIN contains "080" then the 9-digit AIC. */
     private fun aicFromGtin(gtin: String): String? {
+        if (gtin.length !in 13..14 || !gs1CheckDigitOk(gtin)) return null
         val idx = gtin.indexOf("080")
-        if (idx >= 0 && gtin.length >= idx + 12) {
+        if (idx >= 0 && gtin.length - 1 >= idx + 12) { // AIC + the trailing check digit
             val aic = gtin.substring(idx + 3, idx + 12)
             if (aic.length == 9 && aic.all { it.isDigit() }) return aic
         }
         return null
+    }
+
+    /** Standard GS1 (EAN/GTIN) modulo-10 check digit. */
+    private fun gs1CheckDigitOk(code: String): Boolean {
+        if (code.length < 2 || !code.all { it.isDigit() }) return false
+        var sum = 0
+        code.dropLast(1).reversed().forEachIndexed { i, c ->
+            sum += (c - '0') * if (i % 2 == 0) 3 else 1
+        }
+        return (10 - sum % 10) % 10 == code.last() - '0'
     }
 }

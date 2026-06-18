@@ -8,10 +8,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
 /**
@@ -137,7 +135,9 @@ class AifaSource(private val http: Http = Http()) {
             when {
                 ch in 'A'..'Z' && !start -> out.append(ch + ('a' - 'A'))
                 ch == ' ' || ch == ',' || ch == '/' || ch == '-' -> {
-                    out.append(ch); start = true; continue
+                    out.append(ch)
+                    start = true
+                    continue
                 }
                 else -> out.append(ch)
             }
@@ -164,7 +164,10 @@ class AifaSource(private val http: Http = Http()) {
     companion object {
         const val API_BASE = "https://api.aifa.gov.it/aifa-bdf-eif-be/1.0.0"
         const val PORTAL_BASE = "https://medicinali.aifa.gov.it/#"
-        private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+        private val json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
 
         // "<number> <word>" — the pack quantity is the last such pair in the
         // package description ("…1000 MG COMPRESSE … 12 COMPRESSE" -> 12).

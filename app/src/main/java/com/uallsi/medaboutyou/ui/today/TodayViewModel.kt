@@ -4,11 +4,14 @@ package com.uallsi.medaboutyou.ui.today
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.data.local.ActionCatalog
 import com.uallsi.medaboutyou.domain.Insights
 import com.uallsi.medaboutyou.domain.Now
 import com.uallsi.medaboutyou.domain.RefillForecast
 import com.uallsi.medaboutyou.model.Occurrence
 import com.uallsi.medaboutyou.model.ScheduleEngine
+import com.uallsi.medaboutyou.reminders.DoseAlarms
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,7 +59,12 @@ class TodayViewModel(private val container: AppContainer) : ViewModel() {
                     stock = stock,
                     isPast = ScheduleEngine.isPastDateTime(occ.year, occ.month, occ.day, occ.hour, occ.minute),
                     checkable = ScheduleEngine.isWithinTakeWindow(
-                        occ.year, occ.month, occ.day, occ.hour, occ.minute, occ.windowMinutes,
+                        occ.year,
+                        occ.month,
+                        occ.day,
+                        occ.hour,
+                        occ.minute,
+                        occ.windowMinutes,
                     ),
                 )
             }
@@ -92,10 +100,21 @@ class TodayViewModel(private val container: AppContainer) : ViewModel() {
     fun toggle(dose: TodayDose, taken: Boolean) {
         viewModelScope.launch {
             val occ = dose.occ
-            withContext(Dispatchers.IO) {
-                container.schedules.logDose(occ.scheduleId, occ.keyIso, if (taken) "taken" else "untaken")
-                container.medicines.adjustDoses(occ.medSource, occ.medExtId, occ.medName, if (taken) -1 else 1)
+            val delta = withContext(Dispatchers.IO) {
+                val d = container.schedules.logDose(occ.scheduleId, occ.keyIso, if (taken) "taken" else "untaken")
+                if (d != 0) {
+                    container.medicines.adjustDoses(occ.medSource, occ.medExtId, occ.medName, d)
+                }
+                d
             }
+            if (delta != 0) {
+                val action = if (taken) ActionCatalog.DOSE_TAKEN else ActionCatalog.DOSE_UNTAKEN
+                val textRes = if (taken) R.string.action_txt_dose_taken else R.string.action_txt_dose_untaken
+                container.actionLog.log(action, container.appContext.getString(textRes, occ.medName))
+            }
+            // Re-evaluate reminders right away (withdraws the dose's notification
+            // and refreshes the home-screen widget).
+            DoseAlarms.kickNow(container.appContext)
             refresh()
         }
     }
@@ -103,12 +122,24 @@ class TodayViewModel(private val container: AppContainer) : ViewModel() {
     /** Log every still-due, unlogged dose in a time block as taken ("take all"). */
     fun takeAll(doses: List<TodayDose>) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
+            val taken = withContext(Dispatchers.IO) {
+                var n = 0
                 doses.filter { it.isPast && it.occ.status.isEmpty() }.forEach { d ->
-                    container.schedules.logDose(d.occ.scheduleId, d.occ.keyIso, "taken")
-                    container.medicines.adjustDoses(d.occ.medSource, d.occ.medExtId, d.occ.medName, -1)
+                    val delta = container.schedules.logDose(d.occ.scheduleId, d.occ.keyIso, "taken")
+                    if (delta != 0) {
+                        container.medicines.adjustDoses(d.occ.medSource, d.occ.medExtId, d.occ.medName, delta)
+                        n++
+                    }
                 }
+                n
             }
+            if (taken > 0) {
+                container.actionLog.log(
+                    ActionCatalog.DOSES_TAKEN_ALL,
+                    container.appContext.getString(R.string.action_txt_doses_all, taken),
+                )
+            }
+            DoseAlarms.kickNow(container.appContext)
             refresh()
         }
     }

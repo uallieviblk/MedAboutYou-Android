@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou.ui.common
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
-import android.text.format.DateFormat
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -116,8 +116,11 @@ fun TimeField(
     val is24Hour = DateFormat.is24HourFormat(LocalContext.current)
     val display = remember(hour, minute, is24Hour) {
         val t = LocalTime.of(hour.coerceIn(0, 23), minute.coerceIn(0, 59))
-        if (is24Hour) "%02d:%02d".format(hour, minute)
-        else t.format(DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()))
+        if (is24Hour) {
+            "%02d:%02d".format(hour, minute)
+        } else {
+            t.format(DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()))
+        }
     }
 
     OutlinedTextField(
@@ -141,15 +144,25 @@ fun TimeField(
                 tonalElevation = 6.dp,
                 modifier = Modifier.wrapContentHeight(),
             ) {
-                Column(Modifier.padding(24.dp), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
-                    Text(label, style = androidx.compose.material3.MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 16.dp))
+                Column(
+                    Modifier.padding(24.dp),
+                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        label,
+                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
                     TimePicker(state = state)
                     androidx.compose.foundation.layout.Row(
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.End,
                     ) {
                         TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) }
-                        TextButton(onClick = { onChange(state.hour, state.minute); open = false }) { Text(stringResource(R.string.action_ok)) }
+                        TextButton(onClick = {
+                            onChange(state.hour, state.minute);
+                            open = false
+                        }) { Text(stringResource(R.string.action_ok)) }
                     }
                 }
             }

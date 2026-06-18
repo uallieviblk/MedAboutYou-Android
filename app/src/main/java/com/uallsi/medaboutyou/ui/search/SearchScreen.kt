@@ -189,8 +189,11 @@ private fun EmptyDownload(loading: Boolean, onDownload: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
             )
-            if (loading) CircularProgressIndicator()
-            else Button(onClick = onDownload) { Text(stringResource(R.string.download_dataset)) }
+            if (loading) {
+                CircularProgressIndicator()
+            } else {
+                Button(onClick = onDownload) { Text(stringResource(R.string.download_dataset)) }
+            }
         }
     }
 }

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 package com.uallsi.medaboutyou
 
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
@@ -84,6 +84,11 @@ class FullUsageTest {
         // --- Mark the dose taken via its checkbox (unmerged tree → the Checkbox node). ---
         composeRule.onAllNodes(isToggleable(), useUnmergedTree = true)
             .onFirst().performSemanticsAction(SemanticsActions.OnClick)
+
+        // Marking taken now opens a confirmation dialog (default action = confirm).
+        composeRule.awaitText("Mark taken")
+        composeRule.onNodeWithText("Mark taken").performSemanticsAction(SemanticsActions.OnClick)
+        composeRule.waitForIdle()
 
         // Adherence ring fills to 1 of 1; stock debited 10 -> 9.
         composeRule.awaitText("1/1")

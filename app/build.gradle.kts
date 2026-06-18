@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.uallsi.medaboutyou"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.uallsi.medaboutyou"
@@ -85,7 +85,10 @@ composeCompiler {
 
 detekt {
     buildUponDefaultConfig = true
-    autoCorrect = false
+    // Auto-format (ktlint formatting rules) only when explicitly requested:
+    //   ./gradlew detekt -PdetektAutoCorrect
+    // CI's plain `./gradlew detekt` stays report-only (no source mutation).
+    autoCorrect = project.hasProperty("detektAutoCorrect")
     parallel = true
     ignoreFailures = true // analysis pass: produce reports, don't gate the build
     // Analyse all Kotlin sources (main + test).
@@ -94,7 +97,6 @@ detekt {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -118,32 +120,36 @@ dependencies {
 
     implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
+    // Caregiver MQTT alerts: CBOR payloads + Paho MQTT v5 client (guaranteed delivery).
+    implementation(libs.kotlinx.serialization.cbor)
+    implementation(libs.paho.mqttv5)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.coil.compose)
 
     // #11 In-app posology: extract SmPC §4.2 from the Product Information PDF.
-    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    implementation(libs.pdfbox.android)
 
     // #7 Scan a medicine package — on-device CameraX preview + bundled ML Kit
     // barcode/Datamatrix recognition (no Play Services dependency).
-    implementation("androidx.camera:camera-camera2:1.3.4")
-    implementation("androidx.camera:camera-lifecycle:1.3.4")
-    implementation("androidx.camera:camera-view:1.3.4")
-    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Memory-leak detection in debug builds (auto-installs; not shipped in release).
+    debugImplementation(libs.leakcanary.android)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.7")
+    detektPlugins(libs.detekt.formatting)
 
     // Compose-specific Lint rules (param order, state hoisting, modifier defaults…).
-    lintChecks("com.slack.lint.compose:compose-lint-checks:1.4.2")
+    lintChecks(libs.compose.lint.checks)
 }

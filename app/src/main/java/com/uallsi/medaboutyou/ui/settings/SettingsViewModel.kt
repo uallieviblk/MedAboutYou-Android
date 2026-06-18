@@ -6,8 +6,14 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.data.local.ActionCatalog
+import com.uallsi.medaboutyou.data.local.BackupManager
 import com.uallsi.medaboutyou.data.local.Caregiver
+import com.uallsi.medaboutyou.data.local.DEFAULT_ACTION_LOG_LIMIT
+import com.uallsi.medaboutyou.data.local.MqttConfig
 import com.uallsi.medaboutyou.reminders.DoseAlarms
+import com.uallsi.medaboutyou.reminders.MqttOutboxWorker
 import com.uallsi.medaboutyou.reminders.Reminders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +28,8 @@ data class SettingsState(
     val startAtBoot: Boolean = false,
     val userName: String = "",
     val caregivers: List<Caregiver> = emptyList(),
+    val mqtt: MqttConfig = MqttConfig(),
+    val actionLogLimit: Int = DEFAULT_ACTION_LOG_LIMIT,
 )
 
 /** Preferences screen state — Android port of `AppSettings` + the Preferences dialog. */
@@ -36,19 +44,32 @@ class SettingsViewModel(
             container.settings.startAtBootFlow,
             container.settings.userNameFlow,
             container.settings.caregiversFlow,
-        ) { reminders, boot, userName, caregivers ->
-            SettingsState(reminders, boot, userName, caregivers)
+            container.settings.mqttConfigFlow,
+        ) { reminders, boot, userName, caregivers, mqtt ->
+            SettingsState(reminders, boot, userName, caregivers, mqtt)
+        }.combine(container.settings.actionLogLimitFlow) { s, limit ->
+            s.copy(actionLogLimit = limit)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsState())
 
     fun setRemindersEnabled(enabled: Boolean) {
         viewModelScope.launch {
             container.settings.setRemindersEnabled(enabled)
             if (enabled) Reminders.enable(app) else Reminders.disable(app)
+            container.actionLog.log(
+                ActionCatalog.REMINDERS_TOGGLED,
+                app.getString(if (enabled) R.string.action_txt_reminders_on else R.string.action_txt_reminders_off),
+            )
         }
     }
 
     fun setStartAtBoot(enabled: Boolean) {
-        viewModelScope.launch { container.settings.setStartAtBoot(enabled) }
+        viewModelScope.launch {
+            container.settings.setStartAtBoot(enabled)
+            container.actionLog.log(
+                ActionCatalog.BOOT_TOGGLED,
+                app.getString(if (enabled) R.string.action_txt_boot_on else R.string.action_txt_boot_off),
+            )
+        }
     }
 
     fun setUserName(name: String) {
@@ -56,18 +77,55 @@ class SettingsViewModel(
     }
 
     fun setCaregivers(list: List<Caregiver>) {
-        viewModelScope.launch { container.settings.setCaregivers(list) }
+        viewModelScope.launch {
+            // Log only discrete add/remove (a size change), never per-keystroke edits.
+            val before = state.value.caregivers.size
+            container.settings.setCaregivers(list)
+            when {
+                list.size > before -> container.actionLog.log(
+                    ActionCatalog.CAREGIVER_ADDED,
+                    app.getString(R.string.action_txt_caregiver_added),
+                )
+                list.size < before -> container.actionLog.log(
+                    ActionCatalog.CAREGIVER_REMOVED,
+                    app.getString(R.string.action_txt_caregiver_removed),
+                )
+            }
+        }
+    }
+
+    fun setMqttConfig(config: MqttConfig) {
+        viewModelScope.launch {
+            container.settings.setMqttConfig(config)
+            // Flush any queued alerts promptly with the new broker settings.
+            MqttOutboxWorker.kick(app)
+        }
+    }
+
+    fun setActionLogLimit(limit: Int) {
+        viewModelScope.launch { container.settings.setActionLogLimit(limit) }
     }
 
     /** Write an encrypted backup to [uri]; [onDone] reports success or the error. */
     fun exportBackup(uri: Uri, password: String, onDone: (Result<Unit>) -> Unit) {
         viewModelScope.launch {
             val result = runCatching {
-                val blob = container.backup.export(password.toCharArray())
+                // PBKDF2 + AES over the whole dataset is CPU work — keep it off
+                // the main thread (an ANR-sized freeze on slow devices).
+                val blob = withContext(Dispatchers.Default) { container.backup.export(password.toCharArray()) }
                 withContext(Dispatchers.IO) {
-                    app.contentResolver.openOutputStream(uri)?.use { it.write(blob) }
-                        ?: error("Couldn't open the destination file.")
+                    // "wt": SAF providers (e.g. Drive) don't guarantee "w"
+                    // truncates — a smaller re-export would leave stale trailing
+                    // bytes and corrupt the file.
+                    app.contentResolver.openOutputStream(uri, "wt")?.use { it.write(blob) }
+                        ?: error(app.getString(R.string.backup_err_open_dest))
                 }
+            }.localizeBackupError()
+            if (result.isSuccess) {
+                container.actionLog.log(
+                    ActionCatalog.BACKUP_EXPORTED,
+                    app.getString(R.string.action_txt_backup_exported)
+                )
             }
             onDone(result)
         }
@@ -79,12 +137,32 @@ class SettingsViewModel(
             val result = runCatching {
                 val blob = withContext(Dispatchers.IO) {
                     app.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                        ?: error("Couldn't open the backup file.")
+                        ?: error(app.getString(R.string.backup_err_open_file))
                 }
-                container.backup.restore(blob, password.toCharArray())
+                withContext(Dispatchers.Default) { container.backup.restore(blob, password.toCharArray()) }
+            }.localizeBackupError()
+            if (result.isSuccess) {
+                DoseAlarms.kickNow(app)
+                container.actionLog.log(
+                    ActionCatalog.BACKUP_RESTORED,
+                    app.getString(R.string.action_txt_backup_restored, result.getOrDefault(0)),
+                )
             }
-            if (result.isSuccess) DoseAlarms.kickNow(app)
             onDone(result)
         }
+    }
+
+    /** Map [BackupManager.BackupException] kinds onto localized messages. */
+    private fun <T> Result<T>.localizeBackupError(): Result<T> = recoverCatching { e ->
+        val kind = (e as? BackupManager.BackupException)?.kind ?: throw e
+        throw IllegalArgumentException(
+            app.getString(
+                when (kind) {
+                    BackupManager.BackupException.Kind.NOT_A_BACKUP -> R.string.backup_err_not_backup
+                    BackupManager.BackupException.Kind.WRONG_PASSWORD -> R.string.backup_err_wrong_password
+                    BackupManager.BackupException.Kind.NEWER_VERSION -> R.string.backup_err_newer
+                }
+            )
+        )
     }
 }

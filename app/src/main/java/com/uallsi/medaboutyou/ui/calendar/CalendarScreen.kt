@@ -33,17 +33,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uallsi.medaboutyou.R
 import com.uallsi.medaboutyou.model.Occurrence
+import com.uallsi.medaboutyou.model.ScheduleEngine
 import com.uallsi.medaboutyou.model.Source
 import com.uallsi.medaboutyou.ui.AppViewModelFactory
+import com.uallsi.medaboutyou.ui.common.DoseToggleConfirmDialog
 import com.uallsi.medaboutyou.ui.theme.MedColors
 import java.time.LocalDate
 
@@ -57,13 +59,14 @@ fun CalendarScreen(
 ) {
     val vm: CalendarViewModel = viewModel(factory = AppViewModelFactory)
     val state by vm.state.collectAsStateWithLifecycle()
-    var showNew by remember { mutableStateOf(false) }
+    var showNew by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
     var editingOcc by remember { mutableStateOf<Occurrence?>(null) }
     var prefill by remember { mutableStateOf<String?>(null) }
     // Identity to attach to a prefilled schedule, so its stock is the same row
     // the medicine record edits (key "source:extId").
     var prefillMedSource by remember { mutableStateOf(Source.EMA) }
     var prefillMedExt by remember { mutableStateOf("") }
+    var pendingToggle by remember { mutableStateOf<Pair<AgendaItem, Boolean>?>(null) }
 
     androidx.compose.runtime.LaunchedEffect(prefillName) {
         if (prefillName != null) {
@@ -75,6 +78,11 @@ fun CalendarScreen(
         }
     }
 
+    // Refresh whenever the tab is (re-)shown: a dose taken on Today, from the
+    // widget or from a notification must be reflected here without requiring a
+    // manual day tap (the retained VM otherwise keeps the stale snapshot).
+    androidx.compose.runtime.LaunchedEffect(Unit) { vm.refresh() }
+
     // Schedules are created from a medicine record (Search → medicine → "Add to
     // my medication schedule"), so the schedule always carries the medicine's
     // identity for stock tracking. There is no free-text "New schedule" button.
@@ -82,33 +90,36 @@ fun CalendarScreen(
         modifier = modifier.fillMaxSize().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-            item { MonthHeader(state.year, state.month, onPrev = { vm.shiftMonth(-1) }, onNext = { vm.shiftMonth(1) }) }
-            item { MonthGrid(state, onSelect = vm::selectDay) }
+        item { MonthHeader(state.year, state.month, onPrev = { vm.shiftMonth(-1) }, onNext = { vm.shiftMonth(1) }) }
+        item { MonthGrid(state, onSelect = vm::selectDay) }
+        item {
+            Text(
+                stringResource(
+                    R.string.doses_on,
+                    "%04d-%02d-%02d".format(state.year, state.month, state.selectedDay)
+                ),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        if (state.agenda.isEmpty()) {
             item {
                 Text(
-                    stringResource(R.string.doses_on, "%04d-%02d-%02d".format(state.year, state.month, state.selectedDay)),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(top = 8.dp),
+                    stringResource(R.string.calendar_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            if (state.agenda.isEmpty()) {
-                item {
-                    Text(
-                        stringResource(R.string.calendar_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            } else {
-                items(state.agenda, key = { it.occ.scheduleId.toString() + it.occ.keyIso }) { item ->
-                    AgendaRow(
-                        item,
-                        onToggle = { vm.toggleDose(item, it) },
-                        onEdit = { editingOcc = item.occ },
-                    )
-                }
+        } else {
+            items(state.agenda, key = { it.occ.scheduleId.toString() + it.occ.keyIso }) { item ->
+                AgendaRow(
+                    item,
+                    onToggle = { pendingToggle = item to it },
+                    onEdit = { editingOcc = item.occ },
+                )
             }
+        }
     }
 
     if (showNew) {
@@ -116,7 +127,10 @@ fun CalendarScreen(
             prefillName = prefill ?: "",
             prefillSource = prefillMedSource,
             prefillExtId = prefillMedExt,
-            onCreate = { vm.createSchedule(it); showNew = false },
+            onCreate = {
+                vm.createSchedule(it);
+                showNew = false
+            },
             onDismiss = { showNew = false },
         )
     }
@@ -125,11 +139,31 @@ fun CalendarScreen(
         EditOccurrenceDialog(
             occurrence = occ,
             onSave = { hour, minute, window, cancelled, applyToFollowing ->
-                if (applyToFollowing) vm.splitFrom(occ, hour, minute, window, cancelled)
-                else vm.editSingle(occ, hour, minute, window, cancelled)
+                if (applyToFollowing) {
+                    vm.splitFrom(occ, hour, minute, window, cancelled)
+                } else {
+                    vm.editSingle(occ, hour, minute, window, cancelled)
+                }
                 editingOcc = null
             },
             onDismiss = { editingOcc = null },
+            allowFollowing = occ.scheduleId !in state.onceScheduleIds,
+        )
+    }
+
+    pendingToggle?.let { (item, taken) ->
+        DoseToggleConfirmDialog(
+            medName = item.occ.medName,
+            time = item.occ.timeLabel(),
+            taken = taken,
+            outsideWindow = taken && !ScheduleEngine.isWithinScheduledWindow(
+                item.occ.year, item.occ.month, item.occ.day, item.occ.hour, item.occ.minute, item.occ.windowMinutes,
+            ),
+            onConfirm = {
+                vm.toggleDose(item, taken);
+                pendingToggle = null
+            },
+            onDismiss = { pendingToggle = null },
         )
     }
 }
@@ -142,7 +176,9 @@ private fun MonthHeader(year: Int, month: Int, onPrev: () -> Unit, onNext: () ->
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onPrev) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.previous_month)) }
-        val name = java.time.Month.of(month).getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
+        val name = java.time.Month.of(
+            month
+        ).getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
         Text("$name $year", style = MaterialTheme.typography.titleLarge)
         IconButton(onClick = onNext) { Icon(Icons.Default.ChevronRight, stringResource(R.string.next_month)) }
     }
@@ -158,11 +194,17 @@ private fun MonthGrid(state: CalendarState, onSelect: (Int) -> Unit) {
 
     Column {
         Row(Modifier.fillMaxWidth()) {
-            (0..6).map { java.time.DayOfWeek.MONDAY.plus(it.toLong()).getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault()) }.forEach {
+            (0..6).map {
+                java.time.DayOfWeek.MONDAY.plus(
+                    it.toLong()
+                ).getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())
+            }.forEach {
                 Text(
-                    it, style = MaterialTheme.typography.labelSmall,
+                    it,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
             }
         }
@@ -206,8 +248,11 @@ private fun DayCell(
             .aspectRatio(1f)
             .padding(2.dp)
             .then(
-                if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
-                else Modifier
+                if (selected) {
+                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                } else {
+                    Modifier
+                }
             )
             .background(stateColor ?: Color.Transparent, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick),
@@ -237,6 +282,7 @@ private fun stateColor(state: DayState?): Color? = when (state) {
 @Composable
 private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit, onEdit: () -> Unit) {
     val occ = item.occ
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     val statusText = stringResource(
         when {
             occ.status == "taken" -> R.string.agenda_status_taken
@@ -261,7 +307,15 @@ private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit, onEdit: () 
             Checkbox(
                 checked = occ.status == "taken",
                 enabled = item.checkable,
-                onCheckedChange = { onToggle(it) },
+                onCheckedChange = { taken ->
+                    // Same dose-taken haptic as the Today screen.
+                    if (taken) {
+                        haptics.performHapticFeedback(
+                            androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress,
+                        )
+                    }
+                    onToggle(taken)
+                },
             )
             Column(Modifier.weight(1f)) {
                 Text("${occ.timeLabel()} — ${occ.medName}", style = MaterialTheme.typography.titleSmall)
@@ -279,4 +333,3 @@ private fun AgendaRow(item: AgendaItem, onToggle: (Boolean) -> Unit, onEdit: () 
         }
     }
 }
-

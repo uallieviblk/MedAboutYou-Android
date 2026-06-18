@@ -4,6 +4,8 @@ package com.uallsi.medaboutyou.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uallsi.medaboutyou.AppContainer
+import com.uallsi.medaboutyou.R
+import com.uallsi.medaboutyou.data.local.ActionCatalog
 import com.uallsi.medaboutyou.data.local.ShoppingItemEntity
 import com.uallsi.medaboutyou.domain.AdherenceStats
 import com.uallsi.medaboutyou.domain.DayAdherence
@@ -47,14 +49,15 @@ class InsightsViewModel(private val container: AppContainer) : ViewModel() {
             val doses = withContext(Dispatchers.IO) { dosesAvailable() }
             val shopping = withContext(Dispatchers.IO) { container.shopping.all() }
             withContext(Dispatchers.Default) {
+                val adherence30 = Insights.adherence(snapshot, 30, now)
                 val s = InsightsState(
                     loading = false,
                     refreshing = false,
                     rate7 = Insights.adherence(snapshot, 7, now).rate,
-                    rate30 = Insights.adherence(snapshot, 30, now).let { it.rate },
+                    rate30 = adherence30.rate,
                     rate90 = Insights.adherence(snapshot, 90, now).rate,
                     streak = Insights.currentStreak(snapshot, now),
-                    missed30 = Insights.adherence(snapshot, 30, now).missed,
+                    missed30 = adherence30.missed,
                     heatmap = Insights.dailyAdherence(snapshot, 30, now),
                     byMedicine = Insights.adherenceByMedicine(snapshot, 30, now),
                     refills = Insights.refillForecast(snapshot, doses, now),
@@ -67,7 +70,12 @@ class InsightsViewModel(private val container: AppContainer) : ViewModel() {
 
     fun removeFromShopping(medKey: String) {
         viewModelScope.launch {
+            val name = _state.value.shoppingList.find { it.medKey == medKey }?.medName ?: medKey
             withContext(Dispatchers.IO) { container.shopping.remove(medKey) }
+            container.actionLog.log(
+                ActionCatalog.SHOPPING_REMOVED,
+                container.appContext.getString(R.string.action_txt_shopping_removed, name),
+            )
             refresh()
         }
     }

@@ -15,7 +15,8 @@ class ShoppingStore(db: MedDatabase) {
             ShoppingItemEntity(
                 medKey = medKey,
                 medName = medName,
-                addedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                // Same timestamp format as every other store (ScheduleRepository.nowIso).
+                addedAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
             ),
         )
 

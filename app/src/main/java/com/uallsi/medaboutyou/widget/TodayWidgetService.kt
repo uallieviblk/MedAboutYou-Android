@@ -59,11 +59,11 @@ private class TodayRemoteViewsFactory(
             setTextViewText(R.id.item_name, row.name)
             setTextViewText(R.id.item_status, row.status)
             setTextColor(R.id.item_status, row.statusColor)
-            setOnClickFillInIntent(R.id.item_root, Intent())  // taps bubble to the template
+            setOnClickFillInIntent(R.id.item_root, Intent()) // taps bubble to the template
         }
     }
 
     private companion object {
-        const val MISSED_COLOR = 0xFFC5221F.toInt()   // red, readable in light + dark
+        const val MISSED_COLOR = 0xFFC5221F.toInt() // red, readable in light + dark
     }
 }

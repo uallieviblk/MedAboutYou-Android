@@ -56,7 +56,8 @@ class InsightsTest {
         // HOURS steps every N hours from the start date-time (the entry's
         // hour:minute) — here anchored at midnight, so 00:00, 06:00, 12:00, 18:00.
         val sch = dailySchedule().copy(
-            periodUnit = PeriodUnit.HOURS, periodN = 6,
+            periodUnit = PeriodUnit.HOURS,
+            periodN = 6,
             times = listOf(DoseTime(hour = 0, minute = 0)),
         )
         val day1 = ScheduleEngine.occurrencesOn(sch, 2026, 6, 1)
@@ -77,20 +78,22 @@ class InsightsTest {
         // Day 31 every month -> 30 Sep, 28 Feb (no Feb 29 here: 2026 is not a leap year).
         val sch = dailySchedule().copy(
             startDate = "2026-01-31",
-            periodUnit = PeriodUnit.MONTHS, periodN = 1,
+            periodUnit = PeriodUnit.MONTHS,
+            periodN = 1,
             times = listOf(DoseTime(dayOfMonth = 31, hour = 8)),
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 1, 31).size)
-        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 9, 30).size)   // clamped from 31
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 9, 30).size) // clamped from 31
         assertTrue(ScheduleEngine.occurrencesOn(sch, 2026, 9, 29).isEmpty())
-        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 2, 28).size)   // clamped from 31
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 2, 28).size) // clamped from 31
     }
 
     @Test
     fun years_schedule_lands_on_the_anniversary() {
         val sch = dailySchedule().copy(
             startDate = "2026-03-10",
-            periodUnit = PeriodUnit.YEARS, periodN = 1,
+            periodUnit = PeriodUnit.YEARS,
+            periodN = 1,
             times = listOf(DoseTime(month = 3, dayOfMonth = 10, hour = 9)),
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 3, 10).size)
@@ -119,8 +122,8 @@ class InsightsTest {
     @Test
     fun count_end_mode_stops_after_n_doses() {
         val sch = dailySchedule().copy(endMode = EndMode.COUNT, doseCount = 3)
-        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 6, 3).size)  // index 2
-        assertTrue(ScheduleEngine.occurrencesOn(sch, 2026, 6, 4).isEmpty())  // index 3 -> stop
+        assertEquals(1, ScheduleEngine.occurrencesOn(sch, 2026, 6, 3).size) // index 2
+        assertTrue(ScheduleEngine.occurrencesOn(sch, 2026, 6, 4).isEmpty()) // index 3 -> stop
     }
 
     @Test
@@ -135,7 +138,15 @@ class InsightsTest {
     fun adherence_counts_only_due_doses() {
         val now = Now(2026, 6, 3, 12, 0)
         val occ = { d: Int, status: String ->
-            Occurrence(scheduleId = 1, medName = "Metformin", year = 2026, month = 6, day = d, hour = 8, status = status)
+            Occurrence(
+                scheduleId = 1,
+                medName = "Metformin",
+                year = 2026,
+                month = 6,
+                day = d,
+                hour = 8,
+                status = status
+            )
         }
         val q = FakeQuery(
             schedules = listOf(dailySchedule()),
@@ -155,7 +166,15 @@ class InsightsTest {
     fun streak_breaks_on_a_missed_dose() {
         val now = Now(2026, 6, 3, 12, 0)
         val occ = { d: Int, status: String ->
-            Occurrence(scheduleId = 1, medName = "Metformin", year = 2026, month = 6, day = d, hour = 8, status = status)
+            Occurrence(
+                scheduleId = 1,
+                medName = "Metformin",
+                year = 2026,
+                month = 6,
+                day = d,
+                hour = 8,
+                status = status
+            )
         }
         val q = FakeQuery(
             schedules = listOf(dailySchedule()),
@@ -170,9 +189,17 @@ class InsightsTest {
 
     @Test
     fun forecast_runout_flags_when_stock_cannot_cover() {
-        val now = Now(2026, 6, 1, 0, 0)  // before the 08:00 dose, so day 1 is "future"
+        val now = Now(2026, 6, 1, 0, 0) // before the 08:00 dose, so day 1 is "future"
         val occ = { d: Int ->
-            Occurrence(scheduleId = 1, medSource = Source.EMA, medName = "Metformin", year = 2026, month = 6, day = d, hour = 8)
+            Occurrence(
+                scheduleId = 1,
+                medSource = Source.EMA,
+                medName = "Metformin",
+                year = 2026,
+                month = 6,
+                day = d,
+                hour = 8
+            )
         }
         val occByDate = (1..10).associate { d -> Triple(2026, 6, d) to listOf(occ(d)) }
         val q = FakeQuery(listOf(dailySchedule()), occByDate)

@@ -192,17 +192,26 @@
     <string name="mark_taken">Marcar como tomada</string>
     <string name="skip">Omitir</string>
     <string name="caregiver_section">Avisos al cuidador</string>
-    <string name="caregiver_desc">Si una dosis se retrasa, envía un SMS a estos cuidadores (usa los SMS del teléfono).</string>
-    <string name="caregiver_name">Nombre del cuidador</string>
-    <string name="caregiver_phone">Teléfono del cuidador</string>
-    <string name="caregiver_add">Añadir cuidador</string>
-    <string name="caregiver_grant_sms">Conceder permiso de SMS</string>
-    <string name="caregiver_alert_after">Avisar al cuidador tras (min, 0 = no)</string>
+    <string name="caregiver_desc">Si una dosis se retrasa, avisa a estos cuidadores a través de tu broker MQTT, cada uno en su propio topic.</string>
+    <string name="caregiver_username">Usuario del cuidador (topic)</string>
+    <string name="mqtt_section">Broker de alertas (MQTT)</string>
+    <string name="mqtt_desc">Las alertas a los cuidadores se publican en este broker MQTT como mensajes CBOR, con entrega garantizada.</string>
+    <string name="mqtt_enabled">Enviar alertas a los cuidadores</string>
+    <string name="mqtt_host">Host del broker</string>
+    <string name="mqtt_port">Puerto</string>
+    <string name="mqtt_base_topic">Prefijo del topic</string>
+    <string name="mqtt_username">Usuario del broker (opcional)</string>
+    <string name="mqtt_password">Contraseña del broker (opcional)</string>
+    <string name="mqtt_tls">Usar TLS (MQTT seguro)</string>
+    <string name="mqtt_ca_cert">Certificado CA</string>
+    <string name="mqtt_client_cert">Certificado de cliente</string>
+    <string name="mqtt_client_key">Clave de cliente</string>
+    <string name="mqtt_import">Importar…</string>
+    <string name="mqtt_cert_set">Configurado</string>
+    <string name="caregiver_name">Nombre del cuidador</string>    <string name="caregiver_add">Añadir cuidador</string>    <string name="caregiver_alert_after">Avisar al cuidador tras (min, 0 = no)</string>
     <string name="reminder_repeat_every">Recordar cada (min, 0 = una vez)</string>
     <string name="sms_caregiver_text">MedAboutYou: la dosis de %1$s prevista a las %2$s no se ha tomado.</string>
-    <string name="user_name">Tu nombre (se envía a los cuidadores)</string>
-    <string name="sms_caregiver_text_named">%1$s: la dosis de %2$s prevista a las %3$s no se ha tomado.</string>
-    <string name="widget_empty">No hay dosis hoy.</string>
+    <string name="user_name">Tu nombre (se envía a los cuidadores)</string>    <string name="widget_empty">No hay dosis hoy.</string>
     <string name="add_medicine">Añadir medicamento</string>
     <string name="add_package">Añadir un envase</string>
     <string name="menu_more">Más opciones</string>
@@ -229,6 +238,13 @@
     <string name="backup_password_hint">Necesitarás esta contraseña para restaurar la copia; no se puede recuperar.</string>
     <string name="backup_saved">Copia guardada.</string>
     <string name="backup_restored">%d tratamientos restaurados.</string>
+    <string name="backup_failed">Error al crear la copia</string>
+    <string name="restore_failed">Error al restaurar</string>
+    <string name="backup_err_open_dest">No se pudo abrir el archivo de destino.</string>
+    <string name="backup_err_open_file">No se pudo abrir el archivo de copia de seguridad.</string>
+    <string name="backup_err_not_backup">Este archivo no es una copia de seguridad de MedAboutYou.</string>
+    <string name="backup_err_wrong_password">Contraseña incorrecta, o la copia está dañada.</string>
+    <string name="backup_err_newer">Esta copia se creó con una versión más reciente de la aplicación.</string>
 
     <!-- Avisos de reposición y lista de la compra -->
     <string name="channel_refill_name">Avisos de reposición</string>
@@ -248,4 +264,65 @@
     <string name="scan_hint">Apunta la cámara al código de barras o datamatrix del envase</string>
     <string name="scan_permission_needed">Se necesita permiso de cámara para escanear un envase.</string>
     <string name="scan_grant_camera">Permitir cámara</string>
+
+    <!-- Activity log -->
+    <string name="menu_activity_log">Registro de actividad</string>
+    <string name="title_activity_log">Registro de actividad</string>
+    <string name="activity_log_empty">Aún no hay actividad</string>
+    <string name="activity_log_meta">Categoría %1$d · %2$s   ·   ID %3$d · %4$s</string>
+    <string name="action_cat_medication">Medicación</string>
+    <string name="action_cat_schedule">Tratamiento</string>
+    <string name="action_cat_inventory">Existencias</string>
+    <string name="action_cat_data">Datos</string>
+    <string name="action_cat_settings">Ajustes</string>
+    <string name="action_act_dose_taken">Dosis tomada</string>
+    <string name="action_act_dose_untaken">Dosis revertida</string>
+    <string name="action_act_doses_all">Dosis tomadas</string>
+    <string name="action_act_schedule_created">Tratamiento creado</string>
+    <string name="action_act_schedule_edited">Tratamiento editado</string>
+    <string name="action_act_dose_edited">Dosis editada</string>
+    <string name="action_act_schedule_cancelled">Tratamiento cancelado</string>
+    <string name="action_act_schedule_paused">Tratamiento pausado</string>
+    <string name="action_act_schedule_resumed">Tratamiento reanudado</string>
+    <string name="action_act_stock_set">Existencias definidas</string>
+    <string name="action_act_stock_added">Existencias añadidas</string>
+    <string name="action_act_shopping_removed">Eliminado de la lista de la compra</string>
+    <string name="action_act_backup_exported">Copia de seguridad exportada</string>
+    <string name="action_act_backup_restored">Copia de seguridad restaurada</string>
+    <string name="action_act_reminders">Recordatorios cambiados</string>
+    <string name="action_act_boot">Inicio al arrancar cambiado</string>
+    <string name="action_act_caregiver_added">Cuidador añadido</string>
+    <string name="action_act_caregiver_removed">Cuidador eliminado</string>
+    <string name="action_act_unknown">Acción</string>
+    <string name="action_txt_dose_taken">%1$s marcada como tomada</string>
+    <string name="action_txt_dose_untaken">%1$s marcada como no tomada</string>
+    <string name="action_txt_doses_all">%1$d dosis marcadas como tomadas</string>
+    <string name="action_txt_schedule_created">Tratamiento creado para %1$s</string>
+    <string name="action_txt_schedule_edited">Tratamiento de %1$s editado</string>
+    <string name="action_txt_dose_edited">Dosis de %1$s editada</string>
+    <string name="action_txt_schedule_cancelled">Tratamiento de %1$s cancelado</string>
+    <string name="action_txt_schedule_paused">%1$s en pausa</string>
+    <string name="action_txt_schedule_paused_until">%1$s en pausa hasta %2$s</string>
+    <string name="action_txt_schedule_resumed">%1$s reanudado</string>
+    <string name="action_txt_stock_set">Existencias de %1$s definidas en %2$d</string>
+    <string name="action_txt_stock_added">%1$d dosis añadidas a %2$s</string>
+    <string name="action_txt_shopping_removed">%1$s eliminado de la lista de la compra</string>
+    <string name="action_txt_backup_exported">Copia de seguridad cifrada exportada</string>
+    <string name="action_txt_backup_restored">Copia de seguridad restaurada (%1$d tratamientos)</string>
+    <string name="action_txt_reminders_on">Recordatorios activados</string>
+    <string name="action_txt_reminders_off">Recordatorios desactivados</string>
+    <string name="action_txt_boot_on">Inicio al arrancar activado</string>
+    <string name="action_txt_boot_off">Inicio al arrancar desactivado</string>
+    <string name="action_txt_caregiver_added">Cuidador añadido</string>
+    <string name="action_txt_caregiver_removed">Cuidador eliminado</string>
+
+    <!-- Dose-toggle confirmation -->
+    <string name="confirm_take_title">¿Marcar la dosis como tomada?</string>
+    <string name="confirm_take_message">¿Marcar %1$s (programada a las %2$s) como tomada? Se registra la dosis y se retira una unidad de tu stock.</string>
+    <string name="confirm_take_outside_window">⚠ Esta dosis se está tomando fuera de su franja horaria prevista.</string>
+    <string name="confirm_take_confirm">Marcar tomada</string>
+    <string name="untake_warn_title">¿Desmarcar esta dosis?</string>
+    <string name="untake_warn_message">%1$s (programada a las %2$s) está marcada como tomada. Al desmarcarla, la dosis se registra como no tomada y se devuelve una unidad a tu stock; hazlo solo si la marcaste por error.</string>
+    <string name="untake_warn_confirm">Desmarcar</string>
+    <string name="activity_log_limit">Entradas del registro a conservar</string>
 </resources>

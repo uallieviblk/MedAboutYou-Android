@@ -112,8 +112,8 @@ data class ScheduleEntity(
 data class DoseLogEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "schedule_id") val scheduleId: Long,
-    @ColumnInfo(name = "scheduled_at") val scheduledAt: String,  // key_iso
-    val status: String,                                          // taken | untaken
+    @ColumnInfo(name = "scheduled_at") val scheduledAt: String, // key_iso
+    val status: String, // taken | untaken
     @ColumnInfo(name = "logged_at") val loggedAt: String,
 )
 
@@ -126,7 +126,7 @@ data class DoseLogEntity(
 data class OccOverrideEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "schedule_id") val scheduleId: Long,
-    @ColumnInfo(name = "scheduled_at") val scheduledAt: String,  // key_iso (original)
+    @ColumnInfo(name = "scheduled_at") val scheduledAt: String, // key_iso (original)
     val hour: Int,
     val minute: Int,
     @ColumnInfo(name = "window_minutes") val windowMinutes: Int,
@@ -147,7 +147,7 @@ data class OccOverrideEntity(
 data class DoseAlertEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(name = "schedule_id") val scheduleId: Long,
-    @ColumnInfo(name = "scheduled_at") val scheduledAt: String,  // key_iso
+    @ColumnInfo(name = "scheduled_at") val scheduledAt: String, // key_iso
     val kind: String,
     @ColumnInfo(name = "sent_at") val sentAt: String,
 )
@@ -159,4 +159,53 @@ data class ShoppingItemEntity(
     @PrimaryKey @ColumnInfo(name = "med_key") val medKey: String,
     @ColumnInfo(name = "med_name") val medName: String,
     @ColumnInfo(name = "added_at") val addedAt: String,
+)
+
+/**
+ * One pause window of a schedule — append-only history. [endDate] is
+ * **exclusive** ("" = still open, i.e. an indefinite pause). Days inside a
+ * window stay hidden from the calendar and analytics even after they slip into
+ * the past: a vacation pause must not retroactively become missed doses.
+ */
+@Serializable
+@Entity(tableName = "pause_period", indices = [Index(value = ["schedule_id"])])
+data class PausePeriodEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "schedule_id") val scheduleId: Long,
+    @ColumnInfo(name = "start_date") val startDate: String, // "YYYY-MM-DD", inclusive
+    @ColumnInfo(name = "end_date") val endDate: String = "", // exclusive; "" = open
+)
+
+/**
+ * A caregiver MQTT alert queued for **guaranteed delivery**. The row is written
+ * before any network attempt and removed only once the broker confirms the
+ * publish, so an alert survives process death, reboot, and long offline periods
+ * (the LAN broker is often unreachable). The row's [id] is the alert's numeric
+ * id carried in the CBOR payload; [category] is a numeric alert-category code.
+ */
+@Serializable
+@Entity(tableName = "mqtt_outbox")
+data class MqttOutboxEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val topic: String,
+    val user: String,
+    val timestamp: String, // ISO-8601, the alert time
+    val category: Int,
+    val text: String,
+    val qos: Int = 2, // exactly-once
+    @ColumnInfo(name = "created_at") val createdAt: String,
+)
+
+/**
+ * One logged user action — the local activity log. [category] and [actionId] are
+ * numeric codes (see `ActionCatalog`), each shown in the UI with a localized
+ * label; [text] is the full clear text rendered in the locale active when logged.
+ */
+@Entity(tableName = "action_log")
+data class ActionLogEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val timestamp: String, // ISO-8601, local
+    val category: Int,
+    @ColumnInfo(name = "action_id") val actionId: Int,
+    val text: String,
 )

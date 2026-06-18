@@ -70,6 +70,12 @@ fun ScanScreen(onResult: (String) -> Unit, onClose: () -> Unit, modifier: Modifi
     Box(modifier.fillMaxSize().background(Color.Black)) {
         if (granted) {
             val handled = remember { AtomicBoolean(false) }
+            // Owned by the composition so it is reliably closed when the scan
+            // screen leaves — the ML Kit client holds native resources.
+            val scanner = remember { BarcodeScanning.getClient() }
+            androidx.compose.runtime.DisposableEffect(Unit) {
+                onDispose { scanner.close() }
+            }
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
@@ -79,7 +85,6 @@ fun ScanScreen(onResult: (String) -> Unit, onClose: () -> Unit, modifier: Modifi
                         val provider = future.get()
                         val preview = Preview.Builder().build()
                             .also { it.setSurfaceProvider(previewView.surfaceProvider) }
-                        val scanner = BarcodeScanning.getClient()
                         val analysis = ImageAnalysis.Builder()
                             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                             .build()
@@ -90,7 +95,10 @@ fun ScanScreen(onResult: (String) -> Unit, onClose: () -> Unit, modifier: Modifi
                         runCatching {
                             provider.unbindAll()
                             provider.bindToLifecycle(
-                                lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis,
+                                lifecycleOwner,
+                                CameraSelector.DEFAULT_BACK_CAMERA,
+                                preview,
+                                analysis,
                             )
                         }
                     }, ContextCompat.getMainExecutor(ctx))
@@ -143,7 +151,8 @@ private class BarcodeAnalyzer(
     override fun analyze(proxy: ImageProxy) {
         val media = proxy.image
         if (media == null || handled.get()) {
-            proxy.close(); return
+            proxy.close()
+            return
         }
         scanner.process(InputImage.fromMediaImage(media, proxy.imageInfo.rotationDegrees))
             .addOnSuccessListener { codes ->

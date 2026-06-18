@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.uallsi.medaboutyou.MainActivity
@@ -14,7 +15,7 @@ import com.uallsi.medaboutyou.R
 /** Dose-reminder notifications — Android port of the desktop notification flow. */
 object Notifications {
     const val CHANNEL_ID = "dose_reminders"
-    const val EXTRA_PAYLOAD = "payload"     // "<scheduleId><keyIso>"
+    const val EXTRA_PAYLOAD = "payload" // "<scheduleId><keyIso>"
     const val ACTION_TAKE = "com.uallsi.medaboutyou.TAKE"
     const val ACTION_SKIP = "com.uallsi.medaboutyou.SKIP"
     const val ACTION_SHOPPING = "com.uallsi.medaboutyou.ADD_SHOPPING"
@@ -33,22 +34,44 @@ object Notifications {
             .createNotificationChannel(channel)
     }
 
-    // Per (schedule, occurrence) so two medicines scheduled at the same time get
-    // distinct reminders instead of colliding on one notification id.
-    fun notificationId(scheduleId: Long, keyIso: String): Int = ("dose:$scheduleId:$keyIso").hashCode()
+    // Dose reminders are identified by a tag carrying the (schedule, occurrence)
+    // pair, with a fixed id. The tag is parseable back (see [activeDoseKeys]) so
+    // a pass can withdraw notifications whose occurrence no longer exists
+    // (taken in-app, paused, cancelled, retimed).
+    private const val DOSE_NOTIFICATION_ID = 100
+    private fun doseTag(scheduleId: Long, keyIso: String): String = "dose:$scheduleId:$keyIso"
+
+    /** The (scheduleId, keyIso) pairs of every currently posted dose reminder. */
+    fun activeDoseKeys(context: Context): Set<Pair<Long, String>> {
+        val nm = context.getSystemService(NotificationManager::class.java) ?: return emptySet()
+        return nm.activeNotifications.mapNotNull { sbn ->
+            val tag = sbn.tag ?: return@mapNotNull null
+            if (!tag.startsWith("dose:")) return@mapNotNull null
+            val rest = tag.removePrefix("dose:")
+            val sep = rest.indexOf(':')
+            if (sep <= 0) return@mapNotNull null
+            val id = rest.take(sep).toLongOrNull() ?: return@mapNotNull null
+            id to rest.substring(sep + 1)
+        }.toSet()
+    }
 
     fun show(context: Context, scheduleId: Long, keyIso: String, medName: String, time: String) {
         ensureChannel(context)
         val payload = "$scheduleId$keyIso"
 
-        fun action(act: String, label: String, requestBase: Int): NotificationCompat.Action {
+        fun action(act: String, label: String): NotificationCompat.Action {
+            // A unique data URI makes the intents distinct per (action, schedule,
+            // occurrence) even on request-code hash collisions — otherwise two
+            // medicines due at the same minute share one PendingIntent and the
+            // Take/Skip of one gets logged against the other.
             val intent = Intent(context, DoseActionReceiver::class.java).apply {
                 action = act
+                data = Uri.parse("medaboutyou://dose/$scheduleId/$keyIso")
                 putExtra(EXTRA_PAYLOAD, payload)
             }
             val pi = PendingIntent.getBroadcast(
                 context,
-                requestBase + keyIso.hashCode(),
+                "$act|$scheduleId|$keyIso".hashCode(),
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
@@ -60,7 +83,9 @@ object Notifications {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val openPi = PendingIntent.getActivity(
-            context, keyIso.hashCode(), openIntent,
+            context,
+            "open|$scheduleId|$keyIso".hashCode(),
+            openIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
@@ -71,19 +96,20 @@ object Notifications {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(openPi)
-            .addAction(action(ACTION_TAKE, context.getString(R.string.mark_taken), 1000))
-            .addAction(action(ACTION_SKIP, context.getString(R.string.skip), 2000))
+            .addAction(action(ACTION_TAKE, context.getString(R.string.mark_taken)))
+            .addAction(action(ACTION_SKIP, context.getString(R.string.skip)))
             .build()
 
         try {
-            NotificationManagerCompat.from(context).notify(notificationId(scheduleId, keyIso), notification)
+            NotificationManagerCompat.from(context)
+                .notify(doseTag(scheduleId, keyIso), DOSE_NOTIFICATION_ID, notification)
         } catch (_: SecurityException) {
             // POST_NOTIFICATIONS not granted — silently skip.
         }
     }
 
     fun withdraw(context: Context, scheduleId: Long, keyIso: String) {
-        NotificationManagerCompat.from(context).cancel(notificationId(scheduleId, keyIso))
+        NotificationManagerCompat.from(context).cancel(doseTag(scheduleId, keyIso), DOSE_NOTIFICATION_ID)
     }
 
     // --- Refill reminders (separate, lower-priority channel) ---
@@ -108,11 +134,14 @@ object Notifications {
             putExtra(EXTRA_MED_NAME, medName)
         }
         val shopPi = PendingIntent.getBroadcast(
-            context, 3000 + medKey.hashCode(), shopIntent,
+            context,
+            3000 + medKey.hashCode(),
+            shopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val openPi = PendingIntent.getActivity(
-            context, 4000 + medKey.hashCode(),
+            context,
+            4000 + medKey.hashCode(),
             Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             },

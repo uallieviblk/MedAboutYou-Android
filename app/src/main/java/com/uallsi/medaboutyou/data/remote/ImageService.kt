@@ -32,6 +32,9 @@ class ImageService(private val http: Http = Http()) {
     }
 
     private companion object {
-        val json = Json { ignoreUnknownKeys = true; isLenient = true }
+        val json = Json {
+            ignoreUnknownKeys = true;
+            isLenient = true
+        }
     }
 }

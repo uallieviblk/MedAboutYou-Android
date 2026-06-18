@@ -109,7 +109,7 @@ data class Medicine(
                 ),
                 therapeuticIndication = field("therapeutic_indication"),
                 marketingAuthorisationHolder =
-                    field("marketing_authorisation_developer_applicant_holder"),
+                field("marketing_authorisation_developer_applicant_holder"),
                 additionalMonitoring = flag("additional_monitoring"),
                 advancedTherapy = flag("advanced_therapy"),
                 biosimilar = flag("biosimilar"),

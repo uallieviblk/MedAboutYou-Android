@@ -29,8 +29,14 @@ class ScheduleEngineTest {
         endDate: String = "",
         doseCount: Int = 0,
     ) = Schedule(
-        medName = "Test", startDate = start, endMode = endMode, endDate = endDate,
-        doseCount = doseCount, periodUnit = unit, periodN = n, times = times,
+        medName = "Test",
+        startDate = start,
+        endMode = endMode,
+        endDate = endDate,
+        doseCount = doseCount,
+        periodUnit = unit,
+        periodN = n,
+        times = times,
     )
 
     private fun hoursOn(s: Schedule, y: Int, m: Int, d: Int) =
@@ -42,7 +48,8 @@ class ScheduleEngineTest {
     // ---- ONCE ----
     @Test fun once_fires_each_entry_on_its_own_date_only() {
         val s = sched(
-            "2026-06-01", PeriodUnit.ONCE,
+            "2026-06-01",
+            PeriodUnit.ONCE,
             times = listOf(
                 DoseTime(year = 2026, month = 6, dayOfMonth = 10, hour = 9),
                 DoseTime(year = 2026, month = 6, dayOfMonth = 20, hour = 21, minute = 30),
@@ -75,7 +82,9 @@ class ScheduleEngineTest {
     @Test fun hours_honour_multiple_anchor_times() {
         // Two anchors, each stepping every 12h: 06:00 and 09:00.
         val s = sched(
-            "2026-06-01", PeriodUnit.HOURS, n = 12,
+            "2026-06-01",
+            PeriodUnit.HOURS,
+            n = 12,
             times = listOf(DoseTime(hour = 6, minute = 0), DoseTime(hour = 9, minute = 0)),
         )
         assertEquals(listOf(6 to 0, 9 to 0, 18 to 0, 21 to 0), hmOn(s, 2026, 6, 1))
@@ -84,7 +93,9 @@ class ScheduleEngineTest {
     // ---- DAYS ----
     @Test fun days_respect_interval_and_sort_times() {
         val s = sched(
-            "2026-06-01", PeriodUnit.DAYS, n = 3,
+            "2026-06-01",
+            PeriodUnit.DAYS,
+            n = 3,
             times = listOf(DoseTime(hour = 20, minute = 30), DoseTime(hour = 8, minute = 0)),
         )
         assertEquals(listOf(8 to 0, 20 to 30), hmOn(s, 2026, 6, 1)) // sorted
@@ -96,7 +107,9 @@ class ScheduleEngineTest {
     // ---- WEEKS ----
     @Test fun weeks_fire_only_on_selected_weekdays() {
         val s = sched(
-            "2026-06-01", PeriodUnit.WEEKS, n = 1,
+            "2026-06-01",
+            PeriodUnit.WEEKS,
+            n = 1,
             times = listOf(
                 DoseTime(weekday = DayOfWeek.MONDAY.value, hour = 8),
                 DoseTime(weekday = DayOfWeek.THURSDAY.value, hour = 20),
@@ -116,19 +129,25 @@ class ScheduleEngineTest {
     @Test fun weeks_every_2_skips_the_in_between_week() {
         val start = LocalDate.of(2026, 6, 1)
         val s = sched(
-            start.toString(), PeriodUnit.WEEKS, n = 2,
+            start.toString(),
+            PeriodUnit.WEEKS,
+            n = 2,
             times = listOf(DoseTime(weekday = start.dayOfWeek.value, hour = 8)),
         )
-        fun fires(date: LocalDate) = ScheduleEngine.occurrencesOn(s, date.year, date.monthValue, date.dayOfMonth).isNotEmpty()
-        assertTrue(fires(start))                 // week 0
-        assertTrue(!fires(start.plusWeeks(1)))   // week 1 — skipped
-        assertTrue(fires(start.plusWeeks(2)))    // week 2
+        fun fires(
+            date: LocalDate
+        ) = ScheduleEngine.occurrencesOn(s, date.year, date.monthValue, date.dayOfMonth).isNotEmpty()
+        assertTrue(fires(start)) // week 0
+        assertTrue(!fires(start.plusWeeks(1))) // week 1 — skipped
+        assertTrue(fires(start.plusWeeks(2))) // week 2
     }
 
     // ---- MONTHS ----
     @Test fun months_clamp_day_to_month_end() {
         val s = sched(
-            "2026-01-31", PeriodUnit.MONTHS, n = 1,
+            "2026-01-31",
+            PeriodUnit.MONTHS,
+            n = 1,
             times = listOf(DoseTime(dayOfMonth = 31, hour = 8)),
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(s, 2026, 1, 31).size)
@@ -139,7 +158,9 @@ class ScheduleEngineTest {
 
     @Test fun months_every_2_skips_alternate_months() {
         val s = sched(
-            "2026-06-15", PeriodUnit.MONTHS, n = 2,
+            "2026-06-15",
+            PeriodUnit.MONTHS,
+            n = 2,
             times = listOf(DoseTime(dayOfMonth = 15, hour = 8)),
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(s, 2026, 6, 15).size)
@@ -150,7 +171,9 @@ class ScheduleEngineTest {
     // ---- YEARS ----
     @Test fun years_fire_on_the_anniversary_with_interval() {
         val s = sched(
-            "2026-06-09", PeriodUnit.YEARS, n = 2,
+            "2026-06-09",
+            PeriodUnit.YEARS,
+            n = 2,
             times = listOf(DoseTime(month = 6, dayOfMonth = 9, hour = 9)),
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(s, 2026, 6, 9).size)
@@ -160,7 +183,9 @@ class ScheduleEngineTest {
 
     @Test fun years_leap_day_clamps_to_feb_28_in_common_years() {
         val s = sched(
-            "2024-02-29", PeriodUnit.YEARS, n = 1,
+            "2024-02-29",
+            PeriodUnit.YEARS,
+            n = 1,
             times = listOf(DoseTime(month = 2, dayOfMonth = 29, hour = 9)),
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(s, 2024, 2, 29).size) // leap year
@@ -171,8 +196,12 @@ class ScheduleEngineTest {
     // ---- End modes ----
     @Test fun end_on_date_is_inclusive_then_stops() {
         val s = sched(
-            "2026-06-01", PeriodUnit.DAYS, n = 1, times = listOf(DoseTime(hour = 8)),
-            endMode = EndMode.DATE, endDate = "2026-06-05",
+            "2026-06-01",
+            PeriodUnit.DAYS,
+            n = 1,
+            times = listOf(DoseTime(hour = 8)),
+            endMode = EndMode.DATE,
+            endDate = "2026-06-05",
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(s, 2026, 6, 5).size)
         assertTrue(ScheduleEngine.occurrencesOn(s, 2026, 6, 6).isEmpty())
@@ -180,8 +209,12 @@ class ScheduleEngineTest {
 
     @Test fun end_after_count_stops_after_n_doses() {
         val s = sched(
-            "2026-06-01", PeriodUnit.DAYS, n = 1, times = listOf(DoseTime(hour = 8)),
-            endMode = EndMode.COUNT, doseCount = 3,
+            "2026-06-01",
+            PeriodUnit.DAYS,
+            n = 1,
+            times = listOf(DoseTime(hour = 8)),
+            endMode = EndMode.COUNT,
+            doseCount = 3,
         )
         assertEquals(1, ScheduleEngine.occurrencesOn(s, 2026, 6, 3).size) // 3rd dose
         assertTrue(ScheduleEngine.occurrencesOn(s, 2026, 6, 4).isEmpty()) // 4th -> stop
@@ -203,7 +236,8 @@ class ScheduleEngineTest {
 
     @Test fun first_occurrence_days_is_earliest_time_on_start_date() {
         val s = sched(
-            "2026-06-01", PeriodUnit.DAYS,
+            "2026-06-01",
+            PeriodUnit.DAYS,
             times = listOf(DoseTime(hour = 20), DoseTime(hour = 8, minute = 30)),
         )
         assertEquals(LocalDate.of(2026, 6, 1).atTime(8, 30), ScheduleEngine.firstOccurrence(s))
@@ -212,7 +246,8 @@ class ScheduleEngineTest {
     @Test fun first_occurrence_weeks_is_earliest_selected_weekday() {
         // Start Mon 2026-06-01, fires Wed & Fri -> first is that Wednesday.
         val s = sched(
-            "2026-06-01", PeriodUnit.WEEKS,
+            "2026-06-01",
+            PeriodUnit.WEEKS,
             times = listOf(DoseTime(weekday = 5, hour = 9), DoseTime(weekday = 3, hour = 9)),
         )
         assertEquals(LocalDate.of(2026, 6, 3).atTime(9, 0), ScheduleEngine.firstOccurrence(s))
@@ -220,7 +255,8 @@ class ScheduleEngineTest {
 
     @Test fun first_occurrence_once_is_earliest_entry() {
         val s = sched(
-            "2026-06-01", PeriodUnit.ONCE,
+            "2026-06-01",
+            PeriodUnit.ONCE,
             times = listOf(
                 DoseTime(year = 2026, month = 6, dayOfMonth = 20, hour = 9),
                 DoseTime(year = 2026, month = 6, dayOfMonth = 10, hour = 21, minute = 15),
@@ -231,5 +267,66 @@ class ScheduleEngineTest {
 
     @Test fun first_occurrence_null_when_no_times() {
         assertNull(ScheduleEngine.firstOccurrence(sched("2026-06-01", PeriodUnit.DAYS, times = emptyList())))
+    }
+
+    // ---- COUNT correctness fixes ----
+
+    @Test fun count_duplicate_entries_are_one_dose_and_consume_one_count() {
+        // Two identical 08:00 entries: one visible dose per day, and the
+        // duplicates must NOT silently eat the dose budget (4 doses = 4 days).
+        val s = sched(
+            "2026-06-01",
+            PeriodUnit.DAYS,
+            times = listOf(DoseTime(hour = 8), DoseTime(hour = 8)),
+            endMode = EndMode.COUNT,
+            doseCount = 4,
+        )
+        for (d in 1..4) assertEquals(listOf(8 to 0), hmOn(s, 2026, 6, d))
+        assertTrue(ScheduleEngine.occurrencesOn(s, 2026, 6, 5).isEmpty())
+    }
+
+    @Test fun count_hours_multi_anchor_takes_chronological_first_doses() {
+        // Anchors 06:00 and 20:00 every 2h, 5 doses: the true chronological
+        // series is 06,08,10,12,14 on the start day — the 20:00 anchor's doses
+        // must not displace earlier ones.
+        val s = sched(
+            "2026-06-01",
+            PeriodUnit.HOURS,
+            n = 2,
+            times = listOf(DoseTime(hour = 6), DoseTime(hour = 20)),
+            endMode = EndMode.COUNT,
+            doseCount = 5,
+        )
+        assertEquals(listOf(6, 8, 10, 12, 14), hoursOn(s, 2026, 6, 1))
+        assertTrue(ScheduleEngine.occurrencesOn(s, 2026, 6, 2).isEmpty())
+    }
+
+    @Test fun count_occurrences_before_caps_at_dose_count() {
+        val s = sched(
+            "2026-06-01",
+            PeriodUnit.DAYS,
+            times = listOf(DoseTime(hour = 8)),
+            endMode = EndMode.COUNT,
+            doseCount = 5,
+        )
+        assertEquals(0, ScheduleEngine.countOccurrencesBefore(s, LocalDate.of(2026, 6, 1)))
+        assertEquals(3, ScheduleEngine.countOccurrencesBefore(s, LocalDate.of(2026, 6, 4)))
+        // Course exhausted on 2026-06-05; later dates stay capped at 5.
+        assertEquals(5, ScheduleEngine.countOccurrencesBefore(s, LocalDate.of(2026, 7, 1)))
+    }
+
+    @Test fun last_count_occurrence_is_the_final_dose() {
+        val s = sched(
+            "2026-06-01",
+            PeriodUnit.DAYS,
+            times = listOf(DoseTime(hour = 8)),
+            endMode = EndMode.COUNT,
+            doseCount = 5,
+        )
+        assertEquals(LocalDate.of(2026, 6, 5).atTime(8, 0), ScheduleEngine.lastCountOccurrence(s))
+        // Not COUNT-ended → null.
+        assertNull(
+            ScheduleEngine.lastCountOccurrence(sched("2026-06-01", PeriodUnit.DAYS, times = listOf(DoseTime(hour = 8))))
+        )
     }
 }

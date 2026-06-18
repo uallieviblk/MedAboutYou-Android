@@ -7,7 +7,7 @@
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+.kotlin/
 /app/build/
 
 # Published APK binaries — regenerate with website/update-apk.sh (latest.json is kept)
